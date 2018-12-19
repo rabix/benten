@@ -13,11 +13,15 @@ developing CWL workflows by hand.
 - Auto completion of step and port names
 - On demand insertion of CWL section templates (process objects, inputs, outputs, steps)
 - CWL Syntax checking and error notifcations
+- Code folding
 - Refactoring of CWL documents
   - Renaming workflow components (input ids, step ids)
   - Imploding of a set of workflow steps into a subworkflow
   - Exporting of individual steps or groups of steps into external workflow documents
   - Opening of subworkflows in new editor tabs
+- For editors that support it, a diagram pane
+  - The pane shows a graphical depiction of the workflow
+  - The pane allows dropping on local CWL files onto the workflow, to be added as steps
 
 # License
 Apache 2.0
