@@ -14,6 +14,7 @@ and simplifies these tasks. (List of [tools] that support LSP).
 
 
 [![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
+[![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 
 
 # Proposed Features

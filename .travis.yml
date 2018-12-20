@@ -5,12 +5,14 @@ dist: xenial
 python: "3.7"
 
 install:
-  - pip install pytest-cov
+  - pip install pytest-cov codecov
   - pip install .
 
+# We need to cd into tests in order for coverage to work
+# (it searches for .coverage in the cwd)
 script:
   - cd tests
   - py.test --cov=benten
 
 after_success:
-  - coveralls
+  - codecov
