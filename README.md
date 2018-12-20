@@ -7,8 +7,14 @@ workflow helper for the [Common Workflow Language](https://www.commonwl.org/) wr
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows there are some 
 activities that can get tedious, repetitive and error prone when done manually. 
-_Benten_ is a CWL workflow helper that gives a little extra assist to users 
-developing CWL workflows by hand.
+_Benten_ is a language server for the Common Workflow Language that automates
+and simplifies these tasks. (List of [tools] that support LSP).
+
+[tools]: https://microsoft.github.io/language-server-protocol/implementors/tools/
+
+
+[![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
+
 
 # Proposed Features
 - Auto completion of step and port names
