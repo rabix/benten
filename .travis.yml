@@ -10,3 +10,6 @@ install:
 
 script:
   - py.test --cov=benten tests/
+
+after_success:
+  - coveralls
