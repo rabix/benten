@@ -9,7 +9,8 @@ install:
   - pip install .
 
 script:
-  - py.test --cov=benten tests/
+  - cd tests
+  - py.test --cov=benten
 
 after_success:
   - coveralls
