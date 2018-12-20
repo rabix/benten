@@ -1,7 +1,8 @@
 # Benten
 _(This software is in the planning stage)_
 
-Language server and workflow helper for the Common Workflow Language
+This is a [Language server](https://microsoft.github.io/language-server-protocol/) and 
+workflow helper for the [Common Workflow Language](https://www.commonwl.org/) written in Python.
 
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows there are some 
