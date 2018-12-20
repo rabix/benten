@@ -1,7 +1,7 @@
 # Benten
 _(This software is in the planning stage)_
 
-Language server and workflow helper for the Common Workflow Language
+[Language server](https://langserver.org/) and workflow helper for the Common Workflow Language
 
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows there are some 
