@@ -13,7 +13,7 @@ if os.path.exists('./VERSION'):
     with io.open('./VERSION', 'r') as f:
         VERSION = f.read().strip()
 
-with open(path.join(DIR, 'Readme.md')) as f:
+with open(path.join(DIR, 'README.md')) as f:
     long_description = f.read()
 
 setup(
@@ -27,14 +27,14 @@ setup(
         "networkx",
         "pygraphviz"  # For the "dot" layout algorithm
     ],
-    package_data = {
-        "benten": ["tkdnd/*.tcl", "tkdnd/tcl_files/*.tcl", "tkdnd/tcl_libs/*"]
-    },
-    entry_points={
-        'console_scripts': [
-            'benten=benten.fe_appjar:main'
-        ],
-    },
+    # package_data = {
+    #     "benten": ["tkdnd/*.tcl", "tkdnd/tcl_files/*.tcl", "tkdnd/tcl_libs/*"]
+    # },
+    # entry_points={
+    #     'console_scripts': [
+    #         'benten=benten.fe_appjar:main'
+    #     ],
+    # },
 
     author='Seven Bridges Genomics Inc.',
     maintainer='Seven Bridges Genomics Inc.',
