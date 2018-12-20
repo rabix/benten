@@ -1,7 +1,8 @@
 # Benten
 _(This software is in the planning stage)_
 
-[Language server](https://langserver.org/) and workflow helper for the Common Workflow Language
+This is a [Language server](https://microsoft.github.io/language-server-protocol/) and 
+workflow helper for the [Common Workflow Language](https://www.commonwl.org/) written in Python.
 
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows there are some 
@@ -13,7 +14,6 @@ developing CWL workflows by hand.
 - Auto completion of step and port names
 - On demand insertion of CWL section templates (process objects, inputs, outputs, steps)
 - CWL Syntax checking and error notifcations
-- Code folding
 - Refactoring of CWL documents
   - Renaming workflow components (input ids, step ids)
   - Imploding of a set of workflow steps into a subworkflow
