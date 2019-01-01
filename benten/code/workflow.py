@@ -83,10 +83,16 @@ class WFOutputSourceCompleter(IntelligenceNode):
         self.workflow = workflow
 
     def completion(self):
-        step_ports = [f"{step_id}/{port}"
-                      for step_id, step_intel in self.workflow.step_intels.items()
-                      for port in step_intel.step_interface.outputs]
-        return set(step_ports + self.workflow.wf_inputs)
+        # step_ports = [f"{step_id}/{port}"
+        #               for step_id, step_intel in self.workflow.step_intels.items()
+        #               for port in step_intel.step_interface.outputs]
+        return self.workflow.wf_inputs.union(
+            {
+                f"{step_id}/{port}"
+                for step_id, step_intel in self.workflow.step_intels.items()
+                for port in step_intel.step_interface.outputs
+            }
+        )
 
 
 class WFStepIntelligence(IntelligenceContext):
@@ -188,6 +194,14 @@ def _validate_source(port, src_key, value_range, step_id, workflow, problems):
     if src is None:
         return
 
+    if isinstance(src, list):
+        for n, _src in enumerate(src):
+            _validate_one_source(_src, get_range_for_value(src, n), step_id, workflow, problems)
+    else:
+        _validate_one_source(src, value_range, step_id, workflow, problems)
+
+
+def _validate_one_source(src, value_range, step_id, workflow, problems):
     if src in workflow.wf_inputs:
         return
 

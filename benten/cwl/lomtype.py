@@ -80,10 +80,9 @@ class CWLListOrMapType(CWLBaseType):
                     code_intel.add_lookup_node(ln)
 
             elif self.name == "output":
-                if v is None or isinstance(v, str):
-                    ln = LookupNode(loc=value_range)
-                    ln.intelligence_node = intel_context.get_output_source_completer()
-                    code_intel.add_lookup_node(ln)
+                ln = LookupNode(loc=value_range)
+                ln.intelligence_node = intel_context.get_output_source_completer()
+                code_intel.add_lookup_node(ln)
 
         for k, v in obj.as_dict.items():
 
