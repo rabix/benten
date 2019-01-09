@@ -30,11 +30,11 @@ setup(
     # package_data = {
     #     "benten": ["tkdnd/*.tcl", "tkdnd/tcl_files/*.tcl", "tkdnd/tcl_libs/*"]
     # },
-    # entry_points={
-    #     'console_scripts': [
-    #         'benten=benten.fe_appjar:main'
-    #     ],
-    # },
+    entry_points={
+        'console_scripts': [
+            'benten-ls=benten.__main__:main'
+        ],
+    },
 
     author='Seven Bridges Genomics Inc.',
     maintainer='Seven Bridges Genomics Inc.',
