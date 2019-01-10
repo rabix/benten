@@ -33,6 +33,13 @@ and simplifies these tasks. (List of [tools] that support LSP).
 # License
 Apache 2.0
 
+# Thanks
+- [The Sourcegraph Python language server][src-pyls] source code. Some components have been used
+  with light modification and some have been studied to understand the Language Server Protocol
+
+[src-pyls]: https://github.com/sourcegraph/python-langserver
+
+
 # What's in a name? 
 
 **Saraswati** is the Hindu goddess of learning and knowledge and a long time ago 
