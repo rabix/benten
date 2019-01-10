@@ -48,7 +48,7 @@ class ReadWriter:
         return self.reader.read(*args).decode("utf-8")
 
     def write(self, out):
-        self.writer.write(out)
+        self.writer.write(out.encode("utf-8"))
         self.writer.flush()
 
 
