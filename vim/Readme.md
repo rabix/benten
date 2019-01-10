@@ -1,11 +1,13 @@
-To your `.vimrc` you should add
+To your `.vimrc` you should add the following sections (if you haven't already)
 
+
+Register CWL 
 ```
 au BufNewFile,BufRead *.cwl setlocal ft=cwl
 ```
 
-(You can check if this works properly by loading a `cwl` file and executing `:set ft?`. Verify that it returns 
-`filetype=cwl`)
+(You can check if this works properly by loading a `cwl` file and executing `:set ft?`. Verify that 
+it returns `filetype=cwl`)
 
 
 
@@ -22,6 +24,13 @@ if executable('benten-ls')
         \ })
 endif
 ```
+
+
+
+Once all this is cleared, you can should load up a CWL file and verify the vim language client
+AND the CWL language server is running by doing `:LspStatus` which should return 
+`cwl: starting` or `cwl: running`
+
 
 An minimally functional `.vimrc` file (mine) is
 
