@@ -11,9 +11,14 @@ it returns `filetype=cwl`)
 
 
 
+
+
 `:PlugStatus` - check if the plugin took.
 
+I had to manually do `:PlugInstall "etc."` for the plugins on my setup
 
+
+Register the language server for vim:
 
 ```
 if executable('benten-ls')
@@ -25,11 +30,9 @@ if executable('benten-ls')
 endif
 ```
 
-
-
 Once all this is cleared, you can should load up a CWL file and verify the vim language client
 AND the CWL language server is running by doing `:LspStatus` which should return 
-`cwl: starting` or `cwl: running`
+`cwl: starting` and then `cwl: running`
 
 
 An minimally functional `.vimrc` file (mine) is
@@ -48,11 +51,18 @@ call plug#begin('~/.vim/plugged')
 
 Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
 
 call plug#end()
 
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
+
+
 let g:lsp_log_verbose = 1
-let g:lsp_log_file = expand('~/vim-lsp.log')
+let g:lsp_log_file = expand('~/.vim/vim-lsp.log')
 
 if executable('benten-ls')
     au User lsp_setup call lsp#register_server({
