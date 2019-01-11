@@ -44,6 +44,7 @@ if executable('benten-ls')
 endif
 ```
 
+## Explanation
 ```
 au BufNewFile,BufRead *.cwl setlocal ft=cwl
 ```
@@ -75,6 +76,11 @@ endif
 This tells `vim` to look for the executable `benten-ls` in the path and start it up as a language
 server when it opens a `cwl` file.
 
+## Testing
+
 After doing this you should be able to load up a CWL file and verify the vim language client
 AND the CWL language server are running by doing `:LspStatus` which should return 
 `cwl: starting` and then `cwl: running`
+
+You can then open up a log viewer and look at `~/.sevenbridges/benten-ls.log` and `~/.vim/vim-lsp.log`
+(That's where my `.vim` puts the `vim-lsp` log, you can change the latter)
