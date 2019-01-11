@@ -30,6 +30,11 @@ and simplifies these tasks. (List of [tools] that support LSP).
   - The pane shows a graphical depiction of the workflow
   - The pane allows dropping on local CWL files onto the workflow, to be added as steps
 
+# Testing with vim
+Currently (2019.01) the server is under development and it doesn't do anything useful. 
+[Here's how I'm testing it with `vim`](vim/Readme.md).
+
+
 # License
 Apache 2.0
 
