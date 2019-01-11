@@ -1,10 +1,11 @@
-from enum import Enum
+from enum import IntEnum
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class LSPErrCode(Enum):
+# https://stackoverflow.com/a/24482131
+class LSPErrCode(IntEnum):
     # Defined by JSON RPC
     ParseError = -32700
     InvalidRequest = -32600
@@ -46,6 +47,9 @@ class LangServer:
 
         self.open_documents = {}
         self.initialization_request_received = False
+
+        self.client_capabilities = {}
+
         logger.info("Starting up ...")
 
     def run(self):
@@ -84,6 +88,7 @@ class LangServer:
         try:
             response = {
                 "initialize": self.serve_initialize,
+                "initialized": self.serve_ignore,
                 "textDocument/didOpen": self.serve_doc_did_open,
                 "textDocument/hover": self.serve_hover,
                 # "textDocument/definition": self.serve_definition,
@@ -155,8 +160,16 @@ class LangServer:
     # https://microsoft.github.io/language-server-protocol/specification#initialize
     def serve_initialize(self, client_query):
         self.initialization_request_received = True
+
+        self.client_capabilities = client_query.get("capabilities", {})
+
         return {
             "capabilities": {
+                "textDocumentSync": 2,  # Incremental
+                "completionProvider": {
+                    "resolveProvider": True,
+                    "triggerCharacters": ["."]
+                },
                 "hoverProvider": True,
                 "definitionProvider": True,
                 "referencesProvider": True,
@@ -169,6 +182,7 @@ class LangServer:
         }
 
     def serve_exit(self, client_query):
+        logging.shutdown()
         self.running = False
 
     # https://microsoft.github.io/language-server-protocol/specification#textDocument_didOpen
@@ -183,7 +197,17 @@ class LangServer:
     # Notes:
     # Multiple documents can be open at the same time. We need to keep track of this.
     def serve_doc_did_open(self, client_query):
-        pass
+        params = client_query["params"]
+        doc_uri = params["textDocument"]["uri"]
+        if doc_uri in self.open_documents:
+            msg = "Document {} duplicated open".format(doc_uri)
+            raise ServerError(
+                server_error_message=msg,
+                json_rpc_error=JSONRPC2Error(
+                    code=LSPErrCode.InvalidRequest,
+                    message=msg))
+
+        self.open_documents[doc_uri] = params
 
     def serve_hover(self, client_query):
         return {""}
