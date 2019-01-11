@@ -6,7 +6,7 @@ You will need to (if you haven't already)
 3. Install LSP client for VIM
 4. Configure it to run `benten-ls` when it loads up a CWL document
 
-An minimally functional `.vimrc` file (mine) is
+A minimally functional `.vimrc` file (mine) is
 
 ```
 syntax on
@@ -59,6 +59,10 @@ call plug#begin('~/.vim/plugged')
 call plug#end()
 ```
 Registers plugins. I have some issue in getting plugins to install the first time round.
+
+*Note:* If you want `CWL` syntax highlighting you can try adding `Plug 'manabuishii/vim-cwl'`
+From this project: https://github.com/manabuishii/vim-cwl
+This is not necessary for testing.
 
 You should check if the plugins are loaded and active by doing `:PlugStatus`
 I had to manually do `:PlugInstall "<plugin name>"` for each of the plugins on my setup
