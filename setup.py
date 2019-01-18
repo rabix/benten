@@ -23,7 +23,7 @@ setup(
     platforms=['POSIX', 'MacOS', 'Windows'],
     python_requires='>=3.5.0',
     install_requires=[
-        "ruamel.yaml == 0.15.51",
+        "ruamel.yaml >= 0.15.85",
         "networkx",
         "pygraphviz"  # For the "dot" layout algorithm
     ],
