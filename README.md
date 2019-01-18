@@ -35,6 +35,15 @@ Currently (2019.01) the server is under development and it doesn't do anything u
 [Here's how I'm testing it with `vim`](vim/Readme.md).
 
 
+# Configuration and log files
+All configuration and log files are found under `${HOME}/.sevenbridges/benten/`
+
+Benten's log file is `benten-ls.log`
+
+CWL templates used for autocomplete are found under `cwl-templates`. Default templates are supplied
+and they can be edited and personalized.
+
+
 # License
 Apache 2.0
 

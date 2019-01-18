@@ -1,4 +1,11 @@
+from typing import Dict
+import pathlib
 from enum import IntEnum
+
+import benten
+import benten.langserver.configuration as cfg
+import benten.langserver.cwldocument as cwldoc
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -45,10 +52,12 @@ class LangServer:
         self.workspace = None
         self.streaming = True
 
-        self.open_documents = {}
+        self.open_documents: Dict[str, cwldoc.CwlDocument] = {}
         self.initialization_request_received = False
 
         self.client_capabilities = {}
+
+        self.configuration = cfg.Configuration(benten.config_dir)
 
         logger.info("Starting up ...")
 
@@ -90,7 +99,10 @@ class LangServer:
                 "initialize": self.serve_initialize,
                 "initialized": self.serve_ignore,
                 "textDocument/didOpen": self.serve_doc_did_open,
+                "textDocument/didChange": self.serve_doc_did_change,
+                "textDocument/completion": self.serve_completion,
                 "textDocument/hover": self.serve_hover,
+                "textDocument/codeAction": self.serve_available_commands,
                 # "textDocument/definition": self.serve_definition,
                 # "textDocument/xdefinition": self.serve_x_definition,
                 # "textDocument/references": self.serve_references,
@@ -168,7 +180,7 @@ class LangServer:
                 "textDocumentSync": 2,  # Incremental
                 "completionProvider": {
                     "resolveProvider": True,
-                    "triggerCharacters": ["."]
+                    "triggerCharacters": []
                 },
                 "hoverProvider": True,
                 "definitionProvider": True,
@@ -207,7 +219,49 @@ class LangServer:
                     code=LSPErrCode.InvalidRequest,
                     message=msg))
 
-        self.open_documents[doc_uri] = params
+        self.open_documents[doc_uri] = cwldoc.CwlDocument(
+            base_path=pathlib.Path(doc_uri),
+            raw_cwl=params["textDocument"]["text"],
+            version=params["textDocument"]["version"],
+            configuration=self.configuration
+        )
+
+    def serve_doc_did_change(self, client_query):
+        params = client_query["params"]
+        doc_uri = params["textDocument"]["uri"]
+
+        if doc_uri not in self.open_documents:
+            msg = "No such document {} referred to in change".format(doc_uri)
+            raise ServerError(
+                server_error_message=msg,
+                json_rpc_error=JSONRPC2Error(
+                    code=LSPErrCode.InvalidRequest,
+                    message=msg))
+
+        self.open_documents[doc_uri].did_change(
+            changed_text=params["contentChanges"][0]["text"],
+            version=params["textDocument"]["version"]
+        )
+
+    def serve_completion(self, client_query):
+        params = client_query["params"]
+        doc_uri = params["textDocument"]["uri"]
+
+        if doc_uri not in self.open_documents:
+            msg = "No such document {} referred to in change".format(doc_uri)
+            raise ServerError(
+                server_error_message=msg,
+                json_rpc_error=JSONRPC2Error(
+                    code=LSPErrCode.InvalidRequest,
+                    message=msg))
+
+        return self.open_documents[doc_uri].auto_complete(
+            line=params["position"]["line"],
+            character=params["position"]["character"]
+        )
 
     def serve_hover(self, client_query):
-        return {""}
+        return {}
+
+    def serve_available_commands(self, client_query):
+        return {}
