@@ -2,6 +2,7 @@ import sys
 import socketserver
 import pathlib
 
+import benten
 from benten.langserver.jsonrpc import JSONRPC2Connection, ReadWriter, TCPReadWriter
 from benten.langserver.server import LangServer
 
@@ -23,7 +24,7 @@ class LangserverTCPTransport(socketserver.StreamRequestHandler):
 def main():
     import argparse
 
-    log_fn = pathlib.Path(pathlib.Path.home(), ".sevenbridges", "benten-ls.log")
+    log_fn = pathlib.Path(benten.config_dir, "benten-ls.log")
     logging.basicConfig(filename=log_fn, filemode="w", level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="")
