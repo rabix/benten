@@ -23,16 +23,18 @@ setup(
     platforms=['POSIX', 'MacOS', 'Windows'],
     python_requires='>=3.5.0',
     install_requires=[
+        "PySide2",
         "ruamel.yaml >= 0.15.85",
         "networkx",
         "pygraphviz"  # For the "dot" layout algorithm
     ],
     # package_data = {
-    #     "benten": ["tkdnd/*.tcl", "tkdnd/tcl_files/*.tcl", "tkdnd/tcl_libs/*"]
+    #     "benten": ["gui/tkdnd/*.tcl", "gui/tkdnd/tcl_files/*.tcl", "gui/tkdnd/tcl_libs/*"]
     # },
     entry_points={
         'console_scripts': [
-            'benten-ls=benten.__main__:main'
+            'benten-ls = benten.__main__:main',
+            'benten = benten.editor.main:main'
         ],
     },
 
