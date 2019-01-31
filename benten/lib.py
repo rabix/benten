@@ -15,6 +15,14 @@ def listify(x: (str, [str])):
         return [x]
 
 
+def is_cwl_document(fname: pathlib.Path):
+    if fname.exists():
+        # For now, a simple extension check. Later we might load the contents and check for cwlVersion
+        return fname.suffix == ".cwl"
+    else:
+        return False
+
+
 def is_recursible(doc: dict):
     """Does this document have children?"""
     return doc["class"] == "Workflow"

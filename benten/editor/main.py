@@ -8,7 +8,7 @@ from PySide2.QtWidgets import (QAction, QApplication, QPushButton, QLabel, QHBox
                                QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget)
 
 from benten.editor.codeeditor import CodeEditor
-from benten.editor.processdiagram import ProcessDiagram
+from benten.editor.processdiagram import ProcessDiagramView
 
 
 class BentenWindow(QWidget):
@@ -16,8 +16,8 @@ class BentenWindow(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
-        self.code_editor = CodeEditor(self)
-        self.workflow_map = ProcessDiagram(self)
+        self.code_editor = CodeEditor()
+        self.workflow_map = ProcessDiagramView(self)
         self.command_bar = QLineEdit(self)
         self.inbound_conn_table = QTableView(self)
         self.outbound_conn_table = QTableView(self)
