@@ -28,9 +28,6 @@ setup(
         "networkx",
         "pygraphviz"  # For the "dot" layout algorithm
     ],
-    # package_data = {
-    #     "benten": ["gui/tkdnd/*.tcl", "gui/tkdnd/tcl_files/*.tcl", "gui/tkdnd/tcl_libs/*"]
-    # },
     entry_points={
         'console_scripts': [
             'benten-ls = benten.__main__:main',
