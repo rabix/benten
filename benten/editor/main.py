@@ -1,14 +1,23 @@
 import sys
+import time
+import pathlib
 
-from PySide2.QtCore import (QDateTime, QModelIndex,
-                            QRect, Qt, QTimeZone, Slot)
+from PySide2.QtCore import Qt, QDateTime, QModelIndex, QSignalBlocker, QRect, Qt, QTimeZone, Slot
 
-from PySide2.QtWidgets import (QAction, QApplication, QPushButton, QLabel, QHBoxLayout, QVBoxLayout,
-                               QHeaderView, QMenuBar,
-                               QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget)
+from PySide2.QtWidgets import QAction, QApplication, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, QHeaderView, \
+    QMenuBar, QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget
+
+from PySide2.QtGui import QTextCursor
 
 from benten.editor.codeeditor import CodeEditor
-from benten.editor.processdiagram import ProcessDiagramView
+from benten.editor.processview import ProcessView
+import benten.logic.workflow as blwf
+
+
+class ProgrammaticEdit:
+    def __init__(self, raw_cwl, cursor_line):
+        self.raw_cwl = raw_cwl
+        self.cursor_line = cursor_line
 
 
 class BentenWindow(QWidget):
@@ -16,8 +25,8 @@ class BentenWindow(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
-        self.code_editor = CodeEditor()
-        self.workflow_map = ProcessDiagramView(self)
+        self.code_editor: CodeEditor = CodeEditor()
+        self.workflow_map: ProcessView = ProcessView(self)
         self.command_bar = QLineEdit(self)
         self.inbound_conn_table = QTableView(self)
         self.outbound_conn_table = QTableView(self)
@@ -36,6 +45,48 @@ class BentenWindow(QWidget):
         vertical_panes.addWidget(self.code_editor)
 
         self.setLayout(vertical_panes)
+
+        self.last_update_time = time.time()
+        self.update_interval = 2.0
+
+        self.current_programmatic_edit: ProgrammaticEdit = None
+
+        self.code_editor.textChanged.connect(self.manual_edit)
+
+    def load(self, path: pathlib.Path):
+        self.current_programmatic_edit = ProgrammaticEdit(path.open("r").read(), 0)
+        self.programmatic_edit()
+
+
+    @Slot()
+    def manual_edit(self):
+        """Called whenever the code is changed manually"""
+        if time.time() - self.last_update_time > self.update_interval:
+            self.update_interval = time.time()
+            self.update_from_code()
+
+    @Slot()
+    def programmatic_edit(self):
+        """Called when we have a programmatic edit to execute"""
+        # https://doc.qt.io/qt-5/qsignalblocker.html
+        blk = QSignalBlocker(self.code_editor)
+
+        # https://programtalk.com/python-examples/PySide2.QtGui.QTextCursor/
+        # https://www.qtcentre.org/threads/43268-Setting-Text-in-QPlainTextEdit-without-Clearing-Undo-Redo-History
+
+        doc = self.code_editor.document()
+        curs = QTextCursor(doc)
+        curs.select(QTextCursor.SelectionType.Document)
+        curs.insertText(self.current_programmatic_edit.raw_cwl)
+
+        # https://stackoverflow.com/questions/27036048/how-to-scroll-to-the-specified-line-in-qplaintextedit
+        self.code_editor.setTextCursor(QTextCursor(
+            doc.findBlockByLineNumber(self.current_programmatic_edit.cursor_line)))
+        self.code_editor.highlight_current_line()
+        self.update_from_code()
+
+    def update_from_code(self):
+        pass
 
 
 class MainWindow(QMainWindow):
@@ -62,6 +113,8 @@ class MainWindow(QMainWindow):
         # self.setFixedSize(geometry.width() * 0.8, geometry.height() * 0.7)
 
         self.setCentralWidget(BentenWindow())
+
+        self.centralWidget().load(pathlib.Path("/Users/kghose/Work/code/benten/tests/cwl/sbg/salmon.cwl"))
 
     @Slot()
     def exit_app(self, checked):

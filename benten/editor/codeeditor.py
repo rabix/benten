@@ -60,7 +60,6 @@ class CodeEditor(QPlainTextEdit):
         QPlainTextEdit.__init__(self)
 
         self.setFont(QFont("consolas", 9))
-        self.setPlainText(open("/Users/kghose/Work/code/benten/tests/cwl/sbg/salmon.cwl", "r").read())
 
         self.line_number_area = LineNumberArea(self)
 

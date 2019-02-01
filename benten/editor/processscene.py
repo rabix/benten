@@ -1,11 +1,8 @@
 import pathlib
 
-from PySide2.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent, QGraphicsView
-from PySide2.QtCore import Qt
+from PySide2.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent
+from PySide2.QtCore import Qt, Signal
 
-import networkx as nx
-
-import benten.logic.workflow as blwf
 import benten.lib as blib
 
 
@@ -13,8 +10,10 @@ def paths_to_drop(event: QGraphicsSceneDragDropEvent):
     return (pathlib.Path(f.path()) for f in event.mimeData().urls())
 
 
-class ProcessDiagramScene(QGraphicsScene):
+class ProcessScene(QGraphicsScene):
     """We need to subclass this to handle dropping onto the scene"""
+
+    nodes_added = Signal(list)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -34,37 +33,11 @@ class ProcessDiagramScene(QGraphicsScene):
             event.setProposedAction(Qt.IgnoreAction)
 
     def dropEvent(self, event: QGraphicsSceneDragDropEvent):
+        wf_list = []
         for p in paths_to_drop(event):
             if blib.is_cwl_document(p):
                 event.setProposedAction(Qt.CopyAction)
-                print(p)
+                wf_list += [p]
                 event.accept()
 
-
-class ProcessDiagramView(QGraphicsView):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.scene = ProcessDiagramScene(parent)
-        self.setAcceptDrops(True)
-        self.setScene(self.scene)
-
-    def set_diagram(self, wf: blwf.Workflow):
-        G = nx.DiGraph()
-        G.add_nodes_from(wf.inputs)
-        G.add_nodes_from(wf.steps)
-        G.add_nodes_from(wf.outputs)
-
-        G.add_edges_from([
-            (
-                e.src.node_id or e.src.port_id,
-                e.dst.node_id or e.dst.port_id
-            )
-            for e in wf.connections
-        ])
-
-        node_size = [
-            10 if (n in wf.inputs or n in wf.outputs) else 100
-            for n in G.nodes
-        ]
-
-        pos = nx.drawing.nx_agraph.graphviz_layout(G, prog='dot')
+        self.nodes_added.emit(wf_list)
