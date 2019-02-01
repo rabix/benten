@@ -54,15 +54,21 @@ class BentenWindow(QWidget):
         self.code_editor.textChanged.connect(self.manual_edit)
 
     def load(self, path: pathlib.Path):
-        self.current_programmatic_edit = ProgrammaticEdit(path.open("r").read(), 0)
-        self.programmatic_edit()
 
+        # This is elegant because it invokes the programmatic edits mechanism (DRY)
+        # BUT now the edit history carries the initial blank document
+        # self.current_programmatic_edit = ProgrammaticEdit(path.open("r").read(), 0)
+        # self.programmatic_edit()
+
+        # So instead we do this directly
+        self.code_editor.setPlainText(path.open("r").read())
+        self.update_from_code()
 
     @Slot()
     def manual_edit(self):
         """Called whenever the code is changed manually"""
         if time.time() - self.last_update_time > self.update_interval:
-            self.update_interval = time.time()
+            self.last_update_time = time.time()
             self.update_from_code()
 
     @Slot()
@@ -73,20 +79,22 @@ class BentenWindow(QWidget):
 
         # https://programtalk.com/python-examples/PySide2.QtGui.QTextCursor/
         # https://www.qtcentre.org/threads/43268-Setting-Text-in-QPlainTextEdit-without-Clearing-Undo-Redo-History
-
         doc = self.code_editor.document()
-        curs = QTextCursor(doc)
-        curs.select(QTextCursor.SelectionType.Document)
-        curs.insertText(self.current_programmatic_edit.raw_cwl)
+        insert_cursor = QTextCursor(doc)
+        insert_cursor.select(QTextCursor.SelectionType.Document)
+        insert_cursor.insertText(self.current_programmatic_edit.raw_cwl)
 
         # https://stackoverflow.com/questions/27036048/how-to-scroll-to-the-specified-line-in-qplaintextedit
-        self.code_editor.setTextCursor(QTextCursor(
-            doc.findBlockByLineNumber(self.current_programmatic_edit.cursor_line)))
+        final_cursor = QTextCursor(
+            doc.findBlockByLineNumber(self.current_programmatic_edit.cursor_line))
+        self.code_editor.setTextCursor(final_cursor)
+        self.code_editor.update_line_number_area_width(0) # This is needed so that everything aligns right
         self.code_editor.highlight_current_line()
+
         self.update_from_code()
 
     def update_from_code(self):
-        pass
+        print("Bing!")
 
 
 class MainWindow(QMainWindow):
@@ -112,7 +120,9 @@ class MainWindow(QMainWindow):
         # geometry = app.desktop().availableGeometry(self)
         # self.setFixedSize(geometry.width() * 0.8, geometry.height() * 0.7)
 
-        self.setCentralWidget(BentenWindow())
+        self.benten_window = BentenWindow()
+        self.setCentralWidget(self.benten_window)
+        self.benten_window.code_editor.setFocus()
 
         self.centralWidget().load(pathlib.Path("/Users/kghose/Work/code/benten/tests/cwl/sbg/salmon.cwl"))
 
