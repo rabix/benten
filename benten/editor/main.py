@@ -1,3 +1,5 @@
+import os
+import argparse
 import sys
 import pathlib
 
@@ -10,8 +12,9 @@ from benten.editor.bentenwindow import BentenWindow
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, path_str=None):
         QMainWindow.__init__(self)
+
         self.setWindowTitle("Benten")
 
         # Menu
@@ -36,7 +39,15 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.benten_window)
         self.benten_window.code_editor.setFocus()
 
-        self.centralWidget().load(pathlib.Path("/Users/kghose/Work/code/benten/tests/cwl/sbg/salmon.cwl"))
+        if path_str is not None:
+            path = pathlib.Path(path_str)
+
+            if not path.exists():
+                with open(path, "w") as f:
+                    pass
+
+            self.benten_window.load(path)
+            self.setWindowTitle("Benten: {}".format(path_str))
 
     @Slot()
     def exit_app(self, checked):
@@ -44,9 +55,16 @@ class MainWindow(QMainWindow):
 
 
 def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('cwl', nargs='?', help="Path to CWL document")
+    parser.add_argument('-v', action='count', help="Verbosity level")
+
+    args = parser.parse_args()
+
     app = QApplication(sys.argv)
 
-    window = MainWindow()
+    window = MainWindow(path_str=args.cwl)
     window.show()
 
     sys.exit(app.exec_())
