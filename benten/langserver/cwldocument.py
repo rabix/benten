@@ -3,12 +3,13 @@ a variety of operations the language server can offer"""
 import benten
 import benten.langserver.configuration as cfg
 from benten.langserver.lspobjects import Range, Position
-from benten.langserver.completionitem import CompletionItem, CompletionList, TextEdit
+from benten.langserver.completionitem import CompletionItem, CompletionList, TextEdit, CompletionItemKind, InsertTextFormat
 
 
 # Have to confirm there is no other way to
 def convert_template_to_completion_item(label, tpl):
-    ci = CompletionItem(label=label)
+    ci = CompletionItem(label=label, kind=CompletionItemKind.Function,
+                        insert_text_format=InsertTextFormat.PlainText)
     cwl = tpl["cwl"]
     cwl_lines = cwl.split("\n")
     ci.textEdit = TextEdit(line=0, character=0, new_text=cwl_lines[0])

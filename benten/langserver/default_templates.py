@@ -47,7 +47,7 @@ hints: []""",
     "Workflow": {
         "doc": "A workflow describes a set of steps and the dependencies between those steps",
         "file": "workflow.cwl",
-        "cwl": \
+        "cwl":
 """class: Workflow
 cwlVersion: v1.0
 id:

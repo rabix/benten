@@ -10,7 +10,7 @@ import pathlib
 import ruamel.yaml.error as rue
 
 import benten.lib as blib
-import benten.logic.workflow as WF
+import benten.models.workflow as WF
 import benten.logic.actions as actions
 from benten.editing.history import History
 

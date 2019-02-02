@@ -1,17 +1,16 @@
-import sys
 import time
 import pathlib
 
-from PySide2.QtCore import Qt, QDateTime, QModelIndex, QSignalBlocker, QRect, Qt, QTimer, Slot
-
-from PySide2.QtWidgets import QAction, QApplication, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, QHeaderView, \
-    QMenuBar, QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget
-
-from PySide2.QtGui import QTextCursor
+from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot
+from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableView, QWidget
+from PySide2.QtGui import QTextCursor, QPainter
 
 from benten.editor.codeeditor import CodeEditor
 from benten.editor.processview import ProcessView
-import benten.logic.workflow as blwf
+from benten.editor.workflowscene import WorkflowScene
+
+import benten.lib as blib
+from benten.models.workflow import Workflow
 
 
 class ProgrammaticEdit:
@@ -48,7 +47,7 @@ class BentenWindow(QWidget):
         QWidget.__init__(self)
 
         self.code_editor: CodeEditor = CodeEditor()
-        self.workflow_map: ProcessView = ProcessView(self)
+        self.process_view: ProcessView = ProcessView(self)
         self.command_bar = QLineEdit(self)
         self.inbound_conn_table = QTableView(self)
         self.outbound_conn_table = QTableView(self)
@@ -58,7 +57,7 @@ class BentenWindow(QWidget):
         conn_panes.addWidget(self.outbound_conn_table)
 
         horiz_panes = QVBoxLayout()
-        horiz_panes.addWidget(self.workflow_map)
+        horiz_panes.addWidget(self.process_view)
         horiz_panes.addWidget(self.command_bar)
         horiz_panes.addLayout(conn_panes)
 
@@ -73,10 +72,14 @@ class BentenWindow(QWidget):
 
         self.current_programmatic_edit: ProgrammaticEdit = None
 
+        self.process_to_edit: (Workflow,) = None
+        self.process_file_path = None
+
         self.code_editor.textChanged.connect(self.manual_edit)
 
     def load(self, path: pathlib.Path):
         # This registers as the first manual edit
+        self.process_file_path = path  # Set this first subsequent line triggers a slot
         self.code_editor.setPlainText(path.open("r").read())
 
     @Slot()
@@ -102,10 +105,24 @@ class BentenWindow(QWidget):
         final_cursor = QTextCursor(
             doc.findBlockByLineNumber(self.current_programmatic_edit.cursor_line))
         self.code_editor.setTextCursor(final_cursor)
-        self.code_editor.update_line_number_area_width(0) # This is needed so that everything aligns right
+        self.code_editor.update_line_number_area_width(0)  # This is needed so that everything aligns right
         self.code_editor.highlight_current_line()
 
         self.update_from_code()
 
     def update_from_code(self):
-        print("Bing!")
+
+        modified_cwl = self.code_editor.toPlainText()
+
+        # todo: check for version and type of CWL document
+        self.process_to_edit = \
+            Workflow(cwl_doc=blib.yamlify(modified_cwl), path=self.process_file_path)
+
+        scene = WorkflowScene(self)
+        scene.set_workflow(self.process_to_edit)
+        self.process_view.setScene(scene)
+        self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+
+        # self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
+        # self.process_view.ensureVisible(-10, -10, 20, 20)
+        # self.process_view.show()
