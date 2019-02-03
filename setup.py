@@ -25,7 +25,6 @@ setup(
     install_requires=[
         "PySide2",
         "ruamel.yaml >= 0.15.85",
-        "networkx",
         "pygraphviz"  # For the "dot" layout algorithm
     ],
     entry_points={

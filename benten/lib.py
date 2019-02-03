@@ -81,6 +81,10 @@ def yamlify(text: str):
     return YAML(typ="rt").load(text)
 
 
+def fast_parse(text: str):
+    return YAML(typ="safe", pure=False).load(text)
+
+
 def reyamlify(yml: CommentedMap):
     """Turn yml into string and reload as YAML. This gets us line numbers after we've messed with
     the original (loaded) YAML"""

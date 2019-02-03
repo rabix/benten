@@ -24,7 +24,7 @@ class ManualEditManager:
     these calls so they don't overwhelm the system and yet not miss out on the final edit in
     a burst of edits. This manager handles that job effectively"""
     def __init__(self):
-        self.update_interval = 2.0
+        self.update_interval = 5.0
         self.last_update_time = 0.0
         self.timer = QTimer()
         self.timer.setSingleShot(True)

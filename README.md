@@ -7,8 +7,9 @@ workflow helper for the [Common Workflow Language](https://www.commonwl.org/) wr
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows there are some 
 activities that can get tedious, repetitive and error prone when done manually. 
-_Benten_ is a language server for the Common Workflow Language that automates
-and simplifies these tasks. (List of [tools] that support LSP).
+_Benten_ is a GUI that automates and simplifies some of these tasks. 
+_Benten Language Server_ is a language server for the Common Workflow Language that 
+supplies autocomplete functionality (List of [tools] that support LSP).
 
 [tools]: https://microsoft.github.io/language-server-protocol/implementors/tools/
 
@@ -16,8 +17,115 @@ and simplifies these tasks. (List of [tools] that support LSP).
 [![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 
+# Workflow helper component
 
-# Proposed Features
+`Benten` the GUI workflow helper has four panels
+
+## Workflow map
+The workflow map gives an overview sketch of the workflow. Individual port 
+connections are not shown: the workflow DAG just indicates the overall flow of 
+data from one process step to another. The weight of the line reflects how many 
+ports are involved in the connection. A hierarchical layout is used that
+emphasizes the dataflow.
+
+Dropping CWL files onto this map will add them as steps to the workflow.
+
+Clicking on a flow line connecting two nodes will populate the inbound 
+and outbound connection table with all the connections between those
+two nodes.
+
+Clicking on a step will focus on that node. This scrolls the code editor to
+the code for that step and populates the inbound and outbound connection table
+with the inputs and outputs for that node. Hitting delete while focused on a 
+node will delete that node.
+
+Double-Clicking on a node will cause the code editor to scroll to the first 
+line of the step. The code referred to in the `run` field will open in another 
+instance of Benten.
+If the step refers to an external file, this is just like opening
+that file in Benten. If the step is inline then it is extracted into a 
+temporary file and opened in Benten. Editing of the parent workflow is frozen
+until this workflow is closed. Any changes to the inline step are saved back
+to the parent workflow. Main editing can resume once this instance of Benten
+is closed.
+
+Selecting multiple steps enables the option to `implode` these steps into a
+subworkflow. You will be asked for a file path to save the new step into. 
+Leaving it blank creates an inline step. 
+
+Choosing `extract`, instead, on one or more steps will pack this code into a 
+separate process object (`Workflow`, `CommandLineTool` etc.) in a file you choose.
+
+Selecting a step and asking for `inline` will copy all the code into the main
+workflow file if the step refers to an external file.
+
+
+## Code editor
+The code editor pane shows the raw code. This is the code that is being parsed to
+show the workflow map and to perform auto-completion on the command bar.
+
+Editing the raw CWL in the code editor tab will update the workflow map. Entering 
+invalid YAML will lock out the workflow map and command bar until the YAML is 
+fixed. Valid YAML that is invalid CWL will result in a workflow with warnings
+and errors.
+
+The code editor has infinite undo/redo (within sanity). Any sub-workflow files 
+created on disk are not undone, so undoing an implode step will leave the created 
+subworkflow file intact.
+
+
+## Command bar
+
+Major workflow operations are performed using the command bar. The command bar
+has auto complete which allows users to quickly navigate to the step and port
+they want to access/modify
+
+### Commands
+```
+as step_id path/to/step.cwl  - add step with given id
+remove-step step_id          - remove step
+ai input_id                  - add workflow input
+remove-input input_id        - remove workflow input
+ao output_id                 - add workflow output
+remove-output output_id      - remove workflow output
+c src dst                    - connect source to destination
+disconnect src dst                    - disconnect
+implode new_step_id (path/to/new.cwl | inline) step1_id step2_id step3_id 
+                             - refactor the given steps into a single sub-workflow
+                               Instead of path use the text "inline" to implode the step inline 
+                               in the main document
+explode step_id (path/to/folder) - given a step break it into individual tools in given folder 
+export step_id path/to/new.cwl  - export CWL in given step if it is inline  
+inline step_id path/to/step.cwl  - if step is a subworkflow make it inline in the main workflow
+```
+
+Note that undo and redo operations do not change any secondary files on disk, only the main workflow
+file.
+
+ 
+## 4 way synchronization 
+By default Benten will only save the main file to disk when asked to and will only
+reload a file from disk when asked to. The configuration file can be edited to
+change this behavior such that all changes are live: edits made in Benten are 
+saved to disk automatically and edits made to the file outside of Benten are
+reloaded automatically.
+
+
+## Conservation of raw text
+To the extent that `ruamel.yaml` preserves the orginal layout of a YAML file
+Benten will conserve the raw text the developer types in. CWL allows users to
+represent a set of objects (steps, ports etc.) as either lists or maps. 
+All programmatic Benten operations (e.g. dropping steps onto the workflow, 
+adding I/O) honor the existing style the user has chosen for a section. e.g.
+if the user has chosen to start the `steps` section as a list, dropping new
+steps into the workflow will add them as a list.
+
+
+
+# Language server component
+
+
+## Proposed Features
 - Auto completion of step and port names
 - On demand insertion of CWL section templates (process objects, inputs, outputs, steps)
 - CWL Syntax checking and error notifcations
@@ -30,7 +138,7 @@ and simplifies these tasks. (List of [tools] that support LSP).
   - The pane shows a graphical depiction of the workflow
   - The pane allows dropping on local CWL files onto the workflow, to be added as steps
 
-# Testing with vim
+## Testing with vim
 Currently (2019.01) the server is under development and it doesn't do anything useful. 
 [Here's how I'm testing it with `vim`](vim/Readme.md).
 
@@ -38,7 +146,7 @@ Currently (2019.01) the server is under development and it doesn't do anything u
 # Configuration and log files
 All configuration and log files are found under `${HOME}/.sevenbridges/benten/`
 
-Benten's log file is `benten-ls.log`
+Benten language server's log file is `benten-ls.log`
 
 CWL templates used for autocomplete are found under `cwl-templates`. Default templates are supplied
 and they can be edited and personalized.

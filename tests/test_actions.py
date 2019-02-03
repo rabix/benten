@@ -3,7 +3,7 @@ import pathlib
 import os
 
 import benten.lib as blib
-import benten.logic.workflow as WF
+import benten.models.workflow as WF
 import benten.logic.actions as actions
 
 current_path = pathlib.Path(__file__).parent

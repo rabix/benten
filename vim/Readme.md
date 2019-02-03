@@ -6,6 +6,10 @@ You will need to (if you haven't already)
 3. Install LSP client for VIM
 4. Configure it to run `benten-ls` when it loads up a CWL document
 
+
+## LSP client
+
+
 A minimally functional `.vimrc` file (mine) is
 
 ```
@@ -88,3 +92,21 @@ AND the CWL language server are running by doing `:LspStatus` which should retur
 
 You can then open up a log viewer and look at `~/.sevenbridges/benten-ls.log` and `~/.vim/vim-lsp.log`
 (That's where my `.vim` puts the `vim-lsp` log, you can change the latter)
+
+
+## Problems
+
+Prabir sreshta's plugin:
+- For autocompletion the label is used to autocomplete, which is not what the server sends back
+
+https://github.com/prabirshrestha/asyncomplete.vim/issues/99
+
+natebosch/vim-lsc
+- Autocomplete response does not seem to be processed at all
+
+
+
+
+
+
+
