@@ -19,14 +19,14 @@ class WorkflowScene(ProcessScene):
 
     def create_scene(self):
         G = pgv.AGraph(directed=True)
-        G.add_nodes_from(self.workflow.inputs, type="input")
+        G.add_node("inputs")
         G.add_nodes_from(self.workflow.steps, type="step")
-        G.add_nodes_from(self.workflow.outputs, type="output")
+        G.add_node("outputs")
 
         G.add_edges_from([
             (
-                e.src.node_id or e.src.port_id,
-                e.dst.node_id or e.dst.port_id
+                e.src.node_id or "inputs",
+                e.dst.node_id or "outputs"
             )
             for e in self.workflow.connections
         ])
@@ -43,12 +43,12 @@ class WorkflowScene(ProcessScene):
             for n in G.nodes()
         }
 
-        base_node_size = 50
+        base_node_size = 10
         for k, v in graph.items():
             if v["type"] == "step":
                 node_size = base_node_size
             else:
-                node_size = base_node_size / 10
+                node_size = base_node_size / 2
 
             p = v["pos"]
 
@@ -61,43 +61,5 @@ class WorkflowScene(ProcessScene):
             p0 = graph[e[0]]["pos"]
             p1 = graph[e[1]]["pos"]
             self.addLine(p0[0], p0[1], p1[0], p1[1])
-
-        print(self.sceneRect())
-
-    def create_scene2(self):
-        G = nx.DiGraph()
-        G.add_nodes_from(self.workflow.inputs)
-        G.add_nodes_from(self.workflow.steps)
-        G.add_nodes_from(self.workflow.outputs)
-
-        G.add_edges_from([
-            (
-                e.src.node_id or e.src.port_id,
-                e.dst.node_id or e.dst.port_id
-            )
-            for e in self.workflow.connections
-        ])
-
-        node_size = [
-            10 if (n in self.workflow.inputs or n in self.workflow.outputs) else 100
-            for n in G.nodes
-        ]
-
-        pos = nx.drawing.nx_agraph.graphviz_layout(G, prog='dot')
-
-        xmin = min((p[0] for p in pos.values()))
-        xmax = max((p[0] for p in pos.values()))
-        ymin = min((p[1] for p in pos.values()))
-        ymax = max((p[1] for p in pos.values()))
-
-        x_range = xmax - xmin
-        y_range = ymax - ymin
-
-        node_size2 = 100
-        for k, v in pos.items():
-            ellipse = QGraphicsEllipseItem(v[0] - node_size2/2, v[1] - node_size2/2, node_size2, node_size2)
-            ellipse.setBrush(QBrush(Qt.black))
-            ellipse.setVisible(True)
-            self.addItem(ellipse)
 
         print(self.sceneRect())
