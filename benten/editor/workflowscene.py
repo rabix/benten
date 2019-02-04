@@ -1,7 +1,7 @@
 import pygraphviz as pgv
 
 from PySide2.QtCore import Qt, QRectF, QPointF
-from PySide2.QtGui import QPen, QBrush, QColor
+from PySide2.QtGui import QPen, QBrush, QColor, QPolygonF
 from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsRectItem
 
 from benten.editor.processscene import ProcessScene
@@ -55,15 +55,22 @@ class WorkflowScene(ProcessScene):
 
             if v["type"] == "step":
                 item = QGraphicsEllipseItem(p[0] - node_size/2, p[1] - node_size/2, node_size, node_size)
+            elif v["type"] == "inputs":
+                #item = QGraphicsRectItem(p[0] - node_size/2, p[1] - node_size/2, node_size, node_size)
+                item = self.addPolygon(QPolygonF([QPointF(p[0], p[1]),
+                                                  QPointF(p[0] + node_size/2, p[1] + node_size/2),
+                                                  QPointF(p[0] - node_size/2, p[1] + node_size/2)]))
             else:
-                item = QGraphicsRectItem(p[0] - node_size/2, p[1] - node_size/2, node_size, node_size)
+                item = self.addPolygon(QPolygonF([QPointF(p[0], p[1] - node_size/2),
+                                                  QPointF(p[0] + node_size/2, p[1]),
+                                                  QPointF(p[0] - node_size/2, p[1])]))
 
             item.setBrush(QBrush(Qt.gray))
             item.setToolTip(k)
             self.addItem(item)
 
-            if v["type"] != "step":
-                txt = self.addText(v["type"])
-                txt.setPos(p[0] - 10, p[1])
+            # if v["type"] != "step":
+            #     txt = self.addText(v["type"])
+            #     txt.setPos(p[0] - 10, p[1])
 
         print(self.sceneRect())
