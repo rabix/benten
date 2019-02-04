@@ -1,15 +1,29 @@
-"""While we perform programmatic edits directly on the loaded YAML (CommentedMap) these edits
-do not compute and insert line numbers. An important part of the editor is being able to point
-to line numbers for inputs, outputs, steps and connections. Computing new line numbers after an
-edit is very involved and delicate.
+"""This model should allow us to perform the following operations
 
-For this reason we choose to convert the YAML to text and then reparse it. This (re)parsed YAML
-is represented as the Workflow object which carries a list of inputs, outputs, steps, available
-ports for steps and existing connections.
+Line number operations
+1. Return line range for a step so we can highlight the start line or delete the step
+2. Return line range for a connection so we can highlight it, or delete it
+3. Return range for a workflow input/output so we can highlight it, create it, delete it
+4. Find the last line of the "steps" section so we can append a step to it.
 
-The time to parse the YAML depends on the amount of text in it. (e.g. the salmon.cwl workflow,
-151 kB of text, takes 1.3 sec to load). If this becomes a problem, we will rethink our approach
-and increase the complexity of the algorithm.
+Listing operations
+1. List all inputs, outputs and steps of a workflow
+2. List all connections of a workflow
+3. List all possible inputs and outputs for a step
+
+Edit operations:
+Consists of a line number (range), text to insert, and final cursor position.
+A delete is line number range and empty text.
+A replace is a line number range and some text.
+An insert is a single line number and some text.
+An edit operation can consist of multiple non local operations
+
+1. Delete a step
+2. Insert a step with basic fields filled out (tell us line number to insert at, and raw CWL)
+3. Delete a connection
+4. insert a connection
+5. Add/remove a workflow input/output
+
 """
 import pathlib
 from collections import OrderedDict
