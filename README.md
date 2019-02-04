@@ -19,14 +19,14 @@ supplies autocomplete functionality (List of [tools] that support LSP).
 
 # Workflow helper component
 
-`Benten` the GUI workflow helper has four panels
+`Benten` the GUI workflow helper has four main panels that work in concert
+to provide a "View" into a workflow.
 
 ## Workflow map
 The workflow map gives an overview sketch of the workflow. Individual port 
 connections are not shown: the workflow DAG just indicates the overall flow of 
-data from one process step to another. The weight of the line reflects how many 
-ports are involved in the connection. A hierarchical layout is used that
-emphasizes the dataflow.
+data from input to out via the various process steps. 
+A hierarchical layout is used that emphasizes the dataflow.
 
 Dropping CWL files onto this map will add them as steps to the workflow.
 
@@ -39,15 +39,21 @@ the code for that step and populates the inbound and outbound connection table
 with the inputs and outputs for that node. Hitting delete while focused on a 
 node will delete that node.
 
-Double-Clicking on a node will cause the code editor to scroll to the first 
-line of the step. The code referred to in the `run` field will open in another 
-instance of Benten.
-If the step refers to an external file, this is just like opening
-that file in Benten. If the step is inline then it is extracted into a 
-temporary file and opened in Benten. Editing of the parent workflow is frozen
-until this workflow is closed. Any changes to the inline step are saved back
-to the parent workflow. Main editing can resume once this instance of Benten
-is closed.
+Clicking on the input or output node will show all the inputs/output connections
+of the workflow on the connection table.
+
+Double-Clicking on a step will switch the View to show this step. 
+
+A breadcrumb trail above the View keeps the user oriented. Clicking on a breadcrumb
+switches to the View to that step.
+
+If a step is a subworkflow refering to another file, this is just like having 
+different files open in different editor instances. If the step is inline, then 
+edits in the different views are actually edits to the same file. 
+
+In such a case edit history operates a little specially. In the view where an
+edit is done, a normal history of edits evolves. In the other views a squashed
+edit is applied when switching to that view, so the history is less rich.
 
 Selecting multiple steps enables the option to `implode` these steps into a
 subworkflow. You will be asked for a file path to save the new step into. 
@@ -59,6 +65,12 @@ separate process object (`Workflow`, `CommandLineTool` etc.) in a file you choos
 Selecting a step and asking for `inline` will copy all the code into the main
 workflow file if the step refers to an external file.
 
+## Breadcrumb trail
+
+As mentioned earlier, Views can switch to displaying a step within the current 
+workflow. A breadcrumb trail above the view keeps track of what steps the user
+has clicked through and the user can click on the trail to switch to an earlier
+view.
 
 ## Code editor
 The code editor pane shows the raw code. This is the code that is being parsed to
