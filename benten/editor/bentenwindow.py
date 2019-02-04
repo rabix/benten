@@ -1,3 +1,6 @@
+"""Provides a view into a CWL component, like a workflow. The view can be of a whole CWL file
+or a part of a CWL file, like an in-lined step. Changes to a part of a CWL file are """
+
 import time
 import pathlib
 
@@ -22,23 +25,16 @@ class ProgrammaticEdit:
 class ManualEditManager:
     """Each manual edit we do (letter we type) triggers a manual edit. We need to manage
     these calls so they don't overwhelm the system and yet not miss out on the final edit in
-    a burst of edits. This manager handles that job effectively"""
+    a burst of edits. This manager handles that job effectively."""
     def __init__(self):
-        self.update_interval = 5.0
-        self.last_update_time = 0.0
+        self.burst_window = 1.0
+        # We allow upto a <burst_window> pause in typing before parsing the edit
         self.timer = QTimer()
         self.timer.setSingleShot(True)
-        self.timer.setInterval(int(self.update_interval * 1000))
+        self.timer.setInterval(int(self.burst_window * 1000))
 
-    def pass_on_edit(self):
-        if time.time() - self.last_update_time > self.update_interval:
-            self.timer.stop()
-            self.last_update_time = time.time()
-            return True
-        else:
-            self.timer.start()
-            # Remember to register this edit in case it's the last one in a burst
-            return False
+    def restart_edit_clock(self):
+        self.timer.start()
 
 
 class BentenWindow(QWidget):
@@ -68,7 +64,7 @@ class BentenWindow(QWidget):
         self.setLayout(vertical_panes)
 
         self.manual_edit_manager = ManualEditManager()
-        self.manual_edit_manager.timer.timeout.connect(self.manual_edit)
+        self.manual_edit_manager.timer.timeout.connect(self.update_from_code)
 
         self.current_programmatic_edit: ProgrammaticEdit = None
 
@@ -78,15 +74,16 @@ class BentenWindow(QWidget):
         self.code_editor.textChanged.connect(self.manual_edit)
 
     def load(self, path: pathlib.Path):
-        # This registers as the first manual edit
-        self.process_file_path = path  # Set this first subsequent line triggers a slot
+        # This registers as the first manual edit, but we force the update to happen immediately
+        blk = QSignalBlocker(self.code_editor)
+        self.process_file_path = path
         self.code_editor.setPlainText(path.open("r").read())
+        self.update_from_code()
 
     @Slot()
     def manual_edit(self):
         """Called whenever the code is changed manually"""
-        if self.manual_edit_manager.pass_on_edit():
-            self.update_from_code()
+        self.manual_edit_manager.restart_edit_clock()
 
     @Slot()
     def programmatic_edit(self):
@@ -110,6 +107,7 @@ class BentenWindow(QWidget):
 
         self.update_from_code()
 
+    @Slot()
     def update_from_code(self):
 
         modified_cwl = self.code_editor.toPlainText()
