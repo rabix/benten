@@ -45,6 +45,7 @@ class MultiDocumentManager:
 
         if inline_path is None:
             # New root document
+            self.directory_of_documents[parent_path] = {}
             raw_cwl = p_path.open("r").read()
             cwl_doc = CwlDoc(raw_cwl=raw_cwl, path=p_path, inline_path=inline_path)
             bw.set_document(cwl_doc=cwl_doc)
