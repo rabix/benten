@@ -1,4 +1,5 @@
 """Container for storing a CWL object in memory and for applying some edits to it"""
+from typing import List, Dict, Generator, Tuple
 from enum import IntEnum
 import pathlib
 
@@ -17,7 +18,7 @@ class CLineLoader(yaml.CSafeLoader):
         mapping = super().construct_mapping(node, deep=deep)
         mapping["__meta__"] = {
             "__start_line__": node.start_mark.line,
-            "__end_line": node.end_mark.line,
+            "__end_line__": node.end_mark.line,
             "__flow__": node.flow_style
         }
         return mapping
@@ -26,10 +27,29 @@ class CLineLoader(yaml.CSafeLoader):
         seq = super().construct_sequence(node, deep=deep)
         seq.append({
             "__start_line__": node.start_mark.line,
-            "__end_line": node.end_mark.line,
+            "__end_line__": node.end_mark.line,
             "__flow__": node.flow_style
         })
         return seq
+
+
+# To be used for toplevel, inputs, outputs, steps, in/out of steps
+def list_or_map_w_line_no(lom: (List, Dict)) -> Generator[Tuple[str, object, int, int], None, None]:
+    def _get_line_range(_v, _parent_range):
+        if not isinstance(_v, dict):
+            return _parent_range
+        else:
+            return _v["__meta__"]["__start_line__"], v["__meta__"]["__end_line__"]
+
+    if isinstance(lom, List):
+        for n, v in enumerate(lom[:-1]):
+            # CWL demands that these are dicts. And because this is from a list, it has to
+            # have an "id" field
+            yield (v["id"], v) + _get_line_range(v, (lom[-1]["__start_line__"], lom[-1]["__start_line__"]))
+    else:
+        for k, v in lom.items():
+            if k == "__meta__": continue
+            yield (k, v) + _get_line_range(v, (lom["__meta__"]["__start_line__"], lom["__meta__"]["__start_line__"]))
 
 
 class EditType(IntEnum):
