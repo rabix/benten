@@ -8,33 +8,6 @@ from ruamel.yaml import YAML  # For round trip
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 
-import yaml
-
-
-# In [3]: %timeit cwl = blib.CwlDoc(fname=pathlib.Path("salmon.cwl"))
-# 28.8 ms ± 832 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
-
-# From a hint here: https://stackoverflow.com/a/53647080
-class CLineLoader(yaml.CSafeLoader):
-    def construct_mapping(self, node, deep=False):
-        mapping = super(CLineLoader, self).construct_mapping(node, deep=deep)
-        mapping['__start_line__'] = node.start_mark.line
-        mapping['__end_line__'] = node.end_mark.line
-        return mapping
-
-
-class CwlDoc:
-    def __init__(self, fname: pathlib.Path=None, raw_cwl: str=None):
-        if fname is not None:
-            self.raw_cwl = fname.open("r").read()
-        elif raw_cwl is not None:
-            self.raw_cwl = raw_cwl
-        else:
-            raise ValueError("Need to pass path to CWL or raw CWL string")
-
-        self.cwl_dict = yaml.load(self.raw_cwl, Loader=CLineLoader)
-
-
 def listify(x: (str, [str])):
     if isinstance(x, list):
         return x

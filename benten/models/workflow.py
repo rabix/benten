@@ -1,4 +1,5 @@
-"""This model should allow us to perform the following operations
+"""This model should allow us to perform the following operations on a CWL document
+that is a workflow:
 
 Line number operations
 1. Return line range for a step so we can highlight the start line or delete the step
@@ -8,7 +9,7 @@ Line number operations
 
 Listing operations
 1. List all inputs, outputs and steps of a workflow
-2. List all connections of a workflow
+2. List all inputs/outputs of a workflow
 3. List all possible inputs and outputs for a step
 
 Edit operations:
@@ -37,16 +38,16 @@ import benten.lib as blib
 logger = logging.getLogger(__name__)
 
 
-class Section:
-    def __init__(self, line: int, contents: dict):
-        self.line = line
-        self.contents = contents
-
-    def __contains__(self, item):
-        return item in self.contents
-
-    def __getitem__(self, item):
-        return self.contents[item]
+# class Section:
+#     def __init__(self, line: int, contents: dict):
+#         self.line = line
+#         self.contents = contents
+#
+#     def __contains__(self, item):
+#         return item in self.contents
+#
+#     def __getitem__(self, item):
+#         return self.contents[item]
 
 
 # Not only the line number, but in the future we can type the port and do type

@@ -9,6 +9,7 @@ from PySide2.QtWidgets import QAction, QApplication, QTabWidget, QPushButton, QL
     QHeaderView, QTabBar, \
     QMenuBar, QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget
 
+from benten.editor.bentenmainwidget import BentenMainWidget
 from benten.editor.bentenwindow import BentenWindow
 
 
@@ -41,18 +42,10 @@ class MainWindow(QMainWindow):
         # be defined
         self.active_window: BentenWindow = None
 
-        self.tab_widget = QTabWidget()
-        # https://stackoverflow.com/questions/18022290/qt5-align-osx-qtabwidget-left
-        self.tab_widget.setTabsClosable(True)
-
-        # https://stackoverflow.com/questions/18022290/qt5-align-osx-qtabwidget-left
-        # Setting stylesheet removes close buttons
-        # self.tab_widget.setStyleSheet("QTabWidget::tab-bar {alignment: left; };"
-        #                               "QTabWidget::tab-bar::closeButton {position: right;}")
-
+        self.tab_widget = BentenMainWidget()
+        self.tab_widget.currentChanged.connect(self.breadcrumb_selected)
         self.setCentralWidget(self.tab_widget)
 
-        b1 = BentenWindow()
         if path_str is not None:
             path = pathlib.Path(path_str)
 
@@ -60,19 +53,11 @@ class MainWindow(QMainWindow):
                 with open(path, "w") as f:
                     pass
 
-            b1.load(path)
-            self.setWindowTitle("Benten: {}".format(path_str))
+            self.tab_widget.open_document(path_str, None)
 
-        self.tab_widget.currentChanged.connect(self.breadcrumb_selected)
-
-        self.tab_widget.addTab(b1, "Benten")
-        self.tab_widget.tabBar().tabButton(0, QTabBar.LeftSide).hide()
-
-        self.tab_widget.addTab(BentenWindow(), "Remove this benten")
 
         # self.active_window: BentenWindow = self.tab_widget.currentWidget()
         # self.active_window.code_editor.setFocus()
-
 
     @Slot()
     def exit_app(self, checked):

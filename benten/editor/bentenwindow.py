@@ -13,6 +13,7 @@ from benten.editor.processview import ProcessView
 from benten.editor.workflowscene import WorkflowScene
 
 import benten.lib as blib
+from benten.editing.cwldoc import CwlDoc
 from benten.models.workflow import Workflow
 
 
@@ -66,19 +67,42 @@ class BentenWindow(QWidget):
         self.manual_edit_manager = ManualEditManager()
         self.manual_edit_manager.timer.timeout.connect(self.update_from_code)
 
+        self.cwl_doc: CwlDoc = None
+        self.process_model: (Workflow,) = None
+        # todo: deprecate
+        self.process_file_path = None
+
+        # To deprecate and use different mechanism
         self.current_programmatic_edit: ProgrammaticEdit = None
 
-        self.process_to_edit: (Workflow,) = None
-        self.process_file_path = None
+
+        self.is_active_window = False
 
         self.code_editor.textChanged.connect(self.manual_edit)
 
+    def set_document(self, cwl_doc):
+        # This registers as a manual edit but we wish to skip the throttler
+        blk = QSignalBlocker(self.code_editor)
+        self.cwl_doc = cwl_doc
+        self.code_editor.setPlainText(self.cwl_doc.raw_cwl)
+        self.update_from_code()
+
+    # todo: remove this
     def load(self, path: pathlib.Path):
         # This registers as the first manual edit, but we force the update to happen immediately
         blk = QSignalBlocker(self.code_editor)
         self.process_file_path = path
         self.code_editor.setPlainText(path.open("r").read())
         self.update_from_code()
+
+    def set_active_window(self):
+        """To be called whenever we switch tabs to this window. """
+        self.is_active_window = True
+        self.update_from_code()
+
+    def set_inactive_window(self):
+        """To be called whenever we switch away from this window"""
+        self.is_active_window = False
 
     @Slot()
     def manual_edit(self):
@@ -110,14 +134,21 @@ class BentenWindow(QWidget):
     @Slot()
     def update_from_code(self):
 
+        if not self.is_active_window:
+            # Defer updating until we can be seen
+            return
+
         modified_cwl = self.code_editor.toPlainText()
+        if self.process_model is not None:
+            if self.process_model.cwl_doc.raw_cwl == modified_cwl:
+                return
 
         # todo: check for version and type of CWL document
-        self.process_to_edit = \
-            Workflow(cwl_doc=blib.yamlify(modified_cwl), path=self.process_file_path)
+        self.process_model = \
+            Workflow(cwl_doc=blib.yamlify(modified_cwl), path=self.cwl_doc.path)
 
         scene = WorkflowScene(self)
-        scene.set_workflow(self.process_to_edit)
+        scene.set_workflow(self.process_model)
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
