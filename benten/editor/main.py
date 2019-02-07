@@ -6,7 +6,7 @@ import pathlib
 from PySide2.QtCore import Qt, QDateTime, QModelIndex, QSignalBlocker, QRect, Qt, QTimeZone, Slot
 
 from PySide2.QtWidgets import QAction, QApplication, QTabWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, \
-    QHeaderView, \
+    QHeaderView, QTabBar, \
     QMenuBar, QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget
 
 from benten.editor.bentenwindow import BentenWindow
@@ -36,20 +36,23 @@ class MainWindow(QMainWindow):
         # geometry = app.desktop().availableGeometry(self)
         # self.setFixedSize(geometry.width() * 0.8, geometry.height() * 0.7)
 
+        # This needs to come before tabs are added because adding tabs triggers
+        # the currentChanged signal which triggers a slot that requires this to
+        # be defined
+        self.active_window: BentenWindow = None
+
         self.tab_widget = QTabWidget()
         # https://stackoverflow.com/questions/18022290/qt5-align-osx-qtabwidget-left
-        self.tab_widget.setStyleSheet("QTabWidget::tab-bar {left: 0; }")
-        self.tab_widget.currentChanged.connect(self.breadcrumb_selected)
+        self.tab_widget.setTabsClosable(True)
 
-        self.tab_widget.addTab(BentenWindow(), "Benten")
-
-        self.tab_widget.addTab(BentenWindow(), "Remove this benten")
+        # https://stackoverflow.com/questions/18022290/qt5-align-osx-qtabwidget-left
+        # Setting stylesheet removes close buttons
+        # self.tab_widget.setStyleSheet("QTabWidget::tab-bar {alignment: left; };"
+        #                               "QTabWidget::tab-bar::closeButton {position: right;}")
 
         self.setCentralWidget(self.tab_widget)
 
-        self.benten_window = self.tab_widget.currentWidget()
-        self.benten_window.code_editor.setFocus()
-
+        b1 = BentenWindow()
         if path_str is not None:
             path = pathlib.Path(path_str)
 
@@ -57,8 +60,19 @@ class MainWindow(QMainWindow):
                 with open(path, "w") as f:
                     pass
 
-            self.benten_window.load(path)
+            b1.load(path)
             self.setWindowTitle("Benten: {}".format(path_str))
+
+        self.tab_widget.currentChanged.connect(self.breadcrumb_selected)
+
+        self.tab_widget.addTab(b1, "Benten")
+        self.tab_widget.tabBar().tabButton(0, QTabBar.LeftSide).hide()
+
+        self.tab_widget.addTab(BentenWindow(), "Remove this benten")
+
+        # self.active_window: BentenWindow = self.tab_widget.currentWidget()
+        # self.active_window.code_editor.setFocus()
+
 
     @Slot()
     def exit_app(self, checked):
@@ -75,6 +89,11 @@ class MainWindow(QMainWindow):
         # Reload from disk
         # If no differences, nothing to do
         # If different, apply a squashed edit to bring us up to the latest version
+        if self.active_window is not None:
+            self.active_window.set_inactive_window()
+        self.active_window = self.tab_widget.currentWidget()
+        self.active_window.set_active_window()
+
         print(self.tab_widget.currentIndex())
 
 
