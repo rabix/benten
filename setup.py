@@ -13,7 +13,7 @@ if os.path.exists('./VERSION'):
     with io.open('./VERSION', 'r') as f:
         VERSION = f.read().strip()
 
-with open(path.join(DIR, 'README.md')) as f:
+with open(path.join(DIR, 'Readme.md')) as f:
     long_description = f.read()
 
 setup(
@@ -23,13 +23,12 @@ setup(
     platforms=['POSIX', 'MacOS', 'Windows'],
     python_requires='>=3.5.0',
     install_requires=[
+        "pyyaml",
         "PySide2",
-        "ruamel.yaml >= 0.15.85",
         "pygraphviz"  # For the "dot" layout algorithm
     ],
     entry_points={
         'console_scripts': [
-            'benten-ls = benten.__main__:main',
             'benten = benten.editor.main:main'
         ],
     },
