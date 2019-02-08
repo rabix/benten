@@ -1,84 +1,8 @@
 """Container for storing a CWL object in memory and for applying some edits to it"""
-from typing import List, Dict, Generator, Tuple
 from enum import IntEnum
 import pathlib
 
-import yaml
-try:
-    from yaml import CSafeLoader as Loader
-except ImportError:
-    from yaml import SafeLoader as Loader
-
-
-def read_cwl(raw_cwl):
-    return yaml.load(raw_cwl, Loader=Loader)
-
-
-# In [3]: %timeit cwl = cwldoc.CwlDoc(fname=pathlib.Path("salmon.cwl"))
-# 28.8 ms ± 832 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
-
-# From a hint here: https://stackoverflow.com/a/53647080
-# This is not suitable for general YAML parsing, but works for our use case
-class CLineLoader(Loader):
-
-    def construct_mapping(self, node, deep=False):
-        mapping = super().construct_mapping(node, deep=deep)
-        mapping["__meta__"] = {
-            "__start_line__": node.start_mark.line,
-            "__end_line__": node.end_mark.line,
-            "__flow__": node.flow_style
-        }
-        return mapping
-
-    def construct_sequence(self, node, deep=False):
-        seq = super().construct_sequence(node, deep=deep)
-        seq.append({
-            "__start_line__": node.start_mark.line,
-            "__end_line__": node.end_mark.line,
-            "__flow__": node.flow_style
-        })
-        return seq
-
-
-def iter_lom(obj: (List, Dict)) -> Generator[Tuple[str, object], None, None]:
-    """For the sub-workflows we load the plain YAML without line numbers and such"""
-    if isinstance(obj, list):
-        for n, v in enumerate(obj):
-            # CWL demands that a list of the type we are thinking of has an id field
-            if "id" not in v:
-                print(v)
-            yield v["id"], v
-    else:
-        for k, v in obj.items():
-            yield k, v
-
-
-# To be used for toplevel, inputs, outputs, steps, in/out of steps
-def iter_lom_ln(lom: (List, Dict)) -> Generator[Tuple[str, object, int, int], None, None]:
-    def _get_line_range(_v, _parent_range):
-        if not isinstance(_v, dict):
-            return _parent_range
-        else:
-            return _v["__meta__"]["__start_line__"], v["__meta__"]["__end_line__"]
-
-    if isinstance(lom, List):
-        for n, v in enumerate(lom[:-1]):
-            # CWL demands that these are dicts. And because this is from a list, it has to
-            # have an "id" field
-            yield (v["id"], v) + _get_line_range(v, (lom[-1]["__start_line__"], lom[-1]["__start_line__"]))
-    else:
-        for k, v in lom.items():
-            if k == "__meta__": continue
-            yield (k, v) + _get_line_range(v, (lom["__meta__"]["__start_line__"], lom["__meta__"]["__start_line__"]))
-
-
-def in_lom(lom: (List, Dict), key):
-    if isinstance(lom, list):
-        return any(True for v in lom if v["id"] == key)
-    elif isinstance(lom, dict):
-        return key in lom
-    else:
-        raise RuntimeError("Neither list nor map")
+from benten.editing.listormap import parse_cwl_to_lom
 
 
 class EditType(IntEnum):
@@ -112,13 +36,13 @@ class CwlDoc:
         self.path = path
         self.inline_path = inline_path
         self.cwl_lines = self.raw_cwl.splitlines()
-        self.cwl_dict = yaml.load(self.raw_cwl, Loader=CLineLoader)
+        self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
 
     def apply_manual_edit(self, raw_cwl: str):
         if self.raw_cwl != raw_cwl:
             self.raw_cwl = raw_cwl
             self.cwl_lines = self.raw_cwl.splitlines()
-            self.cwl_dict = yaml.load(self.raw_cwl, Loader=CLineLoader)
+            self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
 
     def apply_programmatic_edit(self, edit: DocEdit):
         if edit.edit_type == EditType.Insert:
@@ -134,7 +58,7 @@ class CwlDoc:
                              self.cwl_lines[edit.end_line:]
 
         self.raw_cwl = "\n".join(self.cwl_lines)
-        self.cwl_dict = yaml.load(self.raw_cwl, Loader=CLineLoader)
+        self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
 
     # No error checking here because this will be asked for programatically only
     # if the nested dict exists
@@ -144,9 +68,9 @@ class CwlDoc:
             if len(_inline_path) == 0:
                 return _doc_dict
             else:
-                for steps in _doc_dict["steps"]:
-                    if steps["id"] == _inline_path[0]:
-                        return _find_step(steps["run"], _inline_path[1:])
+                for _id, step in _doc_dict["steps"]:
+                    if step["id"] == _inline_path[0]:
+                        return _find_step(step["run"], _inline_path[1:])
 
         if self.inline_path is not None:
             raise RuntimeError("Sub part from nested document fragment is not allowed")
@@ -154,8 +78,9 @@ class CwlDoc:
         nested_doc = _find_step(self.cwl_dict, inline_path)
 
         # Now we have a dict with line numbers, which we'll use to extract from the main doc
-        meta = nested_doc["meta"]
-        lines_we_need = self.cwl_lines[meta["__start_line__"]:meta["__end_line__"]]
+        start_line = nested_doc.start_line
+        end_line = nested_doc.end_line
+        lines_we_need = self.cwl_lines[start_line:end_line]
         indent_level = len(lines_we_need[0]) - len(lines_we_need[0].lstrip())
         lines = [
             l[indent_level:]
