@@ -15,6 +15,9 @@ from benten.editor.workflowscene import WorkflowScene
 from benten.editing.cwldoc import CwlDoc
 from benten.models.workflow import Workflow
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class ProgrammaticEdit:
     def __init__(self, raw_cwl, cursor_line):
@@ -124,6 +127,8 @@ class BentenWindow(QWidget):
     @Slot()
     def update_from_code(self):
 
+        t0 = time.time()
+
         if not self.is_active_window:
             # Defer updating until we can be seen
             return
@@ -139,7 +144,7 @@ class BentenWindow(QWidget):
 
         # todo: check for version and type of CWL document
         self.process_model = \
-            Workflow(cwl_doc=self.cwl_doc, path=self.cwl_doc.path)
+            Workflow(cwl_doc=self.cwl_doc)
 
         scene = WorkflowScene(self)
         scene.selectionChanged.connect(self.something_selected)
@@ -148,6 +153,11 @@ class BentenWindow(QWidget):
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
+        t1 = time.time()
+
+        logger.debug("Parsed and displayed workflow in {}s".format(t1 - t0))
+        if self.process_model.problems_with_wf:
+            logger.warning(self.process_model.problems_with_wf)
 
         # self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
         # self.process_view.ensureVisible(-10, -10, 20, 20)

@@ -223,7 +223,6 @@ class Workflow:
             this_step: Step = self.steps[step_id]
             # TODO: error check
             for step_sink_id, port_doc in step_doc.get("in", {}):
-                print(step_sink_id, port_doc)
                 sink = this_step.available_sinks.get(step_sink_id, None)
                 if sink is None:
                     self.problems_with_wf += ["No such sink: {}.{}".format(this_step.id, step_sink_id)]

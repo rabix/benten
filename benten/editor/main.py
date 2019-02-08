@@ -12,6 +12,9 @@ from PySide2.QtWidgets import QAction, QApplication, QTabWidget, QPushButton, QL
 from benten.editor.bentenmainwidget import BentenMainWidget
 from benten.editor.bentenwindow import BentenWindow
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class MainWindow(QMainWindow):
     def __init__(self, path_str=None):
@@ -79,8 +82,6 @@ class MainWindow(QMainWindow):
         self.active_window = self.tab_widget.currentWidget()
         self.active_window.set_active_window()
 
-        print(self.tab_widget.currentIndex())
-
 
 def main():
 
@@ -89,6 +90,11 @@ def main():
     parser.add_argument('-v', action='count', help="Verbosity level")
 
     args = parser.parse_args()
+
+    if args.v is not None:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.WARNING)
 
     app = QApplication(sys.argv)
 
