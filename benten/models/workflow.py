@@ -60,18 +60,6 @@ def iter_scalar_or_list(obj: (CWLList, str)):
         return [obj]
 
 
-# class Section:
-#     def __init__(self, line: int, contents: dict):
-#         self.line = line
-#         self.contents = contents
-#
-#     def __contains__(self, item):
-#         return item in self.contents
-#
-#     def __getitem__(self, item):
-#         return self.contents[item]
-
-
 # Not only the line number, but in the future we can type the port and do type
 # checking for connections
 class Port:
@@ -165,15 +153,8 @@ class Workflow:
             if sec not in cwl_dict:
                 self.problems_with_wf += ["'{}' missing".format(sec)]
 
-        self.inputs = OrderedDict([
-            (k, Port(node_id=None, port_id=k, line=(v.start_line, v.end_line)))
-            for k, v in cwl_dict.get("inputs", {})
-        ])
-
-        self.outputs = OrderedDict([
-            (k, Port(node_id=None, port_id=k, line=(v.start_line, v.end_line)))
-            for k, v in cwl_dict.get("outputs", {})
-        ])
+        self.inputs = self._parse_ports(cwl_dict.get("inputs", {}))
+        self.outputs = self._parse_ports(cwl_dict.get("outputs", {}))
 
         self.steps = OrderedDict(
             (k, Step.from_doc(
@@ -183,6 +164,25 @@ class Workflow:
         )
 
         self.connections = self._list_connections()
+
+    @staticmethod
+    def _parse_ports(obj):
+        # Papers please
+        def _line_no(_v, _default: (int, int)):
+            if isinstance(_v, (CWLList, CWLMap)):
+                return _v.start_line, _v.end_line
+            else:
+                return _default
+
+        if isinstance(obj, (CWLList, CWLMap)):
+            def_ln = (obj.start_line, obj.end_line)
+        else:
+            def_ln = None
+
+        return OrderedDict([
+            (k, Port(node_id=None, port_id=k, line=_line_no(v, def_ln)))
+            for k, v in obj
+        ])
 
     def _get_source(self, _src) -> Port:
         if _src is None or _src == "":
@@ -223,22 +223,31 @@ class Workflow:
             this_step: Step = self.steps[step_id]
             # TODO: error check
             for step_sink_id, port_doc in step_doc.get("in", {}):
+                print(step_sink_id, port_doc)
                 sink = this_step.available_sinks.get(step_sink_id, None)
                 if sink is None:
                     self.problems_with_wf += ["No such sink: {}.{}".format(this_step.id, step_sink_id)]
                     continue
 
-                if "source" not in port_doc:
-                    # Ignore default values for now
+                if isinstance(port_doc, (str, List)):
+                    port_src = port_doc
+                    ln = (step_doc["in"].start_line, step_doc["in"].end_line)
+                elif isinstance(port_doc, (CWLMap, CWLList)):
+                    if "source" in port_doc:
+                        port_src = port_doc["source"]
+                        ln = (port_doc.start_line, port_doc.end_line)
+                    else:
+                        # Ignore default values for now
+                        continue
+                else:
+                    self.problems_with_wf += ["Can't parse source for {}.{}".format(this_step, step_sink_id)]
                     continue
 
-                # todo: work on getting connection line numbers
-                # ln_no = port_doc.lc.value("source")[0]
-                for _src in iter_scalar_or_list(port_doc["source"]):
+                for _src in iter_scalar_or_list(port_src):
                     try:
                         # todo: clever way of getting exact line numbers for multiple sources
                         source = self._get_source(_src)
-                        connections.append(Connection(source, sink, (port_doc.start_line, port_doc.end_line)))
+                        connections.append(Connection(source, sink, ln))
                     except WFConnectionError as e:
                         self.problems_with_wf += ["{}.{}: {}".format(this_step, step_sink_id, e)]
                         continue
