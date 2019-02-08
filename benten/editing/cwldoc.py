@@ -4,15 +4,22 @@ from enum import IntEnum
 import pathlib
 
 import yaml
+try:
+    from yaml import CSafeLoader as Loader
+except ImportError:
+    from yaml import SafeLoader as Loader
 
 
-# In [3]: %timeit cwl = blib.CwlDoc(fname=pathlib.Path("salmon.cwl"))
+def read_cwl(raw_cwl):
+    return yaml.load(raw_cwl, Loader=Loader)
+
+
+# In [3]: %timeit cwl = cwldoc.CwlDoc(fname=pathlib.Path("salmon.cwl"))
 # 28.8 ms ± 832 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
-
 
 # From a hint here: https://stackoverflow.com/a/53647080
 # This is not suitable for general YAML parsing, but works for our use case
-class CLineLoader(yaml.CSafeLoader):
+class CLineLoader(Loader):
 
     def construct_mapping(self, node, deep=False):
         mapping = super().construct_mapping(node, deep=deep)
@@ -33,8 +40,21 @@ class CLineLoader(yaml.CSafeLoader):
         return seq
 
 
+def iter_lom(obj: (List, Dict)) -> Generator[Tuple[str, object], None, None]:
+    """For the sub-workflows we load the plain YAML without line numbers and such"""
+    if isinstance(obj, list):
+        for n, v in enumerate(obj):
+            # CWL demands that a list of the type we are thinking of has an id field
+            if "id" not in v:
+                print(v)
+            yield v["id"], v
+    else:
+        for k, v in obj.items():
+            yield k, v
+
+
 # To be used for toplevel, inputs, outputs, steps, in/out of steps
-def list_or_map_w_line_no(lom: (List, Dict)) -> Generator[Tuple[str, object, int, int], None, None]:
+def iter_lom_ln(lom: (List, Dict)) -> Generator[Tuple[str, object, int, int], None, None]:
     def _get_line_range(_v, _parent_range):
         if not isinstance(_v, dict):
             return _parent_range
@@ -50,6 +70,15 @@ def list_or_map_w_line_no(lom: (List, Dict)) -> Generator[Tuple[str, object, int
         for k, v in lom.items():
             if k == "__meta__": continue
             yield (k, v) + _get_line_range(v, (lom["__meta__"]["__start_line__"], lom["__meta__"]["__start_line__"]))
+
+
+def in_lom(lom: (List, Dict), key):
+    if isinstance(lom, list):
+        return any(True for v in lom if v["id"] == key)
+    elif isinstance(lom, dict):
+        return key in lom
+    else:
+        raise RuntimeError("Neither list nor map")
 
 
 class EditType(IntEnum):

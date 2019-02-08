@@ -1,8 +1,10 @@
+from enum import IntEnum
+
 import pygraphviz as pgv
 
 from PySide2.QtCore import Qt, QRectF, QPointF
 from PySide2.QtGui import QPen, QBrush, QColor, QPolygonF
-from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsRectItem
+from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsItem
 
 from benten.editor.processscene import ProcessScene
 import benten.models.workflow as blwf
@@ -46,7 +48,9 @@ class WorkflowScene(ProcessScene):
         for e in G.edges():
             p0 = graph[e[0]]["pos"]
             p1 = graph[e[1]]["pos"]
-            self.addLine(p0[0], p0[1], p1[0], p1[1])
+            ln = self.addLine(p0[0], p0[1], p1[0], p1[1])
+            ln.setFlag(QGraphicsItem.ItemIsSelectable, True)
+            ln.setData(0, (e[0], e[1]))
 
         node_size = 30
         for k, v in graph.items():
@@ -66,6 +70,8 @@ class WorkflowScene(ProcessScene):
 
             item.setBrush(QBrush(Qt.gray))
             item.setToolTip(k)
+            item.setFlag(QGraphicsItem.ItemIsSelectable, True)
+            item.setData(0, k)
             self.addItem(item)
 
         print(self.sceneRect())

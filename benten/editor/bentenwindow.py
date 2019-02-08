@@ -75,7 +75,6 @@ class BentenWindow(QWidget):
         # To deprecate and use different mechanism
         self.current_programmatic_edit: ProgrammaticEdit = None
 
-
         self.is_active_window = False
 
         self.code_editor.textChanged.connect(self.manual_edit)
@@ -85,14 +84,6 @@ class BentenWindow(QWidget):
         blk = QSignalBlocker(self.code_editor)
         self.cwl_doc = cwl_doc
         self.code_editor.setPlainText(self.cwl_doc.raw_cwl)
-        self.update_from_code()
-
-    # todo: remove this
-    def load(self, path: pathlib.Path):
-        # This registers as the first manual edit, but we force the update to happen immediately
-        blk = QSignalBlocker(self.code_editor)
-        self.process_file_path = path
-        self.code_editor.setPlainText(path.open("r").read())
         self.update_from_code()
 
     def set_active_window(self):
@@ -143,15 +134,28 @@ class BentenWindow(QWidget):
             if self.process_model.cwl_doc.raw_cwl == modified_cwl:
                 return
 
+        self.cwl_doc = CwlDoc(raw_cwl=modified_cwl,
+                              path=self.cwl_doc.path,
+                              inline_path=self.cwl_doc.inline_path)
+
         # todo: check for version and type of CWL document
         self.process_model = \
-            Workflow(cwl_doc=blib.yamlify(modified_cwl), path=self.cwl_doc.path)
+            Workflow(cwl_doc=self.cwl_doc, path=self.cwl_doc.path)
 
         scene = WorkflowScene(self)
+        scene.selectionChanged.connect(self.something_selected)
+
         scene.set_workflow(self.process_model)
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
+
         # self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
         # self.process_view.ensureVisible(-10, -10, 20, 20)
         # self.process_view.show()
+
+    @Slot()
+    def something_selected(self):
+        print(len(self.process_view.scene().selectedItems()))
+        for item in self.process_view.scene().selectedItems():
+            print(item.data(0))
