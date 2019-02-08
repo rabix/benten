@@ -31,10 +31,33 @@ import pathlib
 from collections import OrderedDict
 import logging
 
-import benten.lib as blib
-from benten.editing.cwldoc import CwlDoc, read_cwl, iter_lom_ln, iter_lom, in_lom
+# import benten.lib as blib
+from benten.editing.listormap import CWLMap, CWLList, parse_cwl_to_dict
+from benten.editing.cwldoc import CwlDoc
+
 
 logger = logging.getLogger(__name__)
+
+
+def iter_lom(obj: (dict, list)):
+    if isinstance(obj, list):
+        for l in obj:
+            yield l["id"], l
+    elif isinstance(obj, dict):
+        for k, v in obj.items():
+            yield k, v
+    else:
+        # We sometimes (e.g. step interface parsing) don't know if this is going
+        # to be a LOM type object
+        for k, v in obj:
+            yield k, v
+
+
+def iter_scalar_or_list(obj: (CWLList, str)):
+    if isinstance(obj, CWLList):
+        return obj.obj
+    else:
+        return [obj]
 
 
 # class Section:
@@ -80,17 +103,21 @@ class Step:
         return str(self.available_sinks.keys()) + "->" + self.id + "->" + str(self.available_sources.keys())
 
     @classmethod
-    def from_doc(cls, step_id: str, line: (int, int), step_doc: dict, root: pathlib.Path, wf_error_list: List):
+    def from_doc(cls, step_id: str, line: (int, int), step_doc: CWLMap,
+                 root: pathlib.Path, wf_error_list: List):
         if step_doc is None or "run" not in step_doc:
             sinks = {}
             sources = {}
         else:
             if isinstance(step_doc["run"], str):
+                sub_p_path = pathlib.Path(root.parent, step_doc["run"]).resolve()
                 try:
-                    sub_process = read_cwl(pathlib.Path(root, step_doc["run"]).resolve().open("r").read())
+                    sub_process = parse_cwl_to_dict(sub_p_path.open("r").read())
                 except FileNotFoundError:
                     sub_process = {}
-                    wf_error_list += ["Could not find sub workflow: {}".format(step_doc["run"])]
+                    wf_error_list += [
+                        "Could not find sub workflow: {} (resolved to {})".format(
+                            step_doc["run"], sub_p_path.as_uri())]
             else:
                 sub_process = step_doc["run"]
 
@@ -127,33 +154,32 @@ class WFConnectionError(Exception):
 class Workflow:
     """This object carries the raw YAML and some housekeeping datastructures"""
 
-    def __init__(self, cwl_doc: CwlDoc, path: pathlib.Path):
+    def __init__(self, cwl_doc: CwlDoc):
         self.cwl_doc = cwl_doc or {}
-        self.file_path = path
         self.problems_with_wf = []
 
         cwl_dict = self.cwl_doc.cwl_dict
 
         required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]
         for sec in required_sections:
-            if sec not in iter_lom_ln(cwl_dict):
+            if sec not in cwl_dict:
                 self.problems_with_wf += ["'{}' missing".format(sec)]
 
         self.inputs = OrderedDict([
-            (k, Port(node_id=None, port_id=k, line=(l0, l1)))
-            for k, v, l0, l1 in iter_lom_ln(cwl_dict.get("inputs", {}))
+            (k, Port(node_id=None, port_id=k, line=(v.start_line, v.end_line)))
+            for k, v in cwl_dict.get("inputs", {})
         ])
 
         self.outputs = OrderedDict([
-            (k, Port(node_id=None, port_id=k, line=(l0, l1)))
-            for k, v, l0, l1 in iter_lom_ln(cwl_dict.get("outputs", {}))
+            (k, Port(node_id=None, port_id=k, line=(v.start_line, v.end_line)))
+            for k, v in cwl_dict.get("outputs", {})
         ])
 
         self.steps = OrderedDict(
             (k, Step.from_doc(
-                step_id=k, line=(l0, l1), step_doc=v, root=self.file_path.parent,
+                step_id=k, line=(v.start_line, v.end_line), step_doc=v, root=self.cwl_doc.path,
                 wf_error_list=self.problems_with_wf))
-            for k, v, l0, l1 in iter_lom_ln(cwl_dict.get("steps", {}))
+            for k, v in cwl_dict.get("steps", {})
         )
 
         self.connections = self._list_connections()
@@ -189,14 +215,14 @@ class Workflow:
         cwl_dict = self.cwl_doc.cwl_dict
 
         # Connections into steps
-        for step_id, step_doc, _, _ in iter_lom_ln(cwl_dict.get("steps", {})):
-            if not isinstance(step_doc, dict):
+        for step_id, step_doc in cwl_dict.get("steps", {}):
+            if not isinstance(step_doc, CWLMap):
                 self.problems_with_wf += ["Invalid step: {}".format(step_id)]
                 continue
 
             this_step: Step = self.steps[step_id]
             # TODO: error check
-            for step_sink_id, port_doc, _, _ in iter_lom_ln(step_doc.get("in", {})):
+            for step_sink_id, port_doc in step_doc.get("in", {}):
                 sink = this_step.available_sinks.get(step_sink_id, None)
                 if sink is None:
                     self.problems_with_wf += ["No such sink: {}.{}".format(this_step.id, step_sink_id)]
@@ -208,25 +234,25 @@ class Workflow:
 
                 # todo: work on getting connection line numbers
                 # ln_no = port_doc.lc.value("source")[0]
-                for n, _src in enumerate(blib.listify(port_doc["source"])):
+                for _src in iter_scalar_or_list(port_doc["source"]):
                     try:
                         source = self._get_source(_src)
-                        connections.append(Connection(source, sink, (0, 0)))
+                        connections.append(Connection(source, sink, source.line))
                     except WFConnectionError as e:
                         self.problems_with_wf += ["{}.{}: {}".format(this_step, step_sink_id, e)]
                         continue
 
         # Connections to WF outputs
-        for out_id, out_doc, l0, l1 in iter_lom_ln(cwl_dict.get("outputs", {})):
+        for out_id, out_doc in cwl_dict.get("outputs", {}):
             sink = self.outputs[out_id]
 
-            if in_lom(out_doc, "outputSource"):
+            if "outputSource" in out_doc:
                 # todo: figure out line numbers
                 # ln_no = out_doc.lc.value("outputSource")[0]
-                for n, _src in enumerate(blib.listify(out_doc["outputSource"])):
+                for _src in iter_scalar_or_list(out_doc["outputSource"]):
                     try:
                         source = self._get_source(_src)
-                        connections.append(Connection(source, sink, (0, 0)))
+                        connections.append(Connection(source, sink, source.line))
                     except WFConnectionError as e:
                         self.problems_with_wf += ["{}: {}".format(sink.port_id, e)]
                         continue
