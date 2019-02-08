@@ -61,6 +61,10 @@ class ListOrMap(ABC):
 
 class CWLList(ListOrMap):
 
+    def __init__(self, obj):
+        self.plain_list = False
+        super().__init__(obj)
+
     def _sub_init_(self):
         _list = self.obj
         if len(_list) > 0:
@@ -72,7 +76,18 @@ class CWLList(ListOrMap):
                     self.flow_style = _l["__flow_style__"]
                     self.obj = _list[:-1]
 
+        if len(self.obj):
+            _l = self.obj[0]
+            if isinstance(_l, dict):
+                if "id" not in _l:
+                    self.plain_list = True
+            else:
+                self.plain_list = True
+
     def get(self, key, default=None):
+        if self.plain_list:
+            raise RuntimeError("Treating plain list like map")
+
         for v in self.obj:
             if v["id"] == key:
                 return v
@@ -80,6 +95,9 @@ class CWLList(ListOrMap):
             return default
 
     def __getitem__(self, key):
+        if self.plain_list:
+            return self.obj[key]  # Treat as integer index into list
+
         for v in self.obj:
             if v["id"] == key:
                 return v
@@ -87,7 +105,10 @@ class CWLList(ListOrMap):
             raise KeyError
 
     def __contains__(self, item):
-        return any(True for v in self.obj if v["id"] == item)
+        if self.plain_list:
+            return item in self.obj
+        else:
+            return any(True for v in self.obj if v["id"] == item)
 
     def __iter__(self):
         for n, v in enumerate(self.obj):

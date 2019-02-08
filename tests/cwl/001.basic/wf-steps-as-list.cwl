@@ -20,5 +20,5 @@ steps:
   - id: compile
     run: arguments.cwl
     in:
-      src: untar/example_out
+      src: [untar/example_out]
     out: [classfile]

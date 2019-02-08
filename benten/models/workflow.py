@@ -228,7 +228,8 @@ class Workflow:
                     self.problems_with_wf += ["No such sink: {}.{}".format(this_step.id, step_sink_id)]
                     continue
 
-                if isinstance(port_doc, (str, List)):
+                if isinstance(port_doc, (str, list)) or \
+                        (isinstance(port_doc, CWLList) and port_doc.plain_list):
                     port_src = port_doc
                     ln = (step_doc["in"].start_line, step_doc["in"].end_line)
                 elif isinstance(port_doc, (CWLMap, CWLList)):
