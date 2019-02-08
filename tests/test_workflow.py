@@ -40,6 +40,15 @@ steps:
     print(wf.problems_with_wf)
 
 
+def test_parsing_ports_with_plain_source():
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+
+    conn = next(c for c in wf.connections if c.dst == WF.Port("compile", "src"))
+    assert conn.src == WF.Port("untar", "example_out")
+
+
 def test_interface_parsing():
     """Load CWL and check we interpret the interface correctly"""
 
