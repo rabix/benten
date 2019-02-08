@@ -20,6 +20,15 @@ def parse_cwl_to_dict(raw_cwl):
     return yaml.load(raw_cwl, Loader=Loader)
 
 
+def iter_lom(obj: (dict, list)):
+    if isinstance(obj, list):
+        for l in obj:
+            yield l["id"], l
+    else:
+        for k, v in obj.items():
+            yield k, v
+
+
 def parse_cwl_to_lom(raw_cwl):
     return recursive_parse(yaml.load(raw_cwl, Loader=CLineLoader))
 
@@ -135,8 +144,10 @@ def recursive_parse(obj: (dict, list, object)):
             for v in c.obj
         ]
         return c
-    else:
+    elif obj is not None:
         return obj
+    else:
+        return CWLMap({})
 
 
 # In [3]: %timeit cwl = cwldoc.CwlDoc(fname=pathlib.Path("salmon.cwl"))
