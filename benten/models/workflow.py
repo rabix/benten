@@ -236,8 +236,9 @@ class Workflow:
                 # ln_no = port_doc.lc.value("source")[0]
                 for _src in iter_scalar_or_list(port_doc["source"]):
                     try:
+                        # todo: clever way of getting exact line numbers for multiple sources
                         source = self._get_source(_src)
-                        connections.append(Connection(source, sink, source.line))
+                        connections.append(Connection(source, sink, (port_doc.start_line, port_doc.end_line)))
                     except WFConnectionError as e:
                         self.problems_with_wf += ["{}.{}: {}".format(this_step, step_sink_id, e)]
                         continue
@@ -252,14 +253,15 @@ class Workflow:
                 for _src in iter_scalar_or_list(out_doc["outputSource"]):
                     try:
                         source = self._get_source(_src)
-                        connections.append(Connection(source, sink, source.line))
+                        connections.append(Connection(source, sink, (out_doc.start_line, out_doc.end_line)))
                     except WFConnectionError as e:
                         self.problems_with_wf += ["{}: {}".format(sink.port_id, e)]
                         continue
 
         return connections
 
-    def find_connection(self, conn: Connection) -> (int, None):
+    # todo: deprecate this - it's not really needed
+    def find_connection(self, conn: Connection) -> ((int, int), None):
         for existing_conn in self.connections:
             if existing_conn == conn:
                 return existing_conn.line

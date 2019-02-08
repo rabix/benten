@@ -6,9 +6,10 @@ import benten.models.workflow as WF
 current_path = pathlib.Path(__file__).parent
 
 
-def test_parsing_of_empty_workflow():
+def test_parsing_empty_workflow():
     empty_wf = ""
-    wf = WF.Workflow(blib.yamlify(empty_wf), path=pathlib.Path("./nothing.cwl"))
+    cwl_doc = WF.CwlDoc(raw_cwl=empty_wf, path=pathlib.Path("./nothing.cwl"))
+    wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert len(wf.inputs) == 0
     assert len(wf.outputs) == 0
@@ -29,31 +30,36 @@ steps:
   run: cwl/sbg/salmon.cwl
 - id: empty
 """
-    wf = WF.Workflow(blib.yamlify(wf_with_empty_step), path=pathlib.Path(current_path, "nothing.cwl").resolve())
+
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_with_empty_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+    # Basically we shouldn't choke because there is nothing in that step
+
+    assert len(wf.inputs) == 0
+    assert len(wf.steps) == 2
+
+    print(wf.problems_with_wf)
 
 
 def test_interface_parsing():
     """Load CWL and check we interpret the interface correctly"""
 
     # This is a public SBG workflow
-    fname = pathlib.Path(current_path, "cwl/sbg/salmon.cwl").resolve()
-    cwl_doc = blib.load_cwl(str(fname))
+    wf_path = pathlib.Path(current_path, "cwl/sbg/salmon.cwl").resolve()
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    wf = WF.Workflow(cwl_doc=cwl_doc)
 
-    wf = WF.Workflow(cwl_doc, fname)
+    assert wf.inputs["reads"].line == (21, 31)
 
-    #assert wf.inputs.line == 6
-    assert wf.inputs["reads"].line == 21
-
-    #assert wf.outputs.line == 504
-    assert wf.outputs["quant_sf"].line == 518
+    assert wf.outputs["quant_sf"].line == (518, 529)
 
     assert len(wf.steps) == 5
 
-    assert wf.steps["SBG_Create_Expression_Matrix___Genes"].line == 951
+    assert wf.steps["SBG_Create_Expression_Matrix___Genes"].line == (951, 1284)
     assert len(wf.steps["SBG_Create_Expression_Matrix___Genes"].available_sinks) == 3
     assert len(wf.steps["SBG_Create_Expression_Matrix___Genes"].available_sources) == 1
 
-    assert wf.steps["Salmon_Quant___Reads"].line == 2057
+    assert wf.steps["Salmon_Quant___Reads"].line == (2057, 3514)
 
     assert len(wf.steps["Salmon_Index"].available_sinks) == 8
     assert len(wf.steps["Salmon_Index"].available_sources) == 1
@@ -65,20 +71,17 @@ def test_connection_parsing():
     # This workflow contains nested elements at various directory levels. We should handle them
     # correctly. This workflow also has a small number of components so we can count things by
     # hand to put in the tests
-    fname = pathlib.Path(current_path, "cwl/small/lib/workflows/outer-wf.cwl").resolve()
-    cwl_doc = blib.load_cwl(str(fname))
+    wf_path = pathlib.Path(current_path, "cwl/003.diff.dir.levels/lib/workflows/outer-wf.cwl").resolve()
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    wf = WF.Workflow(cwl_doc=cwl_doc)
 
-    wf = WF.Workflow(cwl_doc, fname)
+    assert wf.inputs["wf_in2"].line == (11, 15)
 
-    #assert wf.inputs.line == 6
-    assert wf.inputs["wf_in2"].line == 11
-
-    #assert wf.outputs.line == 15
-    assert wf.outputs["wf_out"].line == 16
+    assert wf.outputs["wf_out"].line == (16, 27)
 
     assert len(wf.steps) == 4
 
-    assert wf.steps["pass_through"].line == 34
+    assert wf.steps["pass_through"].line == (34, 44)
     assert len(wf.steps["pass_through"].available_sinks) == 2
     assert len(wf.steps["pass_through"].available_sources) == 1
 
@@ -91,17 +94,15 @@ def test_connection_parsing():
         [True for conn in wf.connections
          if conn.dst.node_id == "merge" and conn.dst.port_id == "merge_in"]) == 3
 
+    line = (46, 51)
     assert [conn.line
             for conn in wf.connections
-            if conn.dst.node_id == "merge" and conn.dst.port_id == "merge_in"] == [48, 49, 50]
+            if conn.dst.node_id == "merge" and conn.dst.port_id == "merge_in"] == [line] * 3
 
+    line = (16, 27)
     assert [conn.line
             for conn in wf.connections
-            if conn.dst.port_id == "wf_out"] == [18, 19]
-
-    conn = WF.Connection(WF.Port(node_id=None, port_id="wf_in2"),
-                         WF.Port(node_id=None, port_id="wf_out2"), line=None)
-    assert wf.find_connection(conn) == 29
+            if conn.dst.port_id == "wf_out"] == [line] * 2
 
 
 def test_connection_equivalence():
@@ -123,20 +124,25 @@ def test_connection_equivalence():
     assert c1 != c3
 
 
+# note that find_connection may be deprecated as it has no use
 def test_connection_search():
     """Check connection finding"""
-    fname = pathlib.Path(current_path, "cwl/small/lib/workflows/outer-wf.cwl").resolve()
-    cwl_doc = blib.load_cwl(str(fname))
+    wf_path = pathlib.Path(current_path, "cwl/003.diff.dir.levels/lib/workflows/outer-wf.cwl").resolve()
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    wf = WF.Workflow(cwl_doc=cwl_doc)
 
-    wf = WF.Workflow(cwl_doc, fname)
-    c1 = WF.Connection(src=WF.Port(node_id=None, port_id="wf_in"),
+    c1 = WF.Connection(WF.Port(node_id=None, port_id="wf_in2"),
+                         WF.Port(node_id=None, port_id="wf_out2"), line=None)
+    assert wf.find_connection(c1) == (27, 33)
+
+    c2 = WF.Connection(src=WF.Port(node_id=None, port_id="wf_in"),
                        dst=WF.Port(node_id="pass_through", port_id="pt_in1"),
                        line=None)
 
-    assert wf.find_connection(c1) == 37
+    assert wf.find_connection(c2) == (36, 38)
 
-    c2 = WF.Connection(src=WF.Port(node_id=None, port_id="wf_in"),
+    c3 = WF.Connection(src=WF.Port(node_id=None, port_id="wf_in"),
                        dst=WF.Port(node_id="pass_through", port_id="pt_in2"),
                        line=None)
 
-    assert wf.find_connection(c2) is None
+    assert wf.find_connection(c3) is None
