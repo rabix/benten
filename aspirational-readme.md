@@ -125,6 +125,21 @@ implode new_step_id (path/to/new.cwl | inline) step1_id step2_id step3_id
 explode step_id (path/to/folder) - given a step break it into individual tools in given folder 
 export step_id path/to/new.cwl  - export CWL in given step if it is inline  
 inline step_id path/to/step.cwl  - if step is a subworkflow make it inline in the main workflow
+
+run                          - run current app. If the document name is x.cwl assumes that
+                               there is a job file called x.job.yaml in same directory
+                               uses system defined cwl-runner
+```
+
+#### SBG app ecosystem specific commands
+```
+sbg-profile       - set profile from credentials file 
+                    (can also be set in config file or command line)
+
+sbg-push          - push app (create revision) to SBG platform
+
+not-sbg-apps      - mark whole session as not having SBG apps
+sbg-apps          - mark session as having SBG apps (default)
 ```
 
 Note that undo and redo operations do not change any secondary files on disk, only the main workflow
@@ -135,11 +150,16 @@ file.
 If you are editing apps that make references to apps in the SBG eco-system and you have passed
 Benten an API profile to communicate with the platform, Benten will allow you to change the
 version of the App using a drop down. Hand edits to a versioned nested app will be overridden
-if the app version is later changed. If you wish to hand edit a nested app you should also
+if the app version is later changed. 
+
+If you hand edit a nested app which is marked as an an SBG app, the id will get a 
 change the `id` of the app so it no longer appears to have been uploaded to the SBG system.
 
+**You can turn off all these features by typing `not-sbg-app` in the command bar.**
 
-## Edits are immediately saved
+
+
+## Saving to disk
 By default Benten will only save the main file to disk when asked to and will only
 reload a file from disk when asked to. The configuration file can be edited to
 change this behavior such that all changes are live: edits made in Benten are 
@@ -161,6 +181,12 @@ Configuration files are found under `$XDG_CONFIG_HOME/sevenbridges/benten/`
 
 Log files are found under `$XDG_DATA_HOME/sevenbridges/benten/`
 (If not set, `$HOME/.local/share/sevenbridges/benten/` is used)
+
+# Options (and configuration file)
+
+copy port docs:  If set true then when a workflow input/output port is attached for the first time
+                 to a step port, the port documentation will be copied over
+
 
 
 # Limitations
