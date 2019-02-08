@@ -1,6 +1,5 @@
 import pathlib
 
-import benten.lib as blib
 import benten.models.workflow as WF
 
 current_path = pathlib.Path(__file__).parent

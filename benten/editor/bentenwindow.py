@@ -12,7 +12,6 @@ from benten.editor.codeeditor import CodeEditor
 from benten.editor.processview import ProcessView
 from benten.editor.workflowscene import WorkflowScene
 
-import benten.lib as blib
 from benten.editing.cwldoc import CwlDoc
 from benten.models.workflow import Workflow
 
