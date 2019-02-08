@@ -1,0 +1,10 @@
+[report]
+exclude_lines =
+    pragma: no cover
+    @abstract
+    def __repr__
+    if __name__ == .__main__.:
+
+[run]
+omit =
+    ../benten/editor/*
