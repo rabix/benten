@@ -58,6 +58,7 @@ class BentenWindow(QWidget):
         self.conn_table.horizontalHeader().setStretchLastSection(True)
         self.conn_table.verticalHeader().setVisible(False)
         self.conn_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.conn_table.cellClicked.connect(self.connection_clicked)
         # self.outbound_conn_table = QTableView(self)
 
         conn_panes = QHBoxLayout()
@@ -216,3 +217,10 @@ class BentenWindow(QWidget):
                 item.setData(Qt.UserRole, conn)  # All other roles try to replace as display text
                 self.conn_table.setItem(row, col, item)
                 row += 1
+
+    @Slot(int, int)
+    def connection_clicked(self, row, col):
+        conn = self.conn_table.item(row, col).data(Qt.UserRole)
+        logger.debug("Scroll to line {}".format(conn.line[0]))
+        self.code_editor.scroll_to(conn.line[0])
+
