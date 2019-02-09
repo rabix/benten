@@ -24,7 +24,7 @@ class ProgrammaticEdit:
         self.cursor_line = cursor_line
 
 
-class ManualEditManager:
+class ManualEditThrottler:
     """Each manual edit we do (letter we type) triggers a manual edit. We need to manage
     these calls so they don't overwhelm the system and yet not miss out on the final edit in
     a burst of edits. This manager handles that job effectively."""
@@ -72,15 +72,13 @@ class BentenWindow(QWidget):
 
         self.setLayout(vertical_panes)
 
-        self.manual_edit_manager = ManualEditManager()
-        self.manual_edit_manager.timer.timeout.connect(self.update_from_code)
+        self.manual_edit_throttler = ManualEditThrottler()
+        self.manual_edit_throttler.timer.timeout.connect(self.update_from_code)
 
         self.cwl_doc: CwlDoc = None
         self.process_model: (Workflow,) = None
-        # todo: deprecate
-        self.process_file_path = None
 
-        # To deprecate and use different mechanism
+        # todo: To deprecate and use different mechanism
         self.current_programmatic_edit: ProgrammaticEdit = None
 
         self.is_active_window = False
@@ -107,7 +105,7 @@ class BentenWindow(QWidget):
     @Slot()
     def manual_edit(self):
         """Called whenever the code is changed manually"""
-        self.manual_edit_manager.restart_edit_clock()
+        self.manual_edit_throttler.restart_edit_clock()
 
     @Slot()
     def programmatic_edit(self):
