@@ -4,7 +4,7 @@ or a part of a CWL file, like an in-lined step. Changes to a part of a CWL file 
 import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot
-from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QWidget
+from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QWidget, QAbstractItemView
 from PySide2.QtGui import QTextCursor, QPainter
 
 from benten.editor.codeeditor import CodeEditor
@@ -39,6 +39,12 @@ class ManualEditThrottler:
         self.timer.start()
 
 
+class PersistentEditorState:
+    """Each edit causes us to update everything. We need to remember some things."""
+    def __len__(self):
+        self.selected_items: list = None
+
+
 class BentenWindow(QWidget):
 
     def __init__(self):
@@ -51,6 +57,7 @@ class BentenWindow(QWidget):
         self.conn_table = QTableWidget(self)
         self.conn_table.horizontalHeader().setStretchLastSection(True)
         self.conn_table.verticalHeader().setVisible(False)
+        self.conn_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # self.outbound_conn_table = QTableView(self)
 
         conn_panes = QHBoxLayout()
@@ -206,5 +213,6 @@ class BentenWindow(QWidget):
         for conn_grp in conns:
             for conn in conn_grp:
                 item = QTableWidgetItem(str(conn))
+                item.setData(Qt.UserRole, conn)  # All other roles try to replace as display text
                 self.conn_table.setItem(row, col, item)
                 row += 1
