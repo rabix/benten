@@ -6,7 +6,7 @@ import pathlib
 from PySide2.QtCore import Qt, QDateTime, QModelIndex, QSignalBlocker, QRect, Qt, QTimeZone, Slot
 
 from PySide2.QtWidgets import QAction, QApplication, QTabWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, \
-    QHeaderView, QTabBar, \
+    QHeaderView, QTabBar, QDesktopWidget, \
     QMenuBar, QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget
 
 from benten.editor.bentenmainwidget import BentenMainWidget
@@ -35,10 +35,6 @@ class MainWindow(QMainWindow):
         # Status Bar
         self.status = self.statusBar()
         self.status.showMessage("Ready")
-
-        # Window dimensions
-        # geometry = app.desktop().availableGeometry(self)
-        # self.setFixedSize(geometry.width() * 0.8, geometry.height() * 0.7)
 
         # This needs to come before tabs are added because adding tabs triggers
         # the currentChanged signal which triggers a slot that requires this to
@@ -100,6 +96,10 @@ def main():
 
     window = MainWindow(path_str=args.cwl)
     window.show()
+
+    # Window dimensions
+    geometry = app.desktop().availableGeometry()
+    window.setBaseSize(geometry.width() * 0.8, geometry.height() * 0.7)
 
     sys.exit(app.exec_())
 
