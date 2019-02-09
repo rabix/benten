@@ -4,7 +4,7 @@ or a part of a CWL file, like an in-lined step. Changes to a part of a CWL file 
 import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot
-from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableView, QWidget
+from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QWidget
 from PySide2.QtGui import QTextCursor, QPainter
 
 from benten.editor.codeeditor import CodeEditor
@@ -48,11 +48,13 @@ class BentenWindow(QWidget):
         self.code_editor.setFixedWidth(350)
         self.process_view: ProcessView = ProcessView(self)
         # self.command_bar = QLineEdit(self)
-        self.inbound_conn_table = QTableView(self)
+        self.conn_table = QTableWidget(self)
+        self.conn_table.horizontalHeader().setStretchLastSection(True)
+        self.conn_table.verticalHeader().setVisible(False)
         # self.outbound_conn_table = QTableView(self)
 
         conn_panes = QHBoxLayout()
-        conn_panes.addWidget(self.inbound_conn_table)
+        conn_panes.addWidget(self.conn_table)
         # conn_panes.addWidget(self.outbound_conn_table)
         conn_panes.setMargin(0)
 
@@ -181,10 +183,6 @@ class BentenWindow(QWidget):
             elif isinstance(info, tuple):
                 self.highlight_connection_between_nodes(info)
 
-        # print(len(self.process_view.scene().selectedItems()))
-        # for item in self.process_view.scene().selectedItems():
-        #     print(item.data(0))
-
     def highlight_workflow_io(self, info: str):
         pass
 
@@ -193,5 +191,22 @@ class BentenWindow(QWidget):
         logger.debug("Scroll to line {}".format(step.line[0]))
         self.code_editor.scroll_to(step.line[0])
 
+        inbound_conn = [c for c in self.process_model.connections if c.dst.node_id == info]
+        outbound_conn = [c for c in self.process_model.connections if c.src.node_id == info]
+
+        self.populate_connection_table(step.id, [inbound_conn, outbound_conn])
+
     def highlight_connection_between_nodes(self, info: tuple):
         pass
+
+    def populate_connection_table(self, title, conns: [dict]):
+        row, col = 0, 0
+        self.conn_table.clear()
+        self.conn_table.setColumnCount(1)
+        self.conn_table.setRowCount(sum(len(c) for c in conns))
+        self.conn_table.setHorizontalHeaderLabels([title])
+        for conn_grp in conns:
+            for conn in conn_grp:
+                item = QTableWidgetItem(str(conn))
+                self.conn_table.setItem(row, col, item)
+                row += 1
