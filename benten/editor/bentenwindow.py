@@ -170,6 +170,28 @@ class BentenWindow(QWidget):
 
     @Slot()
     def something_selected(self):
-        print(len(self.process_view.scene().selectedItems()))
-        for item in self.process_view.scene().selectedItems():
-            print(item.data(0))
+        items = self.process_view.scene().selectedItems()
+        if len(items) == 1:
+            info = items[0].data(0)
+            if isinstance(info, str):
+                if info in ["inputs", "outputs"]:
+                    self.highlight_workflow_io(info)
+                else:
+                    self.highlight_step(info)
+            elif isinstance(info, tuple):
+                self.highlight_connection_between_nodes(info)
+
+        # print(len(self.process_view.scene().selectedItems()))
+        # for item in self.process_view.scene().selectedItems():
+        #     print(item.data(0))
+
+    def highlight_workflow_io(self, info: str):
+        pass
+
+    def highlight_step(self, info: str):
+        step = self.process_model.steps[info]
+        logger.debug("Scroll to line {}".format(step.line[0]))
+        self.code_editor.scroll_to(step.line[0])
+
+    def highlight_connection_between_nodes(self, info: tuple):
+        pass
