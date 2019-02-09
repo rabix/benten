@@ -108,11 +108,19 @@ that one Benten editor instance is for one workflow and its children.
 
 ## Some design decisions
 
-### Layout
+### graph Layout
 The "dot" layout (topsort, hierarchical) does well, but becomes cluttered when we have all our
 individual input and output nodes listed out. I find that by collapsing all input and output
 into one common entry and exit node respectively, the layout looks a lot neater! The next thing
 to change is 
+
+### Can we embed a 'professional' editor somehow?
+
+https://github.com/pyzo/pyzo/tree/master/pyzo/codeeditor
+
+https://github.com/tucnak/novile
+
+https://www.riverbankcomputing.com/software/qscintilla/download
 
 
 ### Do we NEED Ruamel.yaml ?
