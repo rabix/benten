@@ -4,7 +4,8 @@ or a part of a CWL file, like an in-lined step. Changes to a part of a CWL file 
 import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot
-from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QWidget, QAbstractItemView
+from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QWidget, \
+    QAbstractItemView
 from PySide2.QtGui import QTextCursor, QPainter
 
 from benten.editor.codeeditor import CodeEditor
@@ -15,6 +16,7 @@ from benten.editing.cwldoc import CwlDoc
 from benten.models.workflow import Workflow
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,6 +30,7 @@ class ManualEditThrottler:
     """Each manual edit we do (letter we type) triggers a manual edit. We need to manage
     these calls so they don't overwhelm the system and yet not miss out on the final edit in
     a burst of edits. This manager handles that job effectively."""
+
     def __init__(self):
         self.burst_window = 1.0
         # We allow upto a <burst_window> pause in typing before parsing the edit
@@ -41,6 +44,7 @@ class ManualEditThrottler:
 
 class PersistentEditorState:
     """Each edit causes us to update everything. We need to remember some things."""
+
     def __len__(self):
         self.selected_items: list = None
 
@@ -190,7 +194,11 @@ class BentenWindow(QWidget):
                 self.highlight_connection_between_nodes(info)
 
     def highlight_workflow_io(self, info: str):
-        pass
+        if info == "inputs":
+            conn = [c for c in self.process_model.connections if c.src.node_id is None]
+        else:
+            conn = [c for c in self.process_model.connections if c.dst.node_id is None]
+        self.populate_connection_table(info, [conn])
 
     def highlight_step(self, info: str):
         step = self.process_model.steps[info]
@@ -203,7 +211,21 @@ class BentenWindow(QWidget):
         self.populate_connection_table(step.id, [inbound_conn, outbound_conn])
 
     def highlight_connection_between_nodes(self, info: tuple):
-        pass
+        def src_is_input(x): return x.src.node_id is None
+
+        def src_is_node(x): return x.src.node_id == id1
+
+        def dst_is_output(x): return x.dst.node_id is None
+
+        def dst_is_node(x): return x.dst.node_id == id2
+
+        id1, id2 = info
+
+        cond1 = src_is_input if id1 == "inputs" else src_is_node
+        cond2 = dst_is_output if id2 == "outputs" else dst_is_node
+
+        conn = [c for c in self.process_model.connections if cond1(c) and cond2(c)]
+        self.populate_connection_table(str(info), [conn])
 
     def populate_connection_table(self, title, conns: [dict]):
         row, col = 0, 0
@@ -223,4 +245,3 @@ class BentenWindow(QWidget):
         conn = self.conn_table.item(row, col).data(Qt.UserRole)
         logger.debug("Scroll to line {}".format(conn.line[0]))
         self.code_editor.scroll_to(conn.line[0])
-
