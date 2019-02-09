@@ -2,7 +2,6 @@
 or a part of a CWL file, like an in-lined step. Changes to a part of a CWL file are """
 
 import time
-import pathlib
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot
 from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableView, QWidget
@@ -46,23 +45,28 @@ class BentenWindow(QWidget):
         QWidget.__init__(self)
 
         self.code_editor: CodeEditor = CodeEditor()
+        self.code_editor.setFixedWidth(350)
         self.process_view: ProcessView = ProcessView(self)
-        self.command_bar = QLineEdit(self)
+        # self.command_bar = QLineEdit(self)
         self.inbound_conn_table = QTableView(self)
-        self.outbound_conn_table = QTableView(self)
+        # self.outbound_conn_table = QTableView(self)
 
         conn_panes = QHBoxLayout()
         conn_panes.addWidget(self.inbound_conn_table)
-        conn_panes.addWidget(self.outbound_conn_table)
+        # conn_panes.addWidget(self.outbound_conn_table)
+        conn_panes.setMargin(0)
 
         horiz_panes = QVBoxLayout()
-        horiz_panes.addWidget(self.process_view)
-        horiz_panes.addWidget(self.command_bar)
-        horiz_panes.addLayout(conn_panes)
+        horiz_panes.addWidget(self.process_view, 80)
+        # horiz_panes.addWidget(self.command_bar)
+        horiz_panes.addLayout(conn_panes, 20)
+        horiz_panes.setMargin(0)
+        horiz_panes.setSpacing(0)
 
         vertical_panes = QHBoxLayout()
         vertical_panes.addLayout(horiz_panes)
         vertical_panes.addWidget(self.code_editor)
+        vertical_panes.setMargin(0)
 
         self.setLayout(vertical_panes)
 
@@ -86,6 +90,7 @@ class BentenWindow(QWidget):
         blk = QSignalBlocker(self.code_editor)
         self.cwl_doc = cwl_doc
         self.code_editor.setPlainText(self.cwl_doc.raw_cwl)
+        self.code_editor.update_line_number_area_width(0)
         self.update_from_code()
 
     def set_active_window(self):
