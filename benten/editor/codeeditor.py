@@ -39,7 +39,7 @@
 #############################################################################
 
 from PySide2.QtCore import Slot, Qt, QRect, QSize
-from PySide2.QtGui import QColor, QPainter, QTextFormat, QFont
+from PySide2.QtGui import QColor, QPainter, QTextFormat, QFont, QTextCursor
 from PySide2.QtWidgets import QPlainTextEdit, QWidget, QTextEdit
 
 
@@ -60,6 +60,7 @@ class CodeEditor(QPlainTextEdit):
         QPlainTextEdit.__init__(self)
 
         self.setFont(QFont("consolas", 9))
+        self.setLineWrapMode(QPlainTextEdit.NoWrap)
 
         self.line_number_area = LineNumberArea(self)
 
@@ -142,3 +143,11 @@ class CodeEditor(QPlainTextEdit):
             extra_selections.append(selection)
 
         self.setExtraSelections(extra_selections)
+
+    def scroll_to(self, line_no):
+        doc = self.document()
+        final_cursor = QTextCursor(
+            doc.findBlockByLineNumber(line_no))
+        self.setTextCursor(final_cursor)
+        self.update_line_number_area_width(0)  # This is needed so that everything aligns right
+        self.highlight_current_line()
