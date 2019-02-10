@@ -198,8 +198,12 @@ class BentenWindow(QWidget):
 
     def highlight_workflow_io(self, info: str):
         if info == "inputs":
+            if "inputs" in self.process_model.section_lines:
+                self.code_editor.scroll_to(self.process_model.section_lines["inputs"][0])
             conn = [c for c in self.process_model.connections if c.src.node_id is None]
         else:
+            if "outputs" in self.process_model.section_lines:
+                self.code_editor.scroll_to(self.process_model.section_lines["outputs"][0])
             conn = [c for c in self.process_model.connections if c.dst.node_id is None]
         self.populate_connection_table(info, [conn])
 
