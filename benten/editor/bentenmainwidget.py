@@ -49,15 +49,10 @@ class BentenMainWidget(QTabWidget):
 
     @Slot()
     def breadcrumb_selected(self):
-        # Reload from disk
-        # If no differences, nothing to do
-        # If different, apply a squashed edit to bring us up to the latest version
         if self.active_window is not None:
             self.active_window.set_inactive_window()
         self.active_window = self.currentWidget()
         self.active_window.set_active_window()
-
-        print(self.currentIndex())
 
     @Slot(object)
     def scene_double_clicked(self, sub_workflows):
