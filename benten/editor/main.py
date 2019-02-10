@@ -52,11 +52,7 @@ class MainWindow(QMainWindow):
                 with open(path, "w") as f:
                     pass
 
-            self.tab_widget.open_document(path_str, None)
-
-
-        # self.active_window: BentenWindow = self.tab_widget.currentWidget()
-        # self.active_window.code_editor.setFocus()
+            self.tab_widget.open_document(path, None)
 
     @Slot()
     def exit_app(self, checked):

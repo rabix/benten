@@ -26,7 +26,7 @@ An edit operation can consist of multiple non local operations
 5. Add/remove a workflow input/output
 
 """
-from typing import List
+from typing import List, Tuple
 import pathlib
 from collections import OrderedDict
 import logging
@@ -78,36 +78,60 @@ class Port:
             return self.port_id
 
 
+class InvalidSub:
+    pass
+
+
+class InlineSub:
+    def __init__(self, path: pathlib.Path, inline_path: Tuple[str]):
+        self.path = path
+        self.inline_path = inline_path
+
+
+class ExternalSub:
+    def __init__(self, path: pathlib.Path):
+        self.path = path
+
+
 class Step:
     def __init__(self, _id: str, line: (int, int),
                  sinks: 'OrderedDict[str, Port]',
-                 sources: 'OrderedDict[str, Port]'):
+                 sources: 'OrderedDict[str, Port]',
+                 sub_workflow: (InvalidSub, InlineSub, ExternalSub)):
         self.line = line
         self.id = _id
         self.available_sinks = sinks
         self.available_sources = sources
+        self.sub_workflow = sub_workflow
 
     def __repr__(self):
         return str(self.available_sinks.keys()) + "->" + self.id + "->" + str(self.available_sources.keys())
 
     @classmethod
-    def from_doc(cls, step_id: str, line: (int, int), step_doc: CWLMap,
-                 root: pathlib.Path, wf_error_list: List):
+    def from_doc(cls, step_id: str, line: (int, int), cwl_doc: CwlDoc, wf_error_list: List):
+        step_doc = cwl_doc.cwl_dict["steps"][step_id]
+        root = cwl_doc.path
+        sub_workflow = InvalidSub()
+
         if step_doc is None or "run" not in step_doc:
             sinks = {}
             sources = {}
+            wf_error_list += ["step {} has no run field".format(step_id)]
         else:
             if isinstance(step_doc["run"], str):
                 sub_p_path = pathlib.Path(root.parent, step_doc["run"]).resolve()
                 try:
                     sub_process = parse_cwl_to_dict(sub_p_path.open("r").read())
+                    sub_workflow = ExternalSub(path=sub_p_path)
                 except FileNotFoundError:
                     sub_process = {}
                     wf_error_list += [
                         "Could not find sub workflow: {} (resolved to {})".format(
                             step_doc["run"], sub_p_path.as_uri())]
+                    sub_workflow = InvalidSub
             else:
                 sub_process = step_doc["run"]
+                sub_workflow = InlineSub(path=root, inline_path=(cwl_doc.inline_path or ()) + (step_id,))
 
             sinks = OrderedDict([
                 (k, Port(node_id=step_id, port_id=k))
@@ -119,7 +143,7 @@ class Step:
                 for k, v in iter_lom(sub_process.get("outputs", {}))
             ])
 
-        return cls(_id=step_id, line=line, sinks=sinks, sources=sources)
+        return cls(_id=step_id, line=line, sinks=sinks, sources=sources, sub_workflow=sub_workflow)
 
 
 class Connection:
@@ -158,7 +182,7 @@ class Workflow:
 
         self.steps = OrderedDict(
             (k, Step.from_doc(
-                step_id=k, line=(v.start_line, v.end_line), step_doc=v, root=self.cwl_doc.path,
+                step_id=k, line=(v.start_line, v.end_line), cwl_doc=cwl_doc,
                 wf_error_list=self.problems_with_wf))
             for k, v in cwl_dict.get("steps", {})
         )

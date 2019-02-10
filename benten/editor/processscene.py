@@ -1,6 +1,6 @@
 import pathlib
 
-from PySide2.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent
+from PySide2.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent, QGraphicsSceneMouseEvent
 from PySide2.QtCore import Qt, Signal
 
 
@@ -20,6 +20,7 @@ class ProcessScene(QGraphicsScene):
     """We need to subclass this to handle dropping onto the scene"""
 
     nodes_added = Signal(list)
+    double_click = Signal(QGraphicsSceneMouseEvent)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -47,3 +48,6 @@ class ProcessScene(QGraphicsScene):
                 event.accept()
 
         self.nodes_added.emit(wf_list)
+
+    def mouseDoubleClickEvent(self, event:QGraphicsSceneMouseEvent):
+        self.double_click.emit(event)

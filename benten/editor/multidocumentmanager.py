@@ -23,39 +23,40 @@ from benten.editing.cwldoc import CwlDoc
 
 class MultiDocumentManager:
     def __init__(self):
-        self.directory_of_documents: Dict[str, Dict[([str], None), BentenWindow]] = {}
+        self.directory_of_documents: Dict[str, Dict[(Tuple[str], None), BentenWindow]] = {}
 
-    def open_window(self, parent_path: str, inline_path: [str]):
-        if parent_path not in self.directory_of_documents or \
-                inline_path not in self.directory_of_documents[parent_path]:
+    def open_window(self, parent_path: pathlib.Path, inline_path: Tuple[str]):
+        path_str = parent_path.resolve().as_uri()
+        if path_str not in self.directory_of_documents or \
+                inline_path not in self.directory_of_documents[path_str]:
             self.create_new_window(parent_path, inline_path)
 
-        return self.directory_of_documents[parent_path][inline_path]
+        return self.directory_of_documents[path_str][inline_path]
         # The receiver - BentenMainWidget - has to find out if this is an existing tab
         # or a new tab is needed
 
-    def create_new_window(self, parent_path: str, inline_path: [str]):
-        p_path = pathlib.Path(parent_path)
-        if not p_path.exists():
+    def create_new_window(self, parent_path: pathlib.Path, inline_path: Tuple[str]):
+        if not parent_path.exists():
             # Decision: we don't create a new document, we assume user error.
             # The sub-workflow must exist
             raise RuntimeError("Document {} does not exist".format(parent_path))
 
         bw = BentenWindow()
+        path_str = parent_path.resolve().as_uri()
 
         if inline_path is None:
             # New root document
-            self.directory_of_documents[parent_path] = {}
-            raw_cwl = p_path.open("r").read()
-            cwl_doc = CwlDoc(raw_cwl=raw_cwl, path=p_path, inline_path=inline_path)
+            self.directory_of_documents[path_str] = {}
+            raw_cwl = parent_path.open("r").read()
+            cwl_doc = CwlDoc(raw_cwl=raw_cwl, path=parent_path, inline_path=inline_path)
             bw.set_document(cwl_doc=cwl_doc)
         else:
             # Find appropriate inline section of loaded document
             bw.set_document(
-                cwl_doc=self.directory_of_documents[parent_path][None].
+                cwl_doc=self.directory_of_documents[path_str][None].
                     cwl_doc.get_nested_inline_step(inline_path))
 
-        self.directory_of_documents[parent_path][inline_path] = bw
+        self.directory_of_documents[path_str][inline_path] = bw
 
-    def document_saved(self, parent_path: str, inline_path: [str]):
+    def document_saved(self, parent_path: pathlib.Path, inline_path: [str]):
         pass

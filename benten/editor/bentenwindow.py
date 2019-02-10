@@ -3,9 +3,9 @@ or a part of a CWL file, like an in-lined step. Changes to a part of a CWL file 
 
 import time
 
-from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot
+from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView
+    QAbstractItemView, QGraphicsSceneMouseEvent
 from PySide2.QtGui import QTextCursor, QPainter
 
 from benten.editor.codeeditor import CodeEditor
@@ -50,6 +50,8 @@ class PersistentEditorState:
 
 
 class BentenWindow(QWidget):
+
+    scene_double_clicked = Signal(object)
 
     def __init__(self):
         QWidget.__init__(self)
@@ -165,6 +167,7 @@ class BentenWindow(QWidget):
 
         scene = WorkflowScene(self)
         scene.selectionChanged.connect(self.something_selected)
+        scene.double_click.connect(self.something_double_clicked)
 
         scene.set_workflow(self.process_model)
         self.process_view.setScene(scene)
@@ -245,3 +248,12 @@ class BentenWindow(QWidget):
         conn = self.conn_table.item(row, col).data(Qt.UserRole)
         logger.debug("Scroll to line {}".format(conn.line[0]))
         self.code_editor.scroll_to(conn.line[0])
+
+    @Slot(QGraphicsSceneMouseEvent)
+    def something_double_clicked(self, event):
+        items = self.process_view.scene().selectedItems()
+        steps = [self.process_model.steps[item.data(0)] for item in items
+                 if item.data(0) not in ["inputs", "outputs"] and isinstance(item.data(0), str)]
+        # exclude workflow inputs/outputs and connecting lines (which are tuples)
+        if steps:
+            self.scene_double_clicked.emit([step.sub_workflow for step in steps])

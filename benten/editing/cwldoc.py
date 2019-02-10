@@ -1,4 +1,5 @@
 """Container for storing a CWL object in memory and for applying some edits to it"""
+from typing import Tuple
 from enum import IntEnum
 import pathlib
 
@@ -31,7 +32,7 @@ class InlineChild:
 
 
 class CwlDoc:
-    def __init__(self, raw_cwl: str, path: pathlib.Path, inline_path: str=None):
+    def __init__(self, raw_cwl: str, path: pathlib.Path, inline_path: Tuple[str]=None):
         self.raw_cwl = raw_cwl
         self.path = path
         self.inline_path = inline_path
@@ -62,7 +63,7 @@ class CwlDoc:
 
     # No error checking here because this will be asked for programatically only
     # if the nested dict exists
-    def get_nested_inline_step(self, inline_path: [str]):
+    def get_nested_inline_step(self, inline_path: Tuple[str]):
 
         def _find_step(_doc_dict, _inline_path):
             if len(_inline_path) == 0:
