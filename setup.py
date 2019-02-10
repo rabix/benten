@@ -21,7 +21,7 @@ setup(
     version=VERSION,
     packages=find_packages(),
     platforms=['POSIX', 'MacOS', 'Windows'],
-    python_requires='>=3.5.0',
+    python_requires='>=3.7.0',
     install_requires=[
         "pyyaml",
         "PySide2",
