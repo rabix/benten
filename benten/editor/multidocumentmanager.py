@@ -44,11 +44,11 @@ class MultiDocumentManager:
         bw = BentenWindow()
         path_str = parent_path.resolve().as_uri()
 
-        if inline_path is None:
+        if inline_path is None or len(inline_path) == 0:
             # New root document
             self.directory_of_documents[path_str] = {}
             raw_cwl = parent_path.open("r").read()
-            cwl_doc = CwlDoc(raw_cwl=raw_cwl, path=parent_path, inline_path=inline_path)
+            cwl_doc = CwlDoc(raw_cwl=raw_cwl, path=parent_path, inline_path=None)
             bw.set_document(cwl_doc=cwl_doc)
         else:
             # Find appropriate inline section of loaded document

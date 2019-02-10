@@ -65,6 +65,6 @@ class BentenMainWidget(QTabWidget):
             elif isinstance(sub, InlineSub):
                 self.open_document(sub.path, sub.inline_path)
             elif isinstance(sub, ExternalSub):
-                self.open_document(sub.path, [])
+                self.open_document(sub.path, None)
             else:
                 raise RuntimeError("Code error: Unknown sub workflow type!")
