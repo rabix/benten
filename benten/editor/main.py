@@ -33,8 +33,8 @@ class MainWindow(QMainWindow):
         file_menu.addAction(exit_action)
 
         # Status Bar
-        self.status = self.statusBar()
-        self.status.showMessage("Ready")
+        # self.status = self.statusBar()
+        # self.status.showMessage("Ready")
 
         # This needs to come before tabs are added because adding tabs triggers
         # the currentChanged signal which triggers a slot that requires this to
