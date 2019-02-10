@@ -1,24 +1,19 @@
-import os
-import io
-from os import path
+import pathlib
 from datetime import datetime
 from setuptools import setup, find_packages
 
-NAME = 'benten'
-VERSION = '0.0.1'
-DIR = path.abspath(path.dirname(__file__))
-NOW = datetime.utcnow()
+current_path = pathlib.Path(__file__).parent
 
-if os.path.exists('./VERSION'):
-    with io.open('./VERSION', 'r') as f:
-        VERSION = f.read().strip()
-
-with open(path.join(DIR, 'Readme.md')) as f:
-    long_description = f.read()
+name = 'benten'
+ver_path = pathlib.Path(current_path, "benten", "version.py")
+version = ver_path.open("r").read().split("=")[1].strip().replace("\"", "")
+now = datetime.utcnow()
+desc_path = pathlib.Path(current_path, "Readme.md")
+long_description = desc_path.open("r").read()
 
 setup(
-    name=NAME,
-    version=VERSION,
+    name=name,
+    version=version,
     packages=find_packages(),
     platforms=['POSIX', 'MacOS', 'Windows'],
     python_requires='>=3.7.0',
@@ -41,7 +36,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     include_package_data=True,
-    license='Copyright (c) {} Seven Bridges Genomics'.format(NOW.year),
+    license='Copyright (c) {} Seven Bridges Genomics'.format(now.year),
     classifiers=[
         'Intended Audience :: Developers',
         'License :: Apache 2.0',
