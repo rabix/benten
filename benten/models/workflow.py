@@ -148,10 +148,16 @@ class Workflow:
 
         cwl_dict = self.cwl_doc.cwl_dict
 
+        self.section_lines = {}
+
         required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]
         for sec in required_sections:
             if sec not in cwl_dict:
                 self.problems_with_wf += ["'{}' missing".format(sec)]
+            elif sec == "inputs":
+                self.section_lines["inputs"] = (cwl_dict["inputs"].start_line, cwl_dict["inputs"].end_line)
+            elif sec == "outputs":
+                self.section_lines["outputs"] = (cwl_dict["outputs"].start_line, cwl_dict["outputs"].end_line)
 
         self.inputs = self._parse_ports(cwl_dict.get("inputs", {}))
         self.outputs = self._parse_ports(cwl_dict.get("outputs", {}))
