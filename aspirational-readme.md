@@ -99,6 +99,13 @@ created on disk are not undone, so undoing an implode step will leave the create
 subworkflow file intact.
 
 
+## Error pane
+
+If a workflow has errors a notice will appear below the editor pane and clicking it 
+will raise a sub-window with errors listed. Clicking on them will, if possible, scroll
+to the offending line. 
+
+
 ## Command bar
 
 Major workflow operations are performed using the command bar. The command bar
