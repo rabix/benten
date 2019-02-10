@@ -31,7 +31,6 @@ import pathlib
 from collections import OrderedDict
 import logging
 
-# import benten.lib as blib
 from benten.editing.listormap import CWLMap, CWLList, parse_cwl_to_dict
 from benten.editing.cwldoc import CwlDoc
 

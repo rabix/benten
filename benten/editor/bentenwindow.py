@@ -10,9 +10,13 @@ from PySide2.QtGui import QTextCursor, QPainter
 
 from benten.editor.codeeditor import CodeEditor
 from benten.editor.processview import ProcessView
+from benten.editor.unkscene import UnkScene
+from benten.editor.toolscene import ToolScene
 from benten.editor.workflowscene import WorkflowScene
 
 from benten.editing.cwldoc import CwlDoc
+from benten.models.unk import Unk
+from benten.models.tool import Tool
 from benten.models.workflow import Workflow
 
 import logging
@@ -161,27 +165,37 @@ class BentenWindow(QWidget):
                               path=self.cwl_doc.path,
                               inline_path=self.cwl_doc.inline_path)
 
-        # todo: check for version and type of CWL document
-        self.process_model = \
-            Workflow(cwl_doc=self.cwl_doc)
+        pt = self.cwl_doc.process_type()
+        if pt == "Workflow":
+            self.process_model = Workflow(cwl_doc=self.cwl_doc)
+            scene = WorkflowScene(self)
+            scene.selectionChanged.connect(self.something_selected)
+            scene.double_click.connect(self.something_double_clicked)
+            scene.set_workflow(self.process_model)
+            self.process_view.setScene(scene)
+            self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+            if self.process_model.problems_with_wf:
+                logger.warning(self.process_model.problems_with_wf)
+        elif pt in ["CommandLineTool", "ExpressionTool"]:
+            self.process_model = Tool(cwl_doc=self.cwl_doc)
+            scene = ToolScene(self)
+            scene.set_tool(self.process_model)
+            self.process_view.setScene(scene)
+            self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+            self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
+        else:
+            self.process_model = Unk(cwl_doc=self.cwl_doc)
+            scene = UnkScene(self)
+            self.process_view.setScene(scene)
+            self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+            self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
 
-        scene = WorkflowScene(self)
-        scene.selectionChanged.connect(self.something_selected)
-        scene.double_click.connect(self.something_double_clicked)
-
-        scene.set_workflow(self.process_model)
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
         t1 = time.time()
 
         logger.debug("Parsed and displayed workflow in {}s".format(t1 - t0))
-        if self.process_model.problems_with_wf:
-            logger.warning(self.process_model.problems_with_wf)
-
-        # self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
-        # self.process_view.ensureVisible(-10, -10, 20, 20)
-        # self.process_view.show()
 
     @Slot()
     def something_selected(self):
@@ -256,6 +270,10 @@ class BentenWindow(QWidget):
     @Slot(QGraphicsSceneMouseEvent)
     def something_double_clicked(self, event):
         items = self.process_view.scene().selectedItems()
+        if len(items) == 0:
+            self.process_view.fitInView(self.process_view.scene().sceneRect(), Qt.KeepAspectRatio)
+            return
+
         steps = [self.process_model.steps[item.data(0)] for item in items
                  if item.data(0) not in ["inputs", "outputs"] and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)

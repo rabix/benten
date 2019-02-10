@@ -39,6 +39,9 @@ class CwlDoc:
         self.cwl_lines = self.raw_cwl.splitlines()
         self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
 
+    def process_type(self):
+        return self.cwl_dict.get("class", "unknown")
+
     def apply_manual_edit(self, raw_cwl: str):
         if self.raw_cwl != raw_cwl:
             self.raw_cwl = raw_cwl

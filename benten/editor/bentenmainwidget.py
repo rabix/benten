@@ -56,7 +56,6 @@ class BentenMainWidget(QTabWidget):
 
     @Slot(object)
     def scene_double_clicked(self, sub_workflows):
-        print(sub_workflows)
         for sub in sub_workflows:
             if isinstance(sub, InvalidSub):
                 continue

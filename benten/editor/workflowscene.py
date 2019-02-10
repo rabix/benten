@@ -1,5 +1,3 @@
-from enum import IntEnum
-
 import pygraphviz as pgv
 
 from PySide2.QtCore import Qt, QRectF, QPointF
