@@ -23,7 +23,6 @@ class BentenMainWidget(QTabWidget):
         self.active_window: BentenWindow = None
 
         self.setTabsClosable(True)
-        self._make_base_tab_unclosable()
 
         self.currentChanged.connect(self.breadcrumb_selected)
 
@@ -41,8 +40,12 @@ class BentenMainWidget(QTabWidget):
             if self.widget(idx) == bw:
                 self.setCurrentIndex(idx)
         else:
+            cwl = bw.cwl_doc.cwl_dict
             bw.scene_double_clicked.connect(self.scene_double_clicked)
-            self.addTab(bw, "Some clever name")
+            self.setCurrentIndex(self.addTab(bw, cwl.get("id", cwl.get("label", parent_path))))
+
+        if self.count() == 1:
+            self._make_base_tab_unclosable()
 
     @Slot()
     def breadcrumb_selected(self):
