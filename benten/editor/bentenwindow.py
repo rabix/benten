@@ -45,6 +45,11 @@ class ManualEditThrottler:
     def restart_edit_clock(self):
         self.timer.start()
 
+    def flush(self):
+        if self.timer.isActive():
+            self.timer.stop()
+            self.timer.timeout.emit()
+
 
 class PersistentEditorState:
     """Each edit causes us to update everything. We need to remember some things."""
@@ -119,6 +124,7 @@ class BentenWindow(QWidget):
 
     def set_inactive_window(self):
         """To be called whenever we switch away from this window"""
+        self.manual_edit_throttler.flush()
         self.is_active_window = False
 
     @Slot()
