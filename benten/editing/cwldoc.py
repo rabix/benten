@@ -18,7 +18,16 @@ class CwlDoc:
         self.path = path
         self.inline_path = inline_path
         self.cwl_lines = self.raw_cwl.splitlines()
-        self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
+        self._cwl_dict = None
+
+    # be lazy on the (semi)expensive compute
+    # A single run of this on a large document is ~ 30ms. However edits on a document
+    # with many inline children open will add up if not done lazily ...
+    @property
+    def cwl_dict(self):
+        if self._cwl_dict is None:
+            self._cwl_dict = parse_cwl_to_lom(self.raw_cwl)
+        return self._cwl_dict
 
     def process_type(self):
         return self.cwl_dict.get("class", "unknown")
@@ -46,7 +55,7 @@ class CwlDoc:
 
     # No error checking here because this will be asked for programatically only
     # if the nested dict exists
-    def get_nested_inline_step(self, inline_path: Tuple[str, ...]):
+    def get_raw_cwl_of_nested_inline_step(self, inline_path: Tuple[str, ...]):
         if self.inline_path is not None:
             raise RuntimeError("Sub part from nested document fragment is not allowed")
 
@@ -57,7 +66,11 @@ class CwlDoc:
             for l in lines_we_need
         ]
 
-        return CwlDoc(raw_cwl="\n".join(lines), path=self.path, inline_path=inline_path)
+        return "\n".join(lines)
+
+    def get_nested_inline_step(self, inline_path: Tuple[str, ...]):
+        return CwlDoc(raw_cwl=self.get_raw_cwl_of_nested_inline_step(inline_path),
+                      path=self.path, inline_path=inline_path)
 
     def get_raw_cwl_of_base_after_nested_edit(self, inline_path: Tuple[str, ...], new_cwl: str):
         if self.inline_path is not None:
