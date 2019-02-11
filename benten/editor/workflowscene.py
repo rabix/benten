@@ -34,12 +34,12 @@ class WorkflowScene(ProcessScene):
         G.layout("dot")
 
         def str_to_pos(_n):
+            # https://groups.google.com/forum/#!topic/pygraphviz-discuss/QYXumyw3E-g
             _x, _y = _n.attr["pos"].split(",")
             return float(_x), -float(_y)
 
         graph = {
             n.name: {
-                # https://groups.google.com/forum/#!topic/pygraphviz-discuss/QYXumyw3E-g
                 "pos": str_to_pos(n),
                 "type": n.attr["type"]
             }
