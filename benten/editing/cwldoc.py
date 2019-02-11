@@ -73,7 +73,7 @@ class CwlDoc:
                 return _doc_dict
             else:
                 for _id, step in _doc_dict["steps"]:
-                    if step["id"] == _inline_path[0]:
+                    if _id == _inline_path[0]:
                         return _find_step(step["run"], _inline_path[1:])
 
         if self.inline_path is not None:

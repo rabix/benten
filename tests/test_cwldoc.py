@@ -49,3 +49,25 @@ def test_nested_inline():
     cwl = c2.cwl_dict
 
     assert cwl["steps"]["pass_through"]["in"]["input"].start_line == 1071 - 987
+
+
+def test_nested_inline_both_list_and_dict():
+    # Need to make sure we handle both lists and dicts
+
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-nested-step-as-dict.cwl")
+    c = CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path, inline_path=None)
+
+    c2 = c.get_nested_inline_step(("s1",))
+    cwl = c2.cwl_dict
+
+    assert cwl["class"] == "CommandLineTool"
+    assert cwl["inputs"].start_line == 23 - 21
+
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-nested-step-as-dict.cwl")
+    c = CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path, inline_path=None)
+
+    c2 = c.get_nested_inline_step(("s1",))
+    cwl = c2.cwl_dict
+
+    assert cwl["class"] == "CommandLineTool"
+    assert cwl["inputs"].start_line == 23 - 21
