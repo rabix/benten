@@ -4,7 +4,7 @@ or a part of a CWL file, like an in-lined step. Changes to a part of a CWL file 
 import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
-from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QWidget, \
+from PySide2.QtWidgets import QHBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
     QAbstractItemView, QGraphicsSceneMouseEvent
 from PySide2.QtGui import QTextCursor, QPainter
 
@@ -61,34 +61,33 @@ class BentenWindow(QWidget):
         QWidget.__init__(self)
 
         self.code_editor: CodeEditor = CodeEditor()
-        self.code_editor.setFixedWidth(350)
         self.process_view: ProcessView = ProcessView(self)
-        # self.command_bar = QLineEdit(self)
+
         self.conn_table = QTableWidget(self)
         self.conn_table.horizontalHeader().setStretchLastSection(True)
         self.conn_table.verticalHeader().setVisible(False)
         self.conn_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.conn_table.cellClicked.connect(self.connection_clicked)
-        # self.outbound_conn_table = QTableView(self)
 
-        conn_panes = QHBoxLayout()
-        conn_panes.addWidget(self.conn_table)
-        # conn_panes.addWidget(self.outbound_conn_table)
-        conn_panes.setMargin(0)
+        left_pane = QSplitter()
+        left_pane.setHandleWidth(1)
+        left_pane.setOrientation(Qt.Vertical)
+        left_pane.addWidget(self.process_view)
+        left_pane.addWidget(self.conn_table)
+        left_pane.setSizes([700, 250])
 
-        horiz_panes = QVBoxLayout()
-        horiz_panes.addWidget(self.process_view, 80)
-        # horiz_panes.addWidget(self.command_bar)
-        horiz_panes.addLayout(conn_panes, 20)
-        horiz_panes.setMargin(0)
-        horiz_panes.setSpacing(0)
+        main_pane = QSplitter(self)
+        main_pane.setHandleWidth(1)
+        main_pane.addWidget(left_pane)
+        main_pane.addWidget(self.code_editor)
+        main_pane.setSizes([800, 400])
 
-        vertical_panes = QHBoxLayout()
-        vertical_panes.addLayout(horiz_panes)
-        vertical_panes.addWidget(self.code_editor)
-        vertical_panes.setMargin(0)
-
-        self.setLayout(vertical_panes)
+        # If we don't put all this in a layout and set zero margin QT puts us in a tiny box within
+        # the window
+        layout = QHBoxLayout()
+        layout.setMargin(0)
+        layout.addWidget(main_pane)
+        self.setLayout(layout)
 
         self.manual_edit_throttler = ManualEditThrottler()
         self.manual_edit_throttler.timer.timeout.connect(self.update_from_code)
