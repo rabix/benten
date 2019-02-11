@@ -61,6 +61,7 @@ class CodeEditor(QPlainTextEdit):
 
         self.setFont(QFont("consolas", 9))
         self.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.setCenterOnScroll(True)
 
         self.line_number_area = LineNumberArea(self)
 
@@ -68,6 +69,17 @@ class CodeEditor(QPlainTextEdit):
         self.updateRequest[QRect, int].connect(self.update_line_number_area)
         self.cursorPositionChanged.connect(self.highlight_current_line)
 
+        self.update_line_number_area_width(0)
+        self.highlight_current_line()
+
+    def set_text(self, text, preserve_state=True):
+        # This attempts to preserve the editor state before and after the insert
+        # from https://www.qtcentre.org/threads/13933-Restoring-cursor-position-in-QTextEdit
+        original_cursor_pos = self.textCursor().position()
+        self.setPlainText(text)
+        new_cursor = self.textCursor()
+        new_cursor.setPosition(original_cursor_pos, QTextCursor.MoveAnchor)
+        self.setTextCursor(new_cursor)
         self.update_line_number_area_width(0)
         self.highlight_current_line()
 

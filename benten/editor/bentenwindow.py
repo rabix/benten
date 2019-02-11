@@ -107,14 +107,15 @@ class BentenWindow(QWidget):
         # This registers as a manual edit but we wish to skip the throttler
         blk = QSignalBlocker(self.code_editor)
         self.cwl_doc = cwl_doc
-        self.code_editor.setPlainText(self.cwl_doc.raw_cwl)
-        self.code_editor.update_line_number_area_width(0)
+        self.code_editor.set_text(self.cwl_doc.raw_cwl)
         self.update_from_code()
 
     def set_active_window(self):
         """To be called whenever we switch tabs to this window. """
         self.is_active_window = True
         self.update_from_code()
+        self.code_editor.setFocus()
+        # When we switch back and forth, we expect to be able to see the editor cursor = focus
 
     def set_inactive_window(self):
         """To be called whenever we switch away from this window"""
