@@ -32,7 +32,6 @@ class WorkflowScene(ProcessScene):
         ])
 
         G.layout("dot")
-        # from IPython import embed; embed()
 
         graph = {
             n.name: {
@@ -71,5 +70,3 @@ class WorkflowScene(ProcessScene):
             item.setFlag(QGraphicsItem.ItemIsSelectable, True)
             item.setData(0, k)
             self.addItem(item)
-
-        print(self.sceneRect())
