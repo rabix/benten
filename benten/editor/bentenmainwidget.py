@@ -42,7 +42,7 @@ class BentenMainWidget(QTabWidget):
         else:
             cwl = bw.cwl_doc.cwl_dict
             bw.scene_double_clicked.connect(self.scene_double_clicked)
-            self.setCurrentIndex(self.addTab(bw, cwl.get("id", cwl.get("label", parent_path))))
+            self.setCurrentIndex(self.addTab(bw, cwl.get("id", cwl.get("label", str(parent_path)))))
 
         if self.count() == 1:
             self._make_base_tab_unclosable()
