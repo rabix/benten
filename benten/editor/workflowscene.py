@@ -33,10 +33,14 @@ class WorkflowScene(ProcessScene):
 
         G.layout("dot")
 
+        def str_to_pos(_n):
+            _x, _y = _n.attr["pos"].split(",")
+            return float(_x), -float(_y)
+
         graph = {
             n.name: {
                 # https://groups.google.com/forum/#!topic/pygraphviz-discuss/QYXumyw3E-g
-                "pos": [float(x) for x in n.attr["pos"].split(",")],
+                "pos": str_to_pos(n),
                 "type": n.attr["type"]
             }
             for n in G.nodes()
@@ -58,10 +62,10 @@ class WorkflowScene(ProcessScene):
                 item = QGraphicsEllipseItem(p[0] - node_size/2, p[1] - node_size/2, node_size, node_size)
             elif v["type"] == "inputs":
                 item = self.addPolygon(QPolygonF([QPointF(p[0], p[1]),
-                                                  QPointF(p[0] + node_size/2, p[1] + node_size/2),
-                                                  QPointF(p[0] - node_size/2, p[1] + node_size/2)]))
+                                                  QPointF(p[0] + node_size/2, p[1] - node_size/2),
+                                                  QPointF(p[0] - node_size/2, p[1] - node_size/2)]))
             else:
-                item = self.addPolygon(QPolygonF([QPointF(p[0], p[1] - node_size/2),
+                item = self.addPolygon(QPolygonF([QPointF(p[0], p[1] + node_size/2),
                                                   QPointF(p[0] + node_size/2, p[1]),
                                                   QPointF(p[0] - node_size/2, p[1])]))
 
