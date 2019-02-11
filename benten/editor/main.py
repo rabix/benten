@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, path_str=None):
+    def __init__(self):
         QMainWindow.__init__(self)
 
         self.setWindowTitle("Benten")
@@ -44,15 +44,6 @@ class MainWindow(QMainWindow):
         self.tab_widget = BentenMainWidget()
         self.tab_widget.currentChanged.connect(self.breadcrumb_selected)
         self.setCentralWidget(self.tab_widget)
-
-        if path_str is not None:
-            path = pathlib.Path(path_str)
-
-            if not path.exists():
-                with open(path, "w") as f:
-                    pass
-
-            self.tab_widget.open_document(path, None)
 
     @Slot()
     def exit_app(self, checked):
@@ -90,12 +81,22 @@ def main():
 
     app = QApplication(sys.argv)
 
-    window = MainWindow(path_str=args.cwl)
+    window = MainWindow()
     window.show()
 
     # Window dimensions
     geometry = app.desktop().availableGeometry()
     window.setBaseSize(geometry.width() * 0.8, geometry.height() * 0.7)
+
+    # Load the file AFTER the geometry is set ...
+    path_str = args.cwl
+    if path_str is not None:
+        path = pathlib.Path(path_str)
+        if not path.exists():
+            with open(path, "w") as f:
+                pass
+
+        window.tab_widget.open_document(path, None)
 
     sys.exit(app.exec_())
 

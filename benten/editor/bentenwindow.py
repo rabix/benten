@@ -171,26 +171,20 @@ class BentenWindow(QWidget):
             scene.selectionChanged.connect(self.something_selected)
             scene.double_click.connect(self.something_double_clicked)
             scene.set_workflow(self.process_model)
-            self.process_view.setScene(scene)
-            self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
             if self.process_model.problems_with_wf:
                 logger.warning(self.process_model.problems_with_wf)
         elif pt in ["CommandLineTool", "ExpressionTool"]:
             self.process_model = Tool(cwl_doc=self.cwl_doc)
             scene = ToolScene(self)
             scene.set_tool(self.process_model)
-            self.process_view.setScene(scene)
-            self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-            self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
         else:
             self.process_model = Unk(cwl_doc=self.cwl_doc)
             scene = UnkScene(self)
             self.process_view.setScene(scene)
-            self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-            self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
 
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
 
         t1 = time.time()
 
