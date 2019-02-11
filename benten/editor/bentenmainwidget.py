@@ -23,6 +23,7 @@ class BentenMainWidget(QTabWidget):
         self.active_window: BentenWindow = None
 
         self.setTabsClosable(True)
+        self.tabCloseRequested.connect(self.removeTab)
 
         self.currentChanged.connect(self.breadcrumb_selected)
 
