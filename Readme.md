@@ -25,8 +25,8 @@ Benten requires Python 3.7. (I prefer to set up a Python 3.7 virtual env)
 python3 --version  # -> Python 3.7.1      (Verify python version)
 python3 -m virtualenv ~/.venvs/benten   # Create virtual env - I prefer this
 . ~/.venvs/benten                       # Activate virtual env
-pip3 install git+https://github.com/rabix/benten.git    # Install from github master branch
-# pip3 install git+https://github.com/rabix/benten.git  # 
+pip3 install git+https://github.com/rabix/benten.git            # Install from github master branch
+# pip3 install git+https://github.com/rabix/benten.git@develop  # Install from github develop branch
 benten -v <your-workflow-name.cwl>      # Open your-workflow-name.cwl in Benten with debug logging
 ```
 

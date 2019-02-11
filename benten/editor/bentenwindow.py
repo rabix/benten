@@ -180,7 +180,6 @@ class BentenWindow(QWidget):
         else:
             self.process_model = Unk(cwl_doc=self.cwl_doc)
             scene = UnkScene(self)
-            self.process_view.setScene(scene)
 
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
