@@ -99,11 +99,12 @@ created on disk are not undone, so undoing an implode step will leave the create
 subworkflow file intact.
 
 
-## Error pane
+## Error notifications
 
-If a workflow has errors a notice will appear below the editor pane and clicking it 
-will raise a sub-window with errors listed. Clicking on them will, if possible, scroll
-to the offending line. 
+If a workflow has errors, an extra gutter will appear next to the line numbers and
+red dots will appear. Hovering on the red dots with the mouse will present a message
+indicating the error. Errors that pertain to the whole workflow, or which can not
+be localized are all piled into line 1. 
 
 
 ## Command bar
