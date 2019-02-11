@@ -45,7 +45,9 @@ class BentenMainWidget(QTabWidget):
             tab_name = ".".join(inline_path) if inline_path else "root"
             bw.scene_double_clicked.connect(self.scene_double_clicked)
             bw.edit_registered.connect(self.edit_registered)
-            self.setCurrentIndex(self.addTab(bw, tab_name))
+            idx = self.addTab(bw, tab_name)
+            self.setTabToolTip(idx, str(parent_path) + "#" + tab_name)
+            self.setCurrentIndex(idx)
 
         if self.count() == 1:
             self._make_base_tab_unclosable()
