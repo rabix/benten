@@ -1,6 +1,7 @@
 """This manages the tabs that we open as part of inspecting workflow steps. It also
 manages the synchronization between the windows since the code is interdependent in one
 way or the other"""
+from typing import Tuple
 import pathlib
 
 from PySide2.QtCore import Qt, QDateTime, QModelIndex, QSignalBlocker, QRect, Qt, QTimeZone, Slot
@@ -35,15 +36,16 @@ class BentenMainWidget(QTabWidget):
         if tbr is not None:
             tbr.hide()
 
-    def open_document(self, parent_path: pathlib.Path, inline_path: [str]):
+    def open_document(self, parent_path: pathlib.Path, inline_path: Tuple[str, ...]):
         bw = self.multi_document_manager.open_window(parent_path, inline_path)
         for idx in range(self.count()):
             if self.widget(idx) == bw:
                 self.setCurrentIndex(idx)
         else:
-            cwl = bw.cwl_doc.cwl_dict
+            tab_name = ".".join(inline_path) if inline_path else "root"
             bw.scene_double_clicked.connect(self.scene_double_clicked)
-            self.setCurrentIndex(self.addTab(bw, cwl.get("id", cwl.get("label", str(parent_path)))))
+            bw.edit_registered.connect(self.edit_registered)
+            self.setCurrentIndex(self.addTab(bw, tab_name))
 
         if self.count() == 1:
             self._make_base_tab_unclosable()
@@ -66,3 +68,7 @@ class BentenMainWidget(QTabWidget):
                 self.open_document(sub.path, None)
             else:
                 raise RuntimeError("Code error: Unknown sub workflow type!")
+
+    @Slot(object)
+    def edit_registered(self, cwl_doc):
+        self.multi_document_manager.nested_document_edited(cwl_doc=cwl_doc)

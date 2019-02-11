@@ -35,7 +35,7 @@ class MultiDocumentManager:
         # The receiver - BentenMainWidget - has to find out if this is an existing tab
         # or a new tab is needed
 
-    def create_new_window(self, parent_path: pathlib.Path, inline_path: Tuple[str]):
+    def create_new_window(self, parent_path: pathlib.Path, inline_path: Tuple[str, ...]):
         if not parent_path.exists():
             # Decision: we don't create a new document, we assume user error.
             # The sub-workflow must exist
@@ -57,6 +57,23 @@ class MultiDocumentManager:
                     cwl_doc.get_nested_inline_step(inline_path))
 
         self.directory_of_documents[path_str][inline_path] = bw
+
+    def nested_document_edited(self, cwl_doc: CwlDoc):
+        path_str = cwl_doc.path.resolve().as_uri()
+        inline_path = cwl_doc.inline_path
+
+        base_bw = self.directory_of_documents[path_str][None]
+
+        if inline_path is not None and len(inline_path) > 0:
+            new_base_cwl = base_bw.cwl_doc.get_raw_cwl_of_base_after_nested_edit(
+                inline_path=inline_path, new_cwl=cwl_doc.raw_cwl)
+            base_cwl_doc = CwlDoc(raw_cwl=new_base_cwl, path=cwl_doc.path, inline_path=None)
+            base_bw.set_document(cwl_doc=base_cwl_doc)
+
+        base_cwl_doc = base_bw.cwl_doc
+        for nested_inline_path, nested_bw in self.directory_of_documents[path_str].items():
+            if nested_inline_path is None: continue
+            nested_bw.set_document(cwl_doc=base_cwl_doc.get_nested_inline_step(nested_inline_path))
 
     def document_saved(self, parent_path: pathlib.Path, inline_path: [str]):
         pass

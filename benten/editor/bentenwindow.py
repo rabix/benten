@@ -56,6 +56,7 @@ class PersistentEditorState:
 class BentenWindow(QWidget):
 
     scene_double_clicked = Signal(object)
+    edit_registered = Signal(object)
 
     def __init__(self):
         QWidget.__init__(self)
@@ -188,6 +189,8 @@ class BentenWindow(QWidget):
         t1 = time.time()
 
         logger.debug("Parsed and displayed workflow in {}s".format(t1 - t0))
+
+        self.edit_registered.emit(self.cwl_doc)
 
     @Slot()
     def something_selected(self):
