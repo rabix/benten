@@ -1,16 +1,20 @@
 import pathlib
 
+import pytest
+
 from benten.editing.cwldoc import CwlDoc
 
 
 current_path = pathlib.Path(__file__).parent
 
 
-def test_connection_salmon():
+def test_basics_salmon():
 
     wf_path = pathlib.Path(current_path, "cwl/sbg/salmon.cwl")
     c = CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path, inline_path=None)
     cwl = c.cwl_dict
+
+    assert c.process_type() == "Workflow"
 
     assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"].start_line == 2093
     assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"]["source"] == "Salmon_Index/salmon_index_archive"
@@ -23,6 +27,8 @@ def test_inline_salmon():
 
     c2 = c.get_nested_inline_step(["SBG_Create_Expression_Matrix___Transcripts"])
     cwl = c2.cwl_dict
+
+    assert c2.process_type() == "CommandLineTool"
 
     assert cwl["class"] == "CommandLineTool"
     assert cwl["inputs"]["output_name"].start_line == 634 - 629
@@ -49,6 +55,9 @@ def test_nested_inline():
     cwl = c2.cwl_dict
 
     assert cwl["steps"]["pass_through"]["in"]["input"].start_line == 1071 - 987
+
+    with pytest.raises(RuntimeError):
+        c3 = c2.get_nested_inline_step(("split",))
 
 
 def test_nested_inline_both_list_and_dict():

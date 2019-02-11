@@ -20,17 +20,6 @@ class DocEdit:
         self.edit_type = edit_type
 
 
-class InlineChild:
-    # Note that start_line and end_line can change
-    def __init__(self, parent: "CwlDoc", start_line: int, end_line: int):
-        self.parent = parent
-        self.start_line = start_line
-        self.end_line = end_line
-
-    def apply_child_edit(self):
-        pass
-
-
 class CwlDoc:
     def __init__(self, raw_cwl: str, path: pathlib.Path, inline_path: Tuple[str]=None):
         self.raw_cwl = raw_cwl
