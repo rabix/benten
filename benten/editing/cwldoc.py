@@ -12,16 +12,8 @@ class EditType(IntEnum):
     Delete = 3
 
 
-class DocEdit:
-    def __init__(self, start_line: int, end_line: int, new_lines: [str], edit_type: EditType):
-        self.start_line = start_line
-        self.end_line = end_line
-        self.new_lines = new_lines
-        self.edit_type = edit_type
-
-
 class CwlDoc:
-    def __init__(self, raw_cwl: str, path: pathlib.Path, inline_path: Tuple[str]=None):
+    def __init__(self, raw_cwl: str, path: pathlib.Path, inline_path: Tuple[str, ...]=None):
         self.raw_cwl = raw_cwl
         self.path = path
         self.inline_path = inline_path
@@ -31,32 +23,7 @@ class CwlDoc:
     def process_type(self):
         return self.cwl_dict.get("class", "unknown")
 
-    def apply_manual_edit(self, raw_cwl: str):
-        if self.raw_cwl != raw_cwl:
-            self.raw_cwl = raw_cwl
-            self.cwl_lines = self.raw_cwl.splitlines()
-            self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
-
-    def apply_programmatic_edit(self, edit: DocEdit):
-        if edit.edit_type == EditType.Insert:
-            self.cwl_lines = self.cwl_lines[:edit.start_line] + \
-                             edit.new_lines + \
-                             self.cwl_lines[edit.start_line:]
-        elif edit.edit_type == EditType.Replace:
-            self.cwl_lines = self.cwl_lines[:edit.start_line] + \
-                             edit.new_lines + \
-                             self.cwl_lines[edit.end_line:]
-        else:
-            self.cwl_lines = self.cwl_lines[:edit.start_line] + \
-                             self.cwl_lines[edit.end_line:]
-
-        self.raw_cwl = "\n".join(self.cwl_lines)
-        self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
-
-    # No error checking here because this will be asked for programatically only
-    # if the nested dict exists
-    def get_nested_inline_step(self, inline_path: Tuple[str]):
-
+    def _get_lines_for_nested_inline_step(self, inline_path: Tuple[str, ...]):
         def _find_step(_doc_dict, _inline_path):
             if len(_inline_path) == 0:
                 return _doc_dict
@@ -73,11 +40,31 @@ class CwlDoc:
         # Now we have a dict with line numbers, which we'll use to extract from the main doc
         start_line = nested_doc.start_line
         end_line = nested_doc.end_line
+        indent_level = len(self.cwl_lines[start_line]) - len(self.cwl_lines[start_line].lstrip())
+
+        return start_line, end_line, indent_level
+
+    # No error checking here because this will be asked for programatically only
+    # if the nested dict exists
+    def get_nested_inline_step(self, inline_path: Tuple[str, ...]):
+        if self.inline_path is not None:
+            raise RuntimeError("Sub part from nested document fragment is not allowed")
+
+        start_line, end_line, indent_level = self._get_lines_for_nested_inline_step(inline_path)
         lines_we_need = self.cwl_lines[start_line:end_line]
-        indent_level = len(lines_we_need[0]) - len(lines_we_need[0].lstrip())
         lines = [
             l[indent_level:]
             for l in lines_we_need
         ]
 
         return CwlDoc(raw_cwl="\n".join(lines), path=self.path, inline_path=inline_path)
+
+    def get_raw_cwl_of_base_after_nested_edit(self, inline_path: Tuple[str, ...], new_cwl: str):
+        if self.inline_path is not None:
+            raise RuntimeError("Nested edits can only be applied to base document")
+
+        start_line, end_line, indent_level = self._get_lines_for_nested_inline_step(inline_path)
+
+        new_lines = [' '*indent_level + l for l in new_cwl.splitlines()]
+        self.cwl_lines = self.cwl_lines[:start_line] + new_lines + self.cwl_lines[end_line:]
+        return "\n".join(self.cwl_lines)
