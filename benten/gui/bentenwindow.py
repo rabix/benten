@@ -67,9 +67,9 @@ class BentenWindow(QWidget):
         QWidget.__init__(self)
 
         self.code_editor: CodeEditor = CodeEditor()
-        self.process_view: ProcessView = ProcessView(self)
+        self.process_view: ProcessView = ProcessView(None)
 
-        self.conn_table = QTableWidget(self)
+        self.conn_table = QTableWidget()
         self.conn_table.horizontalHeader().setStretchLastSection(True)
         self.conn_table.verticalHeader().setVisible(False)
         self.conn_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -80,13 +80,13 @@ class BentenWindow(QWidget):
         left_pane.setOrientation(Qt.Vertical)
         left_pane.addWidget(self.process_view)
         left_pane.addWidget(self.conn_table)
-        left_pane.setSizes([700, 250])
+        # left_pane.setSizes([700, 250])
 
         main_pane = QSplitter(self)
         main_pane.setHandleWidth(1)
         main_pane.addWidget(left_pane)
         main_pane.addWidget(self.code_editor)
-        main_pane.setSizes([800, 400])
+        # main_pane.setSizes([800, 400])
 
         # If we don't put all this in a layout and set zero margin QT puts us in a tiny box within
         # the window

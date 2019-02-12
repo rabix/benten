@@ -78,6 +78,7 @@ def main():
     else:
         logging.basicConfig(level=logging.WARNING)
 
+    QApplication.setDesktopSettingsAware(True)
     app = QApplication(sys.argv)
 
     window = MainWindow()

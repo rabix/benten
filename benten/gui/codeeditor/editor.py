@@ -57,7 +57,7 @@ class CodeEditor(
     ShowWhitespace,
     ShowLineEndings,
     Wrap,
-    # BreakPoints,
+    BreakPoints,
     LineNumbers,
 
     AutoCompletion,  # Escape: first remove autocompletion,
