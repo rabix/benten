@@ -1,4 +1,3 @@
-import os
 import argparse
 import sys
 import pathlib
@@ -9,8 +8,8 @@ from PySide2.QtWidgets import QAction, QApplication, QTabWidget, QPushButton, QL
     QHeaderView, QTabBar, QDesktopWidget, \
     QMenuBar, QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget
 
-from benten.editor.bentenmainwidget import BentenMainWidget
-from benten.editor.bentenwindow import BentenWindow
+from .gui.bentenmainwidget import BentenMainWidget
+from .gui.bentenwindow import BentenWindow
 
 import logging
 logger = logging.getLogger(__name__)

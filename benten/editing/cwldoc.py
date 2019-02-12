@@ -3,7 +3,7 @@ from typing import Tuple
 from enum import IntEnum
 import pathlib
 
-from benten.editing.listormap import parse_cwl_to_lom
+from .listormap import parse_cwl_to_lom
 
 
 class EditType(IntEnum):

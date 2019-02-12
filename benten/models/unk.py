@@ -1,4 +1,4 @@
-from benten.editing.cwldoc import CwlDoc
+from ..editing.cwldoc import CwlDoc
 
 
 class Unk:

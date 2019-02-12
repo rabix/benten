@@ -8,16 +8,16 @@ from PySide2.QtWidgets import QHBoxLayout, QSplitter, QTableWidget, QTableWidget
     QAbstractItemView, QGraphicsSceneMouseEvent
 from PySide2.QtGui import QTextCursor, QPainter
 
-from benten.editor.codeeditor import CodeEditor
-from benten.editor.processview import ProcessView
-from benten.editor.unkscene import UnkScene
-from benten.editor.toolscene import ToolScene
-from benten.editor.workflowscene import WorkflowScene
+from .codeeditor.editor import CodeEditor
+from .processview import ProcessView
+from .unkscene import UnkScene
+from .toolscene import ToolScene
+from .workflowscene import WorkflowScene
 
-from benten.editing.cwldoc import CwlDoc
-from benten.models.unk import Unk
-from benten.models.tool import Tool
-from benten.models.workflow import Workflow
+from ..editing.cwldoc import CwlDoc
+from ..models.unk import Unk
+from ..models.tool import Tool
+from ..models.workflow import Workflow
 
 import logging
 

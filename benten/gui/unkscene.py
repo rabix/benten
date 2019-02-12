@@ -1,6 +1,6 @@
 from PySide2.QtGui import QFont
 
-from benten.editor.processscene import ProcessScene
+from .processscene import ProcessScene
 
 
 class UnkScene(ProcessScene):

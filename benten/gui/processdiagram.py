@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QGraphicsScene, QGraphicsView
+from PySide2.QtWidgets import QGraphicsView
 
 
 class ProcessDiagram(QGraphicsView):

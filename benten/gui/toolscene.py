@@ -1,7 +1,7 @@
 from PySide2.QtGui import QFont
 
-from benten.editor.processscene import ProcessScene
-from benten.models.tool import Tool
+from .processscene import ProcessScene
+from ..models.tool import Tool
 
 
 class ToolScene(ProcessScene):

@@ -24,7 +24,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'benten = benten.editor.main:main'
+            'benten = benten.guimain:main'
         ],
     },
 

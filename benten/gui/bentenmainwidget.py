@@ -4,16 +4,13 @@ way or the other"""
 from typing import Tuple
 import pathlib
 
-from PySide2.QtCore import Qt, QDateTime, QModelIndex, QSignalBlocker, QRect, Qt, QTimeZone, Slot
+from PySide2.QtCore import Slot
 
-from PySide2.QtWidgets import QAction, QApplication, QTabWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, \
-    QHeaderView, QTabBar, \
-    QMenuBar, QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget
+from PySide2.QtWidgets import QTabWidget, QTabBar
 
-from benten.editing.cwldoc import CwlDoc
-from benten.models.workflow import InvalidSub, InlineSub, ExternalSub
-from benten.editor.bentenwindow import BentenWindow
-from benten.editor.multidocumentmanager import MultiDocumentManager
+from ..models.workflow import InvalidSub, InlineSub, ExternalSub
+from .bentenwindow import BentenWindow
+from .multidocumentmanager import MultiDocumentManager
 
 
 class BentenMainWidget(QTabWidget):

@@ -1,11 +1,11 @@
 import pygraphviz as pgv
 
-from PySide2.QtCore import Qt, QRectF, QPointF
-from PySide2.QtGui import QPen, QBrush, QColor, QPolygonF
-from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsItem
+from PySide2.QtCore import Qt, QPointF
+from PySide2.QtGui import QBrush, QPolygonF
+from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsItem
 
-from benten.editor.processscene import ProcessScene
-import benten.models.workflow as blwf
+from .processscene import ProcessScene
+from ..models.workflow import Workflow
 
 
 class WorkflowScene(ProcessScene):
@@ -13,7 +13,7 @@ class WorkflowScene(ProcessScene):
         super().__init__(parent)
         self.workflow = None
 
-    def set_workflow(self, wf: blwf.Workflow):
+    def set_workflow(self, wf: Workflow):
         self.workflow = wf
         self.create_scene()
 

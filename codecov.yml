@@ -1,2 +1,2 @@
 ignore:
-  - "benten/editor/*"
+  - "benten/gui/*"

@@ -14,11 +14,11 @@ Responsibilities
    when this external file changes.
 
 """
-from typing import List, Set, Dict, Tuple, Optional
+from typing import Dict, Tuple
 import pathlib
 
-from benten.editor.bentenwindow import BentenWindow
-from benten.editing.cwldoc import CwlDoc
+from .bentenwindow import BentenWindow
+from ..editing.cwldoc import CwlDoc
 
 
 class MultiDocumentManager:
