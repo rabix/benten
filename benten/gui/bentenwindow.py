@@ -80,13 +80,15 @@ class BentenWindow(QWidget):
         left_pane.setOrientation(Qt.Vertical)
         left_pane.addWidget(self.process_view)
         left_pane.addWidget(self.conn_table)
-        # left_pane.setSizes([700, 250])
+        left_pane.setStretchFactor(0, 3)
+        left_pane.setStretchFactor(1, 1)
 
         main_pane = QSplitter(self)
         main_pane.setHandleWidth(1)
         main_pane.addWidget(left_pane)
         main_pane.addWidget(self.code_editor)
-        # main_pane.setSizes([800, 400])
+        main_pane.setStretchFactor(0, 5)
+        main_pane.setStretchFactor(1, 3)
 
         # If we don't put all this in a layout and set zero margin QT puts us in a tiny box within
         # the window
