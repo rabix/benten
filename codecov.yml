@@ -1,4 +1,4 @@
 ignore:
-  - "guimain.py"
-  - "version.py"
+  - "benten/guimain.py"
+  - "benten/version.py"
   - "benten/gui/*"
