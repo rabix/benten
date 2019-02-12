@@ -38,8 +38,10 @@ If you put the elements in the `step` field in flow style, _Benten_ will not wor
 
 # Manual/Features
 
-2019.02.10 preview
-![2019.02.10 release](https://lh3.googleusercontent.com/Y9H2uBYkwrqd9tYwMUsa1be-7knH-yD4s2eR-sC0f0xPkY7DbBa6QFQukATKLqHDxHWP8l2_v0Ykpm3oouyfjO9b0Yxsfb315L0BgmStSIqN7SutyVq2Y3_jp2JFgpZcneNX79U0LGa5aORjHId-gx3EUwz5RAsNsE7pwLmCFJh2rYN-_L2Z8k_mkCAFn6LEK4PlnULcfpQDf8SDoYS4JzsTaW7LqCJWCa9w-6kX320_npxrpMmTqPK7vX4DZKC8KHLqb3D4Ls1j9JCdliZSykLzwrF4adzgVz8PI1CQLFuReN0dRuaFdrgCv_bVrUHM4U2g2G1q9ODUdFXBYCK0ACx9bdSGX_xFW5RUoCgyouR7HBZ228Yu_y5-eDkF-Fiz4zHqnLZBOaEA2ZYV5-706bekpWzZKk31hcnlcVQldK6IzlpE_MXKaGkoQRQJegf0-YTodmo7o5OATcmtXpcVxsXTo-gzG40DVS0hJoM9gTXSIPI4aX5yUf-wf9gaxwqf3D_UFI8xgZhfBFRiCIb8-NaXRQpSJx_1xTzFeohK06PPVPiJ8CWSW1yeaa0W1A8nmjvQ0JYdUevS432wYAKxlctFlmkpsxx7SJdcin37VjBN7czbZ72S0StqOAXAOPcjPnUl2T3N3uU-enW5YAYY1rSe2TL0LV3MnPGcVgFYBNjGfF3g3kdrQ0BTmw_E-wpUZQyBITu0aBHoVhWVfl4U3qcq=w2062-h1096-no)
+2019.02.12 preview
+![2019.02.12 release](https://lh3.googleusercontent.com/1M5Qplw84aA6arEvgwLm9sxedjDgoCo3ZNL20lp7P3OfQYGqdStcDgrBgOiX6i2ke3apyyGulSBr3_gBVaohgPcq_4pvHsvxskjJCb_R9fxmxbo8Lg5UEEepVyc6-UKC3a2ov3sbVg=w2326-h1390-no)
+
+**File saving not implemented yet! But you can see synchronization by editing nested steps**
 
 Benten has three main panes: Workflow map, Code editor and Connection table. The
 relative sizes of each can be changed by dragging dividing lines up/down, left/right.
