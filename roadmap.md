@@ -14,3 +14,5 @@ March 2019
 April 2019
 - [ ] CWL syntax highlighting
 - [ ] CWL code completion (probably need to write a parser)
+- [ ] Highlight and evaluate an expression (expects an input.yaml)
+- [ ] Invoke cwl-runner from command bar

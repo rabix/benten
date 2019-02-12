@@ -122,7 +122,7 @@ editor is also very elegant, with additive functionality from mixins.
 
 
 # Developer notes
-- [Ramblings of the developer][development-notes.md]
+- [Ramblings of the developer](development-notes.md)
 - [Roadmap (AKA todo notes)](roadmap.md)
 
 
