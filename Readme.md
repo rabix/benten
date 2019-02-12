@@ -109,6 +109,16 @@ and errors.
 Apache 2.0
 
 
+# Acknowledgments
+
+The code editor is a trivially modified copy of the Pyzo code editor component 
+distributed with the [Pyzo IDE](https://pyzo.org/about_pyzo.html). The Pyzo
+code is distributed under the [BSD license](benten/gui/codeeditor/license.txt).
+Many thanks to the Pyzo team for taking the care to modularize their code so
+that it is so trivial to incorporate it in different projects. The design of the
+editor is also very elegant, with additive functionality from mixins. 
+
+
 # What's in a name? 
 
 **Saraswati** is the Hindu goddess of learning and knowledge and a long time ago 
