@@ -2,7 +2,7 @@ import pygraphviz as pgv
 
 from PySide2.QtCore import Qt, QPointF
 from PySide2.QtGui import QBrush, QPolygonF
-from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsItem
+from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsPolygonItem
 
 from .processscene import ProcessScene
 from ..models.workflow import Workflow
@@ -61,11 +61,11 @@ class WorkflowScene(ProcessScene):
             if v["type"] == "step":
                 item = QGraphicsEllipseItem(p[0] - node_size/2, p[1] - node_size/2, node_size, node_size)
             elif v["type"] == "inputs":
-                item = self.addPolygon(QPolygonF([QPointF(p[0], p[1]),
+                item = QGraphicsPolygonItem(QPolygonF([QPointF(p[0], p[1]),
                                                   QPointF(p[0] + node_size/2, p[1] - node_size/2),
                                                   QPointF(p[0] - node_size/2, p[1] - node_size/2)]))
             else:
-                item = self.addPolygon(QPolygonF([QPointF(p[0], p[1] + node_size/2),
+                item = QGraphicsPolygonItem(QPolygonF([QPointF(p[0], p[1] + node_size/2),
                                                   QPointF(p[0] + node_size/2, p[1]),
                                                   QPointF(p[0] - node_size/2, p[1])]))
 
