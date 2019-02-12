@@ -108,7 +108,7 @@ and errors.
 
 
 # License
-Apache 2.0
+[Apache 2.0](LICENSE)
 
 
 # Acknowledgments
@@ -119,6 +119,11 @@ code is distributed under the [BSD license](benten/gui/codeeditor/license.txt).
 Many thanks to the Pyzo team for taking the care to modularize their code so
 that it is so trivial to incorporate it in different projects. The design of the
 editor is also very elegant, with additive functionality from mixins. 
+
+
+# Developer notes
+- [Ramblings of the developer][development-notes.md]
+- [Roadmap (AKA todo notes)](roadmap.md)
 
 
 # What's in a name? 
