@@ -12,10 +12,16 @@ from ..models.workflow import InvalidSub, InlineSub, ExternalSub
 from .bentenwindow import BentenWindow
 from .multidocumentmanager import MultiDocumentManager
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class BentenMainWidget(QTabWidget):
-    def __init__(self, parent=None):
+    def __init__(self, config, parent=None):
         super().__init__(parent)
+
+        self.config = config
 
         self.multi_document_manager = MultiDocumentManager()
         self.active_window: BentenWindow = None
@@ -70,4 +76,8 @@ class BentenMainWidget(QTabWidget):
 
     @Slot(object)
     def edit_registered(self, cwl_doc):
-        self.multi_document_manager.nested_document_edited(cwl_doc=cwl_doc)
+        cwl_doc_to_save = self.multi_document_manager.apply_document_edits(cwl_doc=cwl_doc)
+        if cwl_doc_to_save is not None and self.config["files"]["autosave"]:
+            logger.debug("Autosaving {}".format(cwl_doc_to_save.path))
+            path = cwl_doc_to_save.path.resolve()
+            path.open("w").write(cwl_doc_to_save.raw_cwl)

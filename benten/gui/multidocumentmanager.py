@@ -58,7 +58,16 @@ class MultiDocumentManager:
 
         self.directory_of_documents[path_str][inline_path] = bw
 
-    def nested_document_edited(self, cwl_doc: CwlDoc):
+    def apply_document_edits(self, cwl_doc: CwlDoc):
+        path_str = cwl_doc.path.resolve().as_uri()
+        inline_path = cwl_doc.inline_path
+
+        if inline_path is not None or len(self.directory_of_documents[path_str]) > 1:
+            return self.apply_nested_document_edits(cwl_doc=cwl_doc)
+        else:
+            return cwl_doc
+
+    def apply_nested_document_edits(self, cwl_doc: CwlDoc):
         path_str = cwl_doc.path.resolve().as_uri()
         inline_path = cwl_doc.inline_path
 
@@ -68,7 +77,7 @@ class MultiDocumentManager:
             new_base_cwl = base_bw.cwl_doc.get_raw_cwl_of_base_after_nested_edit(
                 inline_path=inline_path, new_cwl=cwl_doc.raw_cwl)
             if new_base_cwl == base_bw.cwl_doc.raw_cwl:
-                return
+                return None
 
             base_cwl_doc = CwlDoc(raw_cwl=new_base_cwl, path=cwl_doc.path, inline_path=None)
             base_bw.set_document(cwl_doc=base_cwl_doc)
@@ -78,5 +87,4 @@ class MultiDocumentManager:
             if nested_inline_path is None: continue
             nested_bw.set_document(cwl_doc=base_cwl_doc.get_nested_inline_step(nested_inline_path))
 
-    def document_saved(self, parent_path: pathlib.Path, inline_path: [str]):
-        pass
+        return base_cwl_doc

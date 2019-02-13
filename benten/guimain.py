@@ -6,6 +6,7 @@ from PySide2.QtCore import Slot
 
 from PySide2.QtWidgets import QAction, QApplication, QMainWindow
 
+from .configuration import Configuration
 from .gui.bentenmainwidget import BentenMainWidget
 from .gui.bentenwindow import BentenWindow
 
@@ -19,15 +20,20 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Benten")
 
+        # An epic can be written about the confusing behavior of menus on macOS, but the main
+        # reading material is https://doc.qt.io/qt-5/qmenubar.html#qmenubar-as-a-global-menu-bar
+
         # Menu
         menu = self.menuBar()
         file_menu = menu.addMenu("File")
 
         # Exit QAction
         exit_action = QAction("&Exit", self)
-        #exit_action.setShortcut("Ctrl+Q")
+        exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.exit_app)
         file_menu.addAction(exit_action)
+
+        # menu.setNativeMenuBar(False) # We actually don't want this, native mac is ... nicer
 
         # Status Bar
         # self.status = self.statusBar()
@@ -38,7 +44,7 @@ class MainWindow(QMainWindow):
         # be defined
         self.active_window: BentenWindow = None
 
-        self.tab_widget = BentenMainWidget()
+        self.tab_widget = BentenMainWidget(config=Configuration())
         self.tab_widget.currentChanged.connect(self.breadcrumb_selected)
         self.setCentralWidget(self.tab_widget)
 
@@ -75,6 +81,7 @@ def main():
 
     QApplication.setDesktopSettingsAware(True)
     app = QApplication(sys.argv)
+    app.setApplicationDisplayName("Benten")
 
     window = MainWindow()
     window.show()
@@ -91,6 +98,7 @@ def main():
             with open(path, "w") as f:
                 pass
         window.tab_widget.open_document(path, None)
+        window.setWindowTitle(str(path.absolute()))
 
     sys.exit(app.exec_())
 
