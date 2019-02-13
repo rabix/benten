@@ -30,10 +30,17 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 benten -v <your-workflow-name.cwl>      # Open your-workflow-name.cwl in Benten with debug logging
 ```
 
-# Limitations
+# Limitations/Quirks
+
+## YAML flowstyle
 YAML allows you to use a `flow style` which is very concise. If you put the top level
 elements (`cwlVersion`, `class`, `steps` etc.) in flow style _Benten_ will not work for you. 
 If you put the elements in the `step` field in flow style, _Benten_ will not work for you.
+
+## Inline step editing and blank lines
+If you have an inline step, and have a blank line with white-spaces, on editing the step these 
+white-spaces will disappear from your blank line. In general it is a good practice not to have 
+spurious whitespace in a blank line anyway ...
 
 
 # Manual/Features

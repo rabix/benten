@@ -17,7 +17,7 @@ class CwlDoc:
         self.raw_cwl = raw_cwl
         self.path = path
         self.inline_path = inline_path
-        self.cwl_lines = self.raw_cwl.splitlines()
+        self.cwl_lines = self.raw_cwl.splitlines(keepends=True)
         self._cwl_dict = None
 
     # be lazy on the (semi)expensive compute
@@ -62,11 +62,13 @@ class CwlDoc:
         start_line, end_line, indent_level = self._get_lines_for_nested_inline_step(inline_path)
         lines_we_need = self.cwl_lines[start_line:end_line]
         lines = [
-            l[indent_level:]
+            l[indent_level:] if len(l) > indent_level else "\n"
             for l in lines_we_need
         ]
+        # All lines with text have the given indent level or more, so they are not an issue
+        # Blank lines, however, can be zero length, hence the exception.
 
-        return "\n".join(lines)
+        return "".join(lines)
 
     def get_nested_inline_step(self, inline_path: Tuple[str, ...]):
         return CwlDoc(raw_cwl=self.get_raw_cwl_of_nested_inline_step(inline_path),
@@ -78,6 +80,10 @@ class CwlDoc:
 
         start_line, end_line, indent_level = self._get_lines_for_nested_inline_step(inline_path)
 
-        new_lines = [' '*indent_level + l for l in new_cwl.splitlines()]
+        new_lines = [((' '*indent_level) if len(l) > 1 else "") + l
+                     for l in new_cwl.splitlines(keepends=True)]
+        # All lines with text have the given indent level or more, so they are not an issue
+        # Blank lines, however, can be zero length, hence the exception.
+
         self.cwl_lines = self.cwl_lines[:start_line] + new_lines + self.cwl_lines[end_line:]
-        return "\n".join(self.cwl_lines)
+        return "".join(self.cwl_lines)

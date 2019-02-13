@@ -8,6 +8,17 @@ from benten.editing.cwldoc import CwlDoc
 current_path = pathlib.Path(__file__).parent
 
 
+# The salmon workflow is a real workflow developed on the SBG platform. It has the benefit of
+# having nested workflows, blank lines, comments etc.
+
+def test_round_trip_salmon():
+
+    wf_path = pathlib.Path(current_path, "cwl/sbg/salmon.cwl")
+    raw_cwl = wf_path.open("r").read()
+    c = CwlDoc(raw_cwl=raw_cwl, path=wf_path, inline_path=None)
+    assert raw_cwl == "".join(c.cwl_lines)
+
+
 def test_basics_salmon():
 
     wf_path = pathlib.Path(current_path, "cwl/sbg/salmon.cwl")
@@ -82,6 +93,21 @@ def test_nested_inline_both_list_and_dict():
     assert cwl["inputs"].start_line == 23 - 21
 
 
+def test_edits_of_nested_inline_null():
+    wf_path = pathlib.Path(current_path, "cwl/002.nested.inline.sbg.eco/wf3.cwl")
+    c = CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path, inline_path=None)
+
+    nested_path = ("wf2", "wf1", "wf0", "split")
+    c2 = c.get_nested_inline_step(nested_path)
+
+    new_cwl = c2.raw_cwl
+
+    new_base_cwl = c.get_raw_cwl_of_base_after_nested_edit(inline_path=nested_path, new_cwl=new_cwl)
+    new_c = CwlDoc(raw_cwl=new_base_cwl, path=wf_path, inline_path=None)
+
+    assert new_c.raw_cwl == c.raw_cwl
+
+
 def test_edits_of_nested_inline():
     wf_path = pathlib.Path(current_path, "cwl/002.nested.inline.sbg.eco/wf3.cwl")
     c = CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path, inline_path=None)
@@ -130,7 +156,7 @@ requirements:
 
     assert new_c2.process_type() == "CommandLineTool"
     assert new_c2.cwl_dict["label"] == "My new split"
-    assert new_c2.raw_cwl.endswith("# added this comment")
+    assert new_c2.raw_cwl.endswith("# added this comment\n")
 
     with pytest.raises(RuntimeError):
         _ = c2.get_raw_cwl_of_base_after_nested_edit(inline_path=nested_path, new_cwl=new_cwl)
