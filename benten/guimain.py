@@ -2,11 +2,9 @@ import argparse
 import sys
 import pathlib
 
-from PySide2.QtCore import Qt, QDateTime, QModelIndex, QSignalBlocker, QRect, Qt, QTimeZone, Slot
+from PySide2.QtCore import Slot
 
-from PySide2.QtWidgets import QAction, QApplication, QTabWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, \
-    QHeaderView, QTabBar, QDesktopWidget, \
-    QMenuBar, QMainWindow, QLineEdit, QSizePolicy, QTableView, QWidget
+from PySide2.QtWidgets import QAction, QApplication, QMainWindow
 
 from .gui.bentenmainwidget import BentenMainWidget
 from .gui.bentenwindow import BentenWindow
@@ -56,9 +54,6 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def breadcrumb_selected(self):
-        # Reload from disk
-        # If no differences, nothing to do
-        # If different, apply a squashed edit to bring us up to the latest version
         if self.active_window is not None:
             self.active_window.set_inactive_window()
         self.active_window = self.tab_widget.currentWidget()
@@ -95,7 +90,6 @@ def main():
         if not path.exists():
             with open(path, "w") as f:
                 pass
-
         window.tab_widget.open_document(path, None)
 
     sys.exit(app.exec_())
