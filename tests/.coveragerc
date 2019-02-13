@@ -7,4 +7,6 @@ exclude_lines =
 
 [run]
 omit =
-    ../benten/editor/*
+    ../benten/version.py
+    ../benten/gui/*
+    ../benten/guimain.py
