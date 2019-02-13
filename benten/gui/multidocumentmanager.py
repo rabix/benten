@@ -67,6 +67,9 @@ class MultiDocumentManager:
         if inline_path is not None and len(inline_path) > 0:
             new_base_cwl = base_bw.cwl_doc.get_raw_cwl_of_base_after_nested_edit(
                 inline_path=inline_path, new_cwl=cwl_doc.raw_cwl)
+            if new_base_cwl == base_bw.cwl_doc.raw_cwl:
+                return
+
             base_cwl_doc = CwlDoc(raw_cwl=new_base_cwl, path=cwl_doc.path, inline_path=None)
             base_bw.set_document(cwl_doc=base_cwl_doc)
 

@@ -98,7 +98,7 @@ class BentenWindow(QWidget):
         self.setLayout(layout)
 
         self.manual_edit_throttler = ManualEditThrottler()
-        self.manual_edit_throttler.timer.timeout.connect(self.update_from_code)
+        self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
 
         self.cwl_doc: CwlDoc = None
         self.process_model: (Workflow,) = None
@@ -108,14 +108,13 @@ class BentenWindow(QWidget):
 
         self.is_active_window = False
 
-        self.code_editor.textChanged.connect(self.manual_edit)
+        self.code_editor.textChanged.connect(self.user_still_typing)
 
     def set_document(self, cwl_doc):
         # This registers as a manual edit but we wish to skip the throttler
         blk = QSignalBlocker(self.code_editor)
         self.cwl_doc = cwl_doc
         self.code_editor.set_text(self.cwl_doc.raw_cwl)
-        self.update_from_code()
 
     def set_active_window(self):
         """To be called whenever we switch tabs to this window. """
@@ -130,9 +129,17 @@ class BentenWindow(QWidget):
         self.is_active_window = False
 
     @Slot()
-    def manual_edit(self):
-        """Called whenever the code is changed manually"""
+    def user_still_typing(self):
+        """Called whenever the editor contents are changed. We restrict this to actual typing."""
+        logger.debug("User typing ...")
         self.manual_edit_throttler.restart_edit_clock()
+
+    @Slot()
+    def manual_edit(self):
+        """Called when the user is done their burst of typing, or we switch tabs ..."""
+        logger.debug("Registering manual edit ...")
+        self.update_from_code()
+        self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
 
     @Slot()
     def programmatic_edit(self):
@@ -199,10 +206,8 @@ class BentenWindow(QWidget):
 
         t2 = time.time()
 
-        logger.debug("Parsed workflow in {}s".format(t1 - t0))
+        logger.debug("Parsed workflow in {}s ({} bytes) ".format(t1 - t0, len(modified_cwl)))
         logger.debug("Displayed workflow in {}s".format(t2 - t1))
-
-        self.edit_registered.emit(self.cwl_doc)
 
     @Slot()
     def something_selected(self):
