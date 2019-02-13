@@ -159,8 +159,6 @@ class BentenWindow(QWidget):
     @Slot()
     def update_from_code(self):
 
-        t0 = time.time()
-
         if not self.is_active_window:
             # Defer updating until we can be seen
             return
@@ -168,13 +166,17 @@ class BentenWindow(QWidget):
         modified_cwl = self.code_editor.toPlainText()
         if self.process_model is not None:
             if self.process_model.cwl_doc.raw_cwl == modified_cwl:
+                logger.debug("Update asked for, but code hasn't changed.")
                 return
+
+        t0 = time.time()
 
         self.cwl_doc = CwlDoc(raw_cwl=modified_cwl,
                               path=self.cwl_doc.path,
                               inline_path=self.cwl_doc.inline_path)
 
         pt = self.cwl_doc.process_type()
+        t1 = time.time()
         if pt == "Workflow":
             self.process_model = Workflow(cwl_doc=self.cwl_doc)
             scene = WorkflowScene(self)
@@ -195,9 +197,10 @@ class BentenWindow(QWidget):
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
 
-        t1 = time.time()
+        t2 = time.time()
 
-        logger.debug("Parsed and displayed workflow in {}s".format(t1 - t0))
+        logger.debug("Parsed workflow in {}s".format(t1 - t0))
+        logger.debug("Displayed workflow in {}s".format(t2 - t1))
 
         self.edit_registered.emit(self.cwl_doc)
 
