@@ -56,9 +56,6 @@ class CwlDoc:
     # No error checking here because this will be asked for programatically only
     # if the nested dict exists
     def get_raw_cwl_of_nested_inline_step(self, inline_path: Tuple[str, ...]):
-        if self.inline_path is not None:
-            raise RuntimeError("Sub part from nested document fragment is not allowed")
-
         start_line, end_line, indent_level = self._get_lines_for_nested_inline_step(inline_path)
         lines_we_need = self.cwl_lines[start_line:end_line]
         lines = [
@@ -75,9 +72,6 @@ class CwlDoc:
                       path=self.path, inline_path=inline_path)
 
     def get_raw_cwl_of_base_after_nested_edit(self, inline_path: Tuple[str, ...], new_cwl: str):
-        if self.inline_path is not None:
-            raise RuntimeError("Nested edits can only be applied to base document")
-
         start_line, end_line, indent_level = self._get_lines_for_nested_inline_step(inline_path)
 
         new_lines = [((' '*indent_level) if len(l) > 1 else "") + l
