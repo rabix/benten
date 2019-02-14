@@ -1,9 +1,37 @@
 import pathlib
+import pytest
 
-from benten.editing.listormap import parse_cwl_to_lom
+from benten.editing.listormap import CWLList, parse_cwl_to_lom
 
 
 current_path = pathlib.Path(__file__).parent
+
+
+def test_basics():
+    l = CWLList([0, 1, 2, 3, 4])
+
+    assert l.plain_list
+
+    with pytest.raises(RuntimeError):
+        _ = l.get("k")
+
+    assert l[2] == 2
+
+    assert 2 in l
+
+    l = CWLList([
+        {"id": "a", "value": 1},
+        {"id": "b", "value": 2},
+        {"id": "c", "value": 3},
+    ])
+
+    assert l.get("a") == {"id": "a", "value": 1}
+    assert l.get("d") is None
+
+    with pytest.raises(KeyError):
+        _ = l["d"]
+
+    assert "c" in l
 
 
 def test_line_number1():
