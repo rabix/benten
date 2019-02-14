@@ -13,7 +13,7 @@ def test_basic(monkeypatch):
     monkeypatch.setitem(os.environ, "XDG_DATA_HOME", "./benten-test-config")
 
     # First we make sure there is no existing config file, say from a previous run
-    shutil.rmtree(pathlib.Path("./benten-test-config"))
+    shutil.rmtree(pathlib.Path("./benten-test-config"), ignore_errors=True)
 
     # test creation of config dirs and default file
     config = Configuration()
