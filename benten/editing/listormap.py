@@ -4,6 +4,10 @@ import yaml
 try:
     from yaml import CSafeLoader as Loader
 except ImportError:
+    import warnings
+    warnings.warn("You don't have yaml.CSafeLoader installed, "
+                  "falling back to slower yaml.SafeLoader",
+                  ImportWarning)
     from yaml import SafeLoader as Loader
 
 
