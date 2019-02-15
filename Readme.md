@@ -136,23 +136,89 @@ code inline in the main document.
   workflows
 
 
+# Configuration and log files
+
+## Configuration
+The configuration file is found under `$XDG_CONFIG_HOME/sevenbridges/benten/config.ini`
+(If `$XDG_CONFIG_HOME` is not set, `$HOME/.config/sevenbridges/benten/` is used)
+
+On first startup benten will create a default configuration file for you. The configuration
+file is in the `.ini` format and is fairly self-explanatory:
+
+```
+[files]
+autosave = True
+autoload = False
+
+[sbg]
+credentials_file = /Users/kghose/.sevenbridges/credentials
+```
+
+## Logs
+Log files are found under `$XDG_DATA_HOME/sevenbridges/benten/`
+(If not set, `$HOME/.local/share/sevenbridges/benten/` is used)
+
+
 # SBG app eco-system 
 
 You can push your workflows/tools to your projects on any SBG based platform
-(like [CGC], [CAVATICA], [Fair4Cures]).
+(like [CGC], [CAVATICA], [Fair4Cures]) using the "Push" option on the menu.
 
 [CGC]: https://cgc.sbgenomics.com
 [CAVATICA]: https://cavatica.sbgenomics.com
 [Fair4Cures]: http://f4c.sbgenomics.com/
 
+## Credentials file
+
 _Benten_ will look over your Seven Bridges API credentials file (`~/.sevenbridges/credentials`), 
 if you have one, and list all your profiles on a "Contexts" menu. This menu allows you to select
-a context that you can push (and pull) apps to.
+a context that you can push (and pull) apps to. 
 
-The first time you push an App to an SBG end-point _Benten_ will ask for a project (and app id
-if you haven't added one). It will also present you with the option to recursively 
+If you use the SBG API you already have an API configuration file. If not, you
+should create one. It is usually located in `~/.sevenbridges/credentials` but _Benten_ allows
+you to configure this by setting the path in the configurations file
+
+Each section (e.g. `[cgc]`) is a profile name and has two entries. The end-point, (which is fixed
+and you can copy from here), and an authentication token, which you get from your developer tab 
+on the platform.
+
+```
+[default]
+api_endpoint = https://api.sbgenomics.com/v2
+auth_token   = 671998030559713968361666935769
+
+[cgc]
+api_endpoint = https://cgc-api.sbgenomics.com/v2
+auth_token   = 282174488599599500573849980909
+
+[cavatica]
+api_endpoint = https://cavatica-api.sbgenomics.com/v2
+auth_token   = 521419622856657689423872613771
+
+[f4c]
+api_endpoint = https://f4c-api.sbgenomics.com/v2
+auth_token   = 362736035870515331128527330659
+```
+
+You can have several profiles on the same platform if, for example, you are an enterprise user and
+you belong to several divisions. Please refer to the API documentation for more detail.
+
+
+## Pushing apps
+
+The first time you push a particular App to an SBG end-point _Benten_ will ask for a project 
+(and app id if you haven't added one). It will also present you with the option to recursively 
 inline the whole workflow on your side. Please refer to the notes on inlining to help
-decide whether you want to do this.
+decide whether you want to do this. 
+
+## Notes on app management in the SBG app eco system
+
+
+
+
+
+If you choose to recursively inline the workflow _Benten_ will also install each sub process 
+referenced in the workflow as an app in the project, unless it is already in the app ecosystem.
 
 (For reproducibility purposes, Apps are always stored inlined, as one document in the SBG repository)
 See some hints below to decide if you want to recursively inline all components, or leave the
