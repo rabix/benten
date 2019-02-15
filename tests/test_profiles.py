@@ -2,7 +2,7 @@ import os
 import pytest
 
 from benten.configuration import Configuration
-from benten.sbg.profiles import Profiles
+from benten.sbg.profiles import Profiles, ProfileError
 
 
 test_credential_file_name = "my_credential_file"
@@ -23,6 +23,8 @@ auth_token   = 521419622856657689423872613771
 [f4c]
 api_endpoint = https://f4c-api.sbgenomics.com/v2
 auth_token   = 362736035870515331128527330659
+
+[a bad profile]
 """
 
 
@@ -32,10 +34,10 @@ def setup():
 
 
 def teardown():
-    os.remove(sample_credentials_file)
+    os.remove(test_credential_file_name)
 
 
-def basic(monkeypatch):
+def test_basic(monkeypatch):
     monkeypatch.setitem(os.environ, "XDG_CONFIG_HOME", "./benten-test-config")
 
     config = Configuration()
@@ -47,11 +49,15 @@ def basic(monkeypatch):
     config["sbg"]["credentials_file"] = test_credential_file_name
     prof = Profiles(config=config)
 
-    assert prof.profiles == ["default", "cgc", "cavatica", "f4c"]
+    assert prof.profiles == ["default", "cgc", "cavatica", "f4c", "a bad profile"]
 
     api = prof["cgc"]
-    assert api.endpoints == "https://api.cgc.sbgenomics.com/v2"
+    assert api.url == "https://cgc-api.sbgenomics.com/v2"
     assert api.token == "282174488599599500573849980909"
 
     with pytest.raises(KeyError):
         _ = prof["does not exist"]
+
+    with pytest.raises(ProfileError) as e:
+        _ = prof["a bad profile"]
+        assert e.profile_name == "a bad profile"

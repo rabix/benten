@@ -3,7 +3,12 @@ import pathlib
 
 import sevenbridges as sbg
 
-from ..configuration import Configuration, configparser
+from ..configuration import Configuration, configparser, default_credentials_file
+
+
+class ProfileError(Exception):
+    def __init__(self, profile_name):
+        self.profile_name = profile_name
 
 
 class Profiles:
@@ -12,7 +17,7 @@ class Profiles:
 
         self.profile_parser: configparser.ConfigParser = configparser.ConfigParser()
         self.credentials_file = pathlib.Path(
-            self.config.get("credentials_file", pathlib.Path("~/.sevenbridges/credentials").resolve()))
+            self.config.get("sbg", "credentials_file", fallback=str(default_credentials_file)))
 
         self.profiles = []
 
@@ -22,6 +27,10 @@ class Profiles:
 
     def __getitem__(self, item):
         if item not in self.profiles:
-            raise KeyError
+            raise KeyError("This is a bug, please report it")
         else:
-            return sbg.Api(token=self.profile_parser.get(item, "token"))
+            try:
+                return sbg.Api(url=self.profile_parser.get(item, "api_endpoint"),
+                               token=self.profile_parser.get(item, "auth_token"))
+            except configparser.NoOptionError as e:
+                raise ProfileError(item)

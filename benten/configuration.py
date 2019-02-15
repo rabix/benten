@@ -20,6 +20,9 @@ xdg_log_dir = {
 }
 
 
+default_credentials_file = pathlib.Path("~/.sevenbridges/credentials").expanduser()
+
+
 class Configuration(configparser.ConfigParser):
     def __init__(self):
         super().__init__()
@@ -46,7 +49,7 @@ class Configuration(configparser.ConfigParser):
             "autoload": False
         }
         cfg["sbg"] = {
-            "credentials_file": pathlib.Path("~/.sevenbridges/credentials").resolve()
+            "credentials_file": default_credentials_file
         }
         with open(self.cfg_file, "w") as f:
             cfg.write(f)
