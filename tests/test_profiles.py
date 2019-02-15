@@ -44,7 +44,6 @@ def basic(monkeypatch):
 
     assert prof.profiles == []
 
-
     config["sbg"]["credentials_file"] = test_credential_file_name
     prof = Profiles(config=config)
 
@@ -52,7 +51,7 @@ def basic(monkeypatch):
 
     api = prof["cgc"]
     assert api.endpoints == "https://api.cgc.sbgenomics.com/v2"
+    assert api.token == "282174488599599500573849980909"
 
     with pytest.raises(KeyError):
         _ = prof["does not exist"]
-
