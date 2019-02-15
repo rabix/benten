@@ -96,11 +96,13 @@ class Step:
     def __init__(self, _id: str, line: (int, int),
                  sinks: 'OrderedDict[str, Port]',
                  sources: 'OrderedDict[str, Port]',
+                 process_type: str,
                  sub_workflow: (InvalidSub, InlineSub, ExternalSub)):
         self.line = line
         self.id = _id
         self.available_sinks = sinks
         self.available_sources = sources
+        self.process_type = process_type  # as returned by cwl_doc.process_type()
         self.sub_workflow = sub_workflow
 
     def __repr__(self):
@@ -115,6 +117,7 @@ class Step:
         if step_doc is None or "run" not in step_doc:
             sinks = {}
             sources = {}
+            sub_process = {}
             wf_error_list += ["step {} has no run field".format(step_id)]
         else:
             if isinstance(step_doc["run"], str):
@@ -142,7 +145,9 @@ class Step:
                 for k, v in iter_lom(sub_process.get("outputs", {}))
             ])
 
-        return cls(_id=step_id, line=line, sinks=sinks, sources=sources, sub_workflow=sub_workflow)
+        return cls(_id=step_id, line=line, sinks=sinks, sources=sources,
+                   process_type=sub_process.get("class", "invalid"),
+                   sub_workflow=sub_workflow)
 
 
 class Connection:

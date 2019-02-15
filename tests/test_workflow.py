@@ -36,6 +36,8 @@ steps:
 
     assert len(wf.inputs) == 0
     assert len(wf.steps) == 2
+    assert wf.steps["like_a_fish"].process_type == "Workflow"
+    assert wf.steps["empty"].process_type == "invalid"
 
     print(wf.problems_with_wf)
 
@@ -68,10 +70,10 @@ def test_interface_parsing():
     assert len(wf.steps["SBG_Create_Expression_Matrix___Genes"].available_sources) == 1
 
     assert wf.steps["Salmon_Quant___Reads"].line == (2057, 3514)
+    assert wf.steps["Salmon_Quant___Reads"].process_type == "CommandLineTool"
 
     assert len(wf.steps["Salmon_Index"].available_sinks) == 8
     assert len(wf.steps["Salmon_Index"].available_sources) == 1
-
 
 def test_connection_parsing():
     """Load CWL and check we interpret the connections correctly"""
