@@ -20,7 +20,8 @@ setup(
     install_requires=[
         "pyyaml",
         "PySide2",
-        "pygraphviz"  # For the "dot" layout algorithm
+        "pygraphviz",  # For the "dot" layout algorithm
+        "sevenbridges-python"
     ],
     entry_points={
         'console_scripts': [

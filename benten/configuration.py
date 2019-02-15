@@ -45,6 +45,9 @@ class Configuration(configparser.ConfigParser):
             "autosave": True,
             "autoload": False
         }
+        cfg["sbg"] = {
+            "credentials_file": pathlib.Path("~/.sevenbridges/credentials").resolve()
+        }
         with open(self.cfg_file, "w") as f:
             cfg.write(f)
 
