@@ -48,7 +48,6 @@ spurious whitespace in a blank line anyway ...
 2019.02.12 preview
 ![2019.02.12 release](https://lh3.googleusercontent.com/1M5Qplw84aA6arEvgwLm9sxedjDgoCo3ZNL20lp7P3OfQYGqdStcDgrBgOiX6i2ke3apyyGulSBr3_gBVaohgPcq_4pvHsvxskjJCb_R9fxmxbo8Lg5UEEepVyc6-UKC3a2ov3sbVg=w2326-h1390-no)
 
-**File saving not implemented yet! But you can see synchronization by editing nested steps**
 
 Benten has three main panes: Workflow map, Code editor and Connection table. The
 relative sizes of each can be changed by dragging dividing lines up/down, left/right.
@@ -100,9 +99,9 @@ If you switch to view 3, it will reflect those same edits too.
 ## Breadcrumb trail
 
 As mentioned earlier, views can switch to displaying a step within the current 
-workflow. A breadcrumb trail above the view keeps track of what steps the user
-has clicked through and the user can click on the trail to switch to an earlier
-view.
+workflow. A breadcrumb trail (AKA tabs) above the view keeps track of what 
+steps the user has clicked through and the user can click on the trail to switch 
+to an earlier view.
 
 ## Code editor
 The code editor pane shows the raw code. This is the code that is being parsed to
@@ -112,6 +111,93 @@ Editing the raw CWL in the code editor tab will update the workflow map. Enterin
 invalid YAML will lock out the workflow map and command bar until the YAML is 
 fixed. Valid YAML that is invalid CWL will result in a workflow with warnings
 and errors.
+
+# A note on the modular nature of CWL
+
+CWL has a very useful feature in that any CWL document (representing a unit of action) 
+can be included in any CWL workflow as a step. In this manner CWL workflows can be
+built up modularly from a library of tools, with workflows combining and nesting 
+this library very simply to any depth needed.
+
+CWL allows you to either link to an external CWL document by reference (much like 
+an `include` or `import` statement in some languages) or to directly include the
+code inline in the main document.
+
+## To inline or not to inline
+
+### Use cases for in-lining
+- You want to freeze all components of the workflow for reproducibility purposes
+- You want to share the complete CWL in a self contained form
+
+### Use cases for linking
+- You want to keep the parent workflow compact and easier to understand. You are
+  confident that changes to the linked documents are systematic and under control. 
+- You want your parent workflow to always reflect the current state of the linked 
+  workflows
+
+
+# SBG app eco-system 
+
+You can push your workflows/tools to your projects on any SBG based platform
+(like [CGC], [CAVATICA], [Fair4Cures]).
+
+[CGC]: https://cgc.sbgenomics.com
+[CAVATICA]: https://cavatica.sbgenomics.com
+[Fair4Cures]: http://f4c.sbgenomics.com/
+
+_Benten_ will look over your Seven Bridges API credentials file (`~/.sevenbridges/credentials`), 
+if you have one, and list all your profiles on a "Contexts" menu. This menu allows you to select
+a context that you can push (and pull) apps to.
+
+The first time you push an App to an SBG end-point _Benten_ will ask for a project (and app id
+if you haven't added one). It will also present you with the option to recursively 
+inline the whole workflow on your side. Please refer to the notes on inlining to help
+decide whether you want to do this.
+
+(For reproducibility purposes, Apps are always stored inlined, as one document in the SBG repository)
+See some hints below to decide if you want to recursively inline all components, or leave the
+code as is with external references. 
+
+Upon successfully pushing the App _Benten_ will modify your app id (or add one) to match the id 
+on the SBG repository. _Benten_ can now use this to track versions of the app on the SBG repository.
+The rest of your code is untouched, unless you have chosen to recursively inline dependents.
+
+## Switching version of Apps linked to the SBG eco-system
+
+If an App has an SBG repository id, _Benten_ will allow you to change the version of the App.
+On the workflow map such an App will have a version number on the tooltip, and right clicking
+will bring up a version selection list that allows you to change the version of the workflow.
+You can change the version of the current document by clicking on the "version" menu and selecting
+the version you want.
+
+This requires _Benten_ to pull the appropriate version of the app code from the platform store.
+Currently (2019.02) the SBG backend stores the workflow in JSON format with some SBG specific
+metadata. _Benten_ converts the JSON to YAML and strips out the non-essential metadata. It
+As you can guess this is not a complete round trip. So if you pushed a particularly formatted
+YAML the first time to App version 10, added more changes to create version 11, and then you
+switch back to version 10, currently (2019.02) you may not get your formatting back. 
+Functionally, the CWL is identical.
+
+### Switching versions of an externally linked App
+
+Since switching the version of an externally linked app will change it's code, this will affect
+any other workflows which refer to it.
+
+
+## In-lining, linking, Benten and the sbg app ecosystem
+
+The SBG app ecosystem and _Benten_ together try to combine some of the benefits of inlining and
+linking. 
+
+An inlined SBG app is it's own insulated unit and can be modified without affecting other
+workflows and is isolated from changes to other workflows that it borrows steps from. However, 
+through the proper use of the `id` field Benten can identify which Apps are copies of other 
+Apps registered with the  SBG repo and inform the user which version they are on,
+and inform them of what other versions of those Apps are available and selectively update the
+relevant, inlined, nested workflow steps. 
+
+The inlined app can form a large and complex CWL document. _Benten_ offers help by allowing users
+to locate different logical parts of this big document and edit them in isolation.
 
 
 # License
