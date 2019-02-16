@@ -3,7 +3,7 @@
 
 This is a workflow helper for [Common Workflow Language](https://www.commonwl.org/) documents.
 
-<img style="float: right; width: 100px;" src="media/benten-icon.png">
+<img align="right" width="100px" src="media/benten-icon.png">
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows navigating 
 and editing the resultant document and sub-documents can get tedious. Keeping
@@ -392,6 +392,6 @@ _References_
 
 ---
 
-<div style="text-align: right; font-size: 9;">
-(c) 2019 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics
+<div align="right">
+<sub>(c) 2019 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
 </div>
