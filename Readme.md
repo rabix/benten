@@ -388,3 +388,9 @@ appropriate goddess for scientific workflow developers.
 _References_
 - [Wikipedia page](https://en.wikipedia.org/wiki/Benzaiten)
 - [Benzaiten (Benten): Japan’s Goddess of Reason ](http://yabai.com/p/3200) - a much more detailed history
+
+---
+
+(c) 2019 Seven Bridges Genomics
+
+Rabix is a registered trademark of Seven Bridges Genomics

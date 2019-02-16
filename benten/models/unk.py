@@ -1,8 +1,6 @@
-from ..editing.cwldoc import CwlDoc
+from .base import Base
 
 
-class Unk:
+class Unk(Base):
     """We don't know what the user intends this to be"""
-
-    def __init__(self, cwl_doc: CwlDoc):
-        self.cwl_doc = cwl_doc or {}
+    pass

@@ -1,8 +1,6 @@
-from ..editing.cwldoc import CwlDoc
+from .base import Base
 
 
-class Tool:
+class Tool(Base):
     """In the future, this might scroll to components, or test expressions ..."""
-
-    def __init__(self, cwl_doc: CwlDoc):
-        self.cwl_doc = cwl_doc or {}
+    pass

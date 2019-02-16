@@ -10,12 +10,13 @@ def test_parsing_empty_workflow():
     empty_wf = ""
     cwl_doc = WF.CwlDoc(raw_cwl=empty_wf, path=pathlib.Path("./nothing.cwl"))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         _ = WF.Workflow(cwl_doc=cwl_doc)
 
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
+    assert wf.id is None
     assert len(wf.inputs) == 0
     assert len(wf.outputs) == 0
     assert len(wf.steps) == 0
@@ -25,6 +26,7 @@ def test_parsing_empty_step():
     wf_with_empty_step = """
 class: Workflow
 cwlVersion: v1.0
+id: everybody/was/kung-fu/fighting
 inputs: []
 outputs: []
 steps:
@@ -41,12 +43,11 @@ steps:
     wf = WF.Workflow(cwl_doc=cwl_doc)
     # Basically we shouldn't choke because there is nothing in that step
 
+    assert wf.id == "everybody/was/kung-fu/fighting"
     assert len(wf.inputs) == 0
     assert len(wf.steps) == 2
     assert wf.steps["like_a_fish"].process_type == "Workflow"
     assert wf.steps["empty"].process_type == "invalid"
-
-    print(wf.problems_with_wf)
 
 
 def test_parsing_ports_with_plain_source():
@@ -68,21 +69,27 @@ def test_interface_parsing():
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
+    assert wf.id == "admin/sbg-public-data/salmon-workflow-0-9-1-cwl-1-0/18"
+
     assert wf.inputs["reads"].line == (21, 31)
 
     assert wf.outputs["quant_sf"].line == (518, 529)
 
     assert len(wf.steps) == 5
 
-    assert wf.steps["SBG_Create_Expression_Matrix___Genes"].line == (951, 1284)
-    assert len(wf.steps["SBG_Create_Expression_Matrix___Genes"].available_sinks) == 3
-    assert len(wf.steps["SBG_Create_Expression_Matrix___Genes"].available_sources) == 1
+    step = wf.steps["SBG_Create_Expression_Matrix___Genes"]
+    assert isinstance(step.sub_workflow, WF.InlineSub)
+    assert step.sub_workflow.id == "h-90ac60db/h-5eb38456/h-35ea6aab/0"
+    assert step.line == (951, 1284)
+    assert len(step.available_sinks) == 3
+    assert len(step.available_sources) == 1
 
     assert wf.steps["Salmon_Quant___Reads"].line == (2057, 3514)
     assert wf.steps["Salmon_Quant___Reads"].process_type == "CommandLineTool"
 
     assert len(wf.steps["Salmon_Index"].available_sinks) == 8
     assert len(wf.steps["Salmon_Index"].available_sources) == 1
+
 
 def test_connection_parsing():
     """Load CWL and check we interpret the connections correctly"""

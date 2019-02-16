@@ -31,6 +31,7 @@ import pathlib
 from collections import OrderedDict
 import logging
 
+from .base import Base
 from ..editing.listormap import CWLMap, CWLList, parse_cwl_to_dict
 from ..editing.cwldoc import CwlDoc
 
@@ -82,13 +83,15 @@ class InvalidSub:
 
 
 class InlineSub:
-    def __init__(self, path: pathlib.Path, inline_path: Tuple[str]):
+    def __init__(self, _id: str, path: pathlib.Path, inline_path: Tuple[str]):
+        self.id = _id
         self.path = path
         self.inline_path = inline_path
 
 
 class ExternalSub:
-    def __init__(self, path: pathlib.Path):
+    def __init__(self, _id: str, path: pathlib.Path):
+        self.id = _id
         self.path = path
 
 
@@ -124,7 +127,7 @@ class Step:
                 sub_p_path = pathlib.Path(root.parent, step_doc["run"]).resolve()
                 try:
                     sub_process = parse_cwl_to_dict(sub_p_path.open("r").read())
-                    sub_workflow = ExternalSub(path=sub_p_path)
+                    sub_workflow = ExternalSub(_id=sub_process.get("id", None), path=sub_p_path)
                 except FileNotFoundError:
                     sub_process = {}
                     wf_error_list += [
@@ -133,7 +136,9 @@ class Step:
                     sub_workflow = InvalidSub
             else:
                 sub_process = step_doc["run"]
-                sub_workflow = InlineSub(path=root, inline_path=(cwl_doc.inline_path or ()) + (step_id,))
+                sub_workflow = InlineSub(
+                    _id=sub_process.get("id", None),
+                    path=root, inline_path=(cwl_doc.inline_path or ()) + (step_id,))
 
             sinks = OrderedDict([
                 (k, Port(node_id=step_id, port_id=k))
@@ -167,11 +172,11 @@ class WFConnectionError(Exception):
     pass
 
 
-class Workflow:
+class Workflow(Base):
     """This object carries the raw YAML and some housekeeping datastructures"""
 
     def __init__(self, cwl_doc: CwlDoc):
-        self.cwl_doc = cwl_doc or {}
+        super().__init__(cwl_doc=cwl_doc)
         self.problems_with_wf = []
 
         cwl_dict = self.cwl_doc.cwl_dict
