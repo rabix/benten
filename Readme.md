@@ -168,7 +168,7 @@ You can push your workflows/tools to your projects on any SBG based platform
 [CAVATICA]: https://cavatica.sbgenomics.com
 [Fair4Cures]: http://f4c.sbgenomics.com/
 
-## Credentials file
+## Credentials file and profiles
 
 _Benten_ will look over your Seven Bridges API credentials file (`~/.sevenbridges/credentials`), 
 if you have one, and list all your profiles on a "Contexts" menu. This menu allows you to select
@@ -202,6 +202,22 @@ auth_token   = 362736035870515331128527330659
 
 You can have several profiles on the same platform if, for example, you are an enterprise user and
 you belong to several divisions. Please refer to the API documentation for more detail.
+
+
+### Switching contexts while editing
+
+Say you are editing a workflow in the context of your "CGC" profile, and you switch to your "Cavatica"
+profile, where the current app and the nested apps are not present. When you go to push your app, 
+_Benten_ will discover that the orginal project does not exist (probably). If so you will then get
+a "Push dialog" that you got when originally pushing the app and you will have to fill out the
+destination project and app id. Benten will then proceed to install this app in that project on
+Cavatica. However, now you will no longer be able to change the versions of the subworkflows since
+this history does not exist in the Cavatica repository. The workflow will work exactly the same
+however. 
+
+Typically, if you work in multiple contexts (which is very rare), it is most convenient to develop
+on just one platform, and then distribute the final frozen workflows to collaborators on other
+platforms.
 
 
 ## Pushing apps
@@ -368,3 +384,7 @@ eloquence, music and by extension, knowledge. Therefore _Benten_ is an
 appropriate goddess for scientific workflow developers.
 
 [Benzaiten]: https://en.wikipedia.org/wiki/Benzaiten 
+
+_References_
+- [Wikipedia page](https://en.wikipedia.org/wiki/Benzaiten)
+- [Benzaiten (Benten): Japan’s Goddess of Reason ](http://yabai.com/p/3200) - a much more detailed history
