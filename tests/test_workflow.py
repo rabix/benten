@@ -1,4 +1,5 @@
 import pathlib
+import pytest
 
 import benten.models.workflow as WF
 
@@ -8,6 +9,11 @@ current_path = pathlib.Path(__file__).parent
 def test_parsing_empty_workflow():
     empty_wf = ""
     cwl_doc = WF.CwlDoc(raw_cwl=empty_wf, path=pathlib.Path("./nothing.cwl"))
+
+    with pytest.raises(TypeError):
+        _ = WF.Workflow(cwl_doc=cwl_doc)
+
+    cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert len(wf.inputs) == 0
@@ -31,6 +37,7 @@ steps:
 """
 
     cwl_doc = WF.CwlDoc(raw_cwl=wf_with_empty_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
     # Basically we shouldn't choke because there is nothing in that step
 
@@ -45,6 +52,7 @@ steps:
 def test_parsing_ports_with_plain_source():
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
     cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     conn = next(c for c in wf.connections if c.dst == WF.Port("compile", "src"))
@@ -57,6 +65,7 @@ def test_interface_parsing():
     # This is a public SBG workflow
     wf_path = pathlib.Path(current_path, "cwl/sbg/salmon.cwl").resolve()
     cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert wf.inputs["reads"].line == (21, 31)
@@ -83,6 +92,7 @@ def test_connection_parsing():
     # hand to put in the tests
     wf_path = pathlib.Path(current_path, "cwl/003.diff.dir.levels/lib/workflows/outer-wf.cwl").resolve()
     cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert wf.inputs["wf_in2"].line == (11, 15)
@@ -139,6 +149,7 @@ def test_connection_search():
     """Check connection finding"""
     wf_path = pathlib.Path(current_path, "cwl/003.diff.dir.levels/lib/workflows/outer-wf.cwl").resolve()
     cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     c1 = WF.Connection(WF.Port(node_id=None, port_id="wf_in2"),

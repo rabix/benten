@@ -18,16 +18,13 @@ class CwlDoc:
         self.path = path
         self.inline_path = inline_path
         self.cwl_lines = self.raw_cwl.splitlines(keepends=True)
-        self._cwl_dict = None
+        self.cwl_dict = None
 
-    # be lazy on the (semi)expensive compute
-    # A single run of this on a large document is ~ 30ms. However edits on a document
-    # with many inline children open will add up if not done lazily ...
-    @property
-    def cwl_dict(self):
-        if self._cwl_dict is None:
-            self._cwl_dict = parse_cwl_to_lom(self.raw_cwl)
-        return self._cwl_dict
+    # I want to be conscious and in control of when this (semi)expensive computation is being done
+    # But I'd don't want to accidentally do it twice
+    def compute_cwl_dict(self):
+        if self.cwl_dict is None:
+            self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
 
     def process_type(self):
         return self.cwl_dict.get("class", "unknown")
