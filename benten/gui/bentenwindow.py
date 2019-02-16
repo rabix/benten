@@ -5,7 +5,7 @@ import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent
+    QAbstractItemView, QGraphicsSceneMouseEvent, QMenuBar, QAction
 from PySide2.QtGui import QTextCursor, QPainter
 
 from .codeeditor.editor import CodeEditor
@@ -97,6 +97,25 @@ class BentenWindow(QWidget):
         layout.addWidget(main_pane)
         self.setLayout(layout)
 
+        self.menu_bar = QMenuBar(self)
+        self.menu_bar.setNativeMenuBar(False)
+
+        file_menu = self.menu_bar.addMenu("CWL")
+        file_menu.setAutoFillBackground(True)
+
+        save_action = QAction("&Save", self)
+        save_action.setShortcut("Ctrl+S")
+        #save_action.triggered.connect(...)
+        file_menu.addAction(save_action)
+
+        push_action = QAction("&Push", self)
+        push_action.setShortcut("Ctrl+P")
+        #save_action.triggered.connect(...)
+        file_menu.addAction(push_action)
+
+        # For now this it is good that this menu does not use up all horizontal space
+        # layout.setMenuBar(self.menu_bar)
+
         self.manual_edit_throttler = ManualEditThrottler()
         self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
 
@@ -163,6 +182,8 @@ class BentenWindow(QWidget):
 
         self.update_from_code()
 
+    # This only happens when we are in focus and the code has changed
+    # It is only here that we do the (semi)expensive parsing computation
     @Slot()
     def update_from_code(self):
 
@@ -181,6 +202,7 @@ class BentenWindow(QWidget):
         self.cwl_doc = CwlDoc(raw_cwl=modified_cwl,
                               path=self.cwl_doc.path,
                               inline_path=self.cwl_doc.inline_path)
+        self.cwl_doc.compute_cwl_dict()
 
         pt = self.cwl_doc.process_type()
         t1 = time.time()
