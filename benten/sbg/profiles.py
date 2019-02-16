@@ -3,6 +3,7 @@ import pathlib
 
 import sevenbridges as sbg
 
+from ..version import __version__
 from ..configuration import Configuration, configparser, default_credentials_file
 
 
@@ -30,7 +31,11 @@ class Profiles:
             raise KeyError("This is a bug, please report it")
         else:
             try:
-                return sbg.Api(url=self.profile_parser.get(item, "api_endpoint"),
-                               token=self.profile_parser.get(item, "auth_token"))
+                api = sbg.Api(url=self.profile_parser.get(item, "api_endpoint"),
+                              token=self.profile_parser.get(item, "auth_token"))
+                # Least disruptive way to add in our user agent
+                api.headers["User-Agent"] = "Benten/{} via {}".\
+                    format(__version__, api.headers["User-Agent"])
+                return api
             except configparser.NoOptionError as e:
                 raise ProfileError(item)

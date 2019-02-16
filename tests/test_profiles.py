@@ -54,6 +54,7 @@ def test_basic(monkeypatch):
     api = prof["cgc"]
     assert api.url == "https://cgc-api.sbgenomics.com/v2"
     assert api.token == "282174488599599500573849980909"
+    assert api.headers["User-Agent"].startswith("Benten")
 
     with pytest.raises(KeyError):
         _ = prof["does not exist"]
