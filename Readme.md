@@ -207,26 +207,46 @@ you belong to several divisions. Please refer to the API documentation for more 
 ## Pushing apps
 
 The first time you push a particular App to an SBG end-point _Benten_ will ask for a project 
-(and app id if you haven't added one). It will also present you with the option to recursively 
-inline the whole workflow on your side. Please refer to the notes on inlining to help
-decide whether you want to do this. 
+(and app id if you haven't added one). 
 
-## Notes on app management in the SBG app eco system
+Each time you push _Benten_ may also offer you two options:
+- Push dependents
+- Inline this workflow
+
+**Push dependents** means that there are apps included in the workflow that are in the SBG registry
+and have been locally edited. Some care should be taken when doing this if you are sharing the
+same tool locally with other users. Pushing dependents will push the current edited app and create
+a new version. Existing workflows will not be affected, but a new App version will appear in
+the repository which may not have been intended.
+
+**Inline this workflow** is asking if you want _Benten_ to recursively go through each step and
+put the code for the process referred to in the step into the workflow you are editing. This
+changes your local code, and disconnects it from any local references you have made. 
+
+(For reproducibility purposes, in the SBG repository, Apps are always stored inlined, as one document)
 
 
+## Editing a pushed app 
 
+When you edit a pushed app, _Benten_ will append the string `-local-edits` to the app id. This 
+temporarily unlinks the app from the SBG eco system but reminds _Benten_ about it's origins. 
+This app will no longer show the ability to change it's version though it will show the original 
+version number on the workflow map with the word `edited`. This will remind you that you have
+a step in your workflow that hasn't been pushed. Note that this goes only one level deep. 
+Once you "push" the edited app again, _Benten_ will remove the `-local-edits` string from 
+the app id and create a new version, and things are  back as they were (except that the App 
+has a new version now) before.
 
+This is useful when you want to test changes to an App in the context of a larger workflow, but 
+don't want to commit changes to the App until you are done testing. 
 
-If you choose to recursively inline the workflow _Benten_ will also install each sub process 
-referenced in the workflow as an app in the project, unless it is already in the app ecosystem.
+## Breaking off from a previously pushed App
 
-(For reproducibility purposes, Apps are always stored inlined, as one document in the SBG repository)
-See some hints below to decide if you want to recursively inline all components, or leave the
-code as is with external references. 
+If you want to break off from the original App, i.e. you used that as a template, but now your
+development has completely diverged and it's basically a new app, you can delete the `id` value
+and replace it with a new one. Now, when you push the App _Benten_ will create a new app from
+scratch.
 
-Upon successfully pushing the App _Benten_ will modify your app id (or add one) to match the id 
-on the SBG repository. _Benten_ can now use this to track versions of the app on the SBG repository.
-The rest of your code is untouched, unless you have chosen to recursively inline dependents.
 
 ## Switching version of Apps linked to the SBG eco-system
 
@@ -238,19 +258,43 @@ the version you want.
 
 This requires _Benten_ to pull the appropriate version of the app code from the platform store.
 Currently (2019.02) the SBG backend stores the workflow in JSON format with some SBG specific
-metadata. _Benten_ converts the JSON to YAML and strips out the non-essential metadata. It
+metadata. _Benten_ converts the JSON to YAML and strips out the non-essential metadata.
 As you can guess this is not a complete round trip. So if you pushed a particularly formatted
 YAML the first time to App version 10, added more changes to create version 11, and then you
 switch back to version 10, currently (2019.02) you may not get your formatting back. 
-Functionally, the CWL is identical.
+Functionally, however, the CWL will be identical to the orginal version 10.
+
+**Importantly** the code stored in the SBG repo is always completely self-contained, which means
+all external references would have been resolved and frozen. It is this frozen app that you will
+get back.
+
+
+### Mass Update menu
+
+Besides individually altering the versions of processes there are two "Mass Update" options.
+
+One option, "Pull all latest", goes recursively through the workflow and updates all 
+inline components to the latest versions available on the SBG repository. Linked processes
+are not altered, since this would change other files locally.
+
+The other option, "Push this to dependents" opens a simple dialog where you can choose a folder
+to process. All workflows in that folder that have that process as a component will be altered
+to use the current version of that process. This action is useful if you wish to force all
+workflows to a specfic version of the given tool.
+
+One of the options in that dialog is to "Push all changes", which if checked, will, in addition,
+push these changed workflows to the SBG repository, creating a new version for each of them.
+
 
 ### Switching versions of an externally linked App
 
-Since switching the version of an externally linked app will change it's code, this will affect
-any other workflows which refer to it.
+Since switching the version of an externally linked app will change its code, and will affect
+any other workflows which refer to it _Benten_ does not allow you to do this. You should
+inline that App and then change it's version as desired, which allows you to keep such changes
+isolated from other workflows that depend on that app.
 
 
-## In-lining, linking, Benten and the sbg app ecosystem
+## In-lining, linking, Benten and the sbg app repository
 
 The SBG app ecosystem and _Benten_ together try to combine some of the benefits of inlining and
 linking. 
@@ -265,7 +309,35 @@ relevant, inlined, nested workflow steps.
 The inlined app can form a large and complex CWL document. _Benten_ offers help by allowing users
 to locate different logical parts of this big document and edit them in isolation.
 
+# Suggested flow when using _Benten_, your own local repository and the SBG app repository
 
+Since _Benten_ is directed at users who are extensively hand editing their CWL, presumably because
+they care about the presentation of the code, and the ability to perform sensible diffs on it,
+the following flow is suggested.
+
+## Library of command line tools
+
+As you create and test your command line tools, check them into your local repository as you 
+normally do. When you are ready to share this tool, use push to publish this version to the 
+SBG repository via _Benten_. At this point there will be a one line change to your code, with the
+id assigned to that tool by the SBG repository and the SBG version number. This modified code
+should also be checked in to keep a record. Each time you are ready to make an "official" version
+you should push to the SBG repository and check the code in with the new app id.
+
+## Workflows
+
+When creating workflows try to include only tools and workflows that have already been checked
+into the repository and opt to have them included inline even though this may slow you down.
+
+During development it may be tempting to use links to external documents in order to use the latest
+version of the tools your colleagues are putting out, but this can make debugging hard. It is more
+convenient to inline everything, freezing your versions, and then consciously update particular
+dependencies, or, if you are feeling particularly adventurous, do a mass update.
+
+In some cases, your colleagues will pull rank on you and force push their update on you. But that
+is a social matter for you all to sort out.
+
+ 
 # License
 [Apache 2.0](LICENSE)
 
