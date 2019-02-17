@@ -66,7 +66,7 @@ class BentenWindow(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
-        self.code_editor: CodeEditor = CodeEditor()
+        self.code_editor: CodeEditor = CodeEditor(IndentUsingSpaces=True)
         self.process_view: ProcessView = ProcessView(None)
 
         self.conn_table = QTableWidget()
