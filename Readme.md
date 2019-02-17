@@ -3,7 +3,7 @@
 
 This is a workflow helper for [Common Workflow Language](https://www.commonwl.org/) documents.
 
-<img align="right" width="100px" src="media/benten-icon.png">
+<img align="right" width="100px" src="media/benten-icon.png"></img>
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows navigating 
 and editing the resultant document and sub-documents can get tedious. Keeping
@@ -74,6 +74,12 @@ inlined steps has some behaviors to note. Please see "Editing inlined steps" bel
 
 A breadcrumb trail (tabs) above the view keeps the user oriented. Clicking on 
 a tab switches to the view to that step.
+
+### Operations
+
+Dropping a CWL file onto the map will add that as a new step to the workflow.
+Using the edit menu you can also insert a new step from the SBG app repository
+Using the edit menu you can also insert a new, blank inline step
 
 
 ### Editing inlined steps
@@ -160,7 +166,7 @@ Log files are found under `$XDG_DATA_HOME/sevenbridges/benten/`
 (If not set, `$HOME/.local/share/sevenbridges/benten/` is used)
 
 
-# SBG app eco-system 
+# Using the SBG app repository on your platform 
 
 You can push your workflows/tools to your projects on any SBG based platform
 (like [CGC], [CAVATICA], [Fair4Cures]) using the "Push" option on the menu.
@@ -378,7 +384,7 @@ editor is also very elegant, with additive functionality from mixins.
 
 **Saraswati** is the Hindu goddess of learning and knowledge and a long time ago 
 she visited Japan, where she is known as [Benzaiten] (**Benten** for short) and 
-her sitar has morphed into a Japanese lute but she has kept some of her many arms.
+her sitar has morphed into a Japanese _biwa_ but she has kept some of her many arms.
 
 Benzaiten is the goddess of everything that flows: water, time, words, speech, 
 eloquence, music and by extension, knowledge. Therefore _Benten_ is an 
