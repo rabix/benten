@@ -5,17 +5,23 @@ from PySide2.QtGui import QBrush, QPen, QPolygonF
 from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsPolygonItem
 
 from .processscene import ProcessScene
-from ..models.workflow import Workflow
+from ..models.workflow import Workflow, Step
+from ..sbg.appmanager import get_app_info
 
 
 color_code = {
     "inputs": Qt.green,
-    "outputs": Qt.red,
+    "outputs": Qt.cyan,
     "CommandLineTool": Qt.gray,
     "ExpressionTool": Qt.yellow,
     "Workflow": Qt.blue,
     "invalid": Qt.white
 }
+
+
+# We assume no one will give these ids to any step
+res_input_id = "##input##"
+res_output_id = "##output##"
 
 
 class WorkflowScene(ProcessScene):
@@ -29,33 +35,54 @@ class WorkflowScene(ProcessScene):
 
     def create_scene(self):
         G = pgv.AGraph(directed=True)
-        G.add_node("inputs", type="inputs")
-        for k, step in self.workflow.steps.items():
-            G.add_node(k, type=step.process_type)
-        G.add_node("outputs", type="outputs")
+
+        G.add_node(res_input_id)
+        G.add_nodes_from(self.workflow.steps)
+        G.add_node(res_output_id)
 
         G.add_edges_from([
             (
-                e.src.node_id or "inputs",
-                e.dst.node_id or "outputs"
+                e.src.node_id or res_input_id,
+                e.dst.node_id or res_output_id
             )
             for e in self.workflow.connections
         ])
 
         G.layout("dot")
 
+        graph = {
+            res_input_id: {
+                "type": "inputs",
+                "label": "Input"
+            },
+            res_output_id: {
+                "type": "outputs",
+                "label": "Output"
+            }
+        }
+
+        def get_label(_step: Step):
+            _a_ifo = get_app_info(_step.sub_workflow.id)
+            if _a_ifo is not None:
+                name_version = "{name:} (v{version:})\n".format(**_a_ifo)
+            else:name_version = ""
+
+            return "{}\n{}{} ({})".format(_step.id, name_version, _step.process_type,
+                                         _step.sub_workflow.type_str())
+
+        for k, step in self.workflow.steps.items():
+            graph[k] = {
+                "type": step.process_type,
+                "label": get_label(step)
+            }
+
         def str_to_pos(_n):
             # https://groups.google.com/forum/#!topic/pygraphviz-discuss/QYXumyw3E-g
             _x, _y = _n.attr["pos"].split(",")
             return float(_x), -float(_y)
 
-        graph = {
-            n.name: {
-                "pos": str_to_pos(n),
-                "type": n.attr["type"]
-            }
-            for n in G.nodes()
-        }
+        for n in G.nodes():
+            graph[n.name]["pos"] = str_to_pos(n)
 
         for e in G.edges():
             p0 = graph[e[0]]["pos"]
@@ -76,15 +103,15 @@ class WorkflowScene(ProcessScene):
 
             # item.setPen(QPen(Qt.gray))
             item.setBrush(QBrush(color_code.get(v["type"], "white")))
-            item.setToolTip(k)
+            item.setToolTip(v["label"])
             item.setFlag(QGraphicsItem.ItemIsSelectable, True)
             item.setData(0, k)
             self.addItem(item)
 
             # Add text on top as needed
             if v["type"] == "inputs":
-                txt = self.addText("inputs")
+                txt = self.addText(v["label"])
                 txt.setPos(p[0] - txt.boundingRect().width()/2, p[1] - txt.boundingRect().height()/2)
             elif v["type"] == "outputs":
-                txt = self.addText("outputs")
+                txt = self.addText(v["label"])
                 txt.setPos(p[0] - txt.boundingRect().width()/2, p[1] - txt.boundingRect().height()/2)

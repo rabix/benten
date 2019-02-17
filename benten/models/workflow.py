@@ -79,7 +79,9 @@ class Port:
 
 
 class InvalidSub:
-    pass
+    @staticmethod
+    def type_str():
+        return "has errors"
 
 
 class InlineSub:
@@ -88,11 +90,19 @@ class InlineSub:
         self.path = path
         self.inline_path = inline_path
 
+    @staticmethod
+    def type_str():
+        return "Inline"
+
 
 class ExternalSub:
     def __init__(self, _id: str, path: pathlib.Path):
         self.id = _id
         self.path = path
+
+    @staticmethod
+    def type_str():
+        return "Linked"
 
 
 class Step:
@@ -107,6 +117,12 @@ class Step:
         self.available_sources = sources
         self.process_type = process_type  # as returned by cwl_doc.process_type()
         self.sub_workflow = sub_workflow
+
+    def about(self):
+        return {
+            "type": self.process_type,
+            "step-type": self.sub_workflow.type_str()
+        }
 
     def __repr__(self):
         return str(self.available_sinks.keys()) + "->" + self.id + "->" + str(self.available_sources.keys())
