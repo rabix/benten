@@ -80,6 +80,7 @@ class MultiDocumentManager:
                 return None
 
             base_cwl_doc = CwlDoc(raw_cwl=new_base_cwl, path=cwl_doc.path, inline_path=None)
+            base_cwl_doc.compute_cwl_dict()  # We're gonna need this to propagate the edits
             base_bw.set_document(cwl_doc=base_cwl_doc)
 
         base_cwl_doc = base_bw.cwl_doc
