@@ -29,9 +29,9 @@ def test_app_version():
     assert app_info.name == "salmon-index-0-9-1"
     assert app_info.version == 12
     assert app_info.local_edits is False
-    assert str(app_info) == "salmon-index-0-9-1 (12)"
+    assert str(app_info) == "salmon-index-0-9-1 (v:12)"
 
     app_id = app_id + sam.file_not_pushed_suffix
     app_info = sam.get_app_info(app_id)
     assert app_info.local_edits is True
-    assert str(app_info) == "salmon-index-0-9-1 (12**)"
+    assert str(app_info) == "salmon-index-0-9-1 (v:12*)"
