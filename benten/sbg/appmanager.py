@@ -24,7 +24,7 @@ class SBGAppInfo:
         self.local_edits = local_edits
 
     def __str__(self):
-        return "{} (v{})".format(self.name, str(self.version) + ("**" if self.local_edits else ""))
+        return "{} (v-{})".format(self.name, str(self.version) + ("**" if self.local_edits else ""))
 
 
 # admin/sbg-public-data/salmon-index-0-9-1/12
