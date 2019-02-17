@@ -12,7 +12,7 @@ from .codeeditor.editor import CodeEditor
 from .processview import ProcessView
 from .unkscene import UnkScene
 from .toolscene import ToolScene
-from .workflowscene import WorkflowScene
+from .workflowscene import WorkflowScene, res_input_id, res_output_id
 
 from ..editing.cwldoc import CwlDoc
 from ..models.unk import Unk
@@ -218,7 +218,7 @@ class BentenWindow(QWidget):
         if len(items) == 1:
             info = items[0].data(0)
             if isinstance(info, str):
-                if info in ["inputs", "outputs"]:
+                if info in [res_input_id, res_output_id]:
                     self.highlight_workflow_io(info)
                 else:
                     self.highlight_step(info)
@@ -226,7 +226,7 @@ class BentenWindow(QWidget):
                 self.highlight_connection_between_nodes(info)
 
     def highlight_workflow_io(self, info: str):
-        if info == "inputs":
+        if info == res_input_id:
             if "inputs" in self.process_model.section_lines:
                 self.code_editor.scroll_to(self.process_model.section_lines["inputs"][0])
             conn = [c for c in self.process_model.connections if c.src.node_id is None]
@@ -259,8 +259,8 @@ class BentenWindow(QWidget):
 
         id1, id2 = info
 
-        cond1 = src_is_input if id1 == "inputs" else src_is_node
-        cond2 = dst_is_output if id2 == "outputs" else dst_is_node
+        cond1 = src_is_input if id1 == res_input_id else src_is_node
+        cond2 = dst_is_output if id2 == res_output_id else dst_is_node
 
         conn = [c for c in self.process_model.connections if cond1(c) and cond2(c)]
         self.populate_connection_table(str(info), [(Qt.white, conn)])
@@ -269,7 +269,7 @@ class BentenWindow(QWidget):
         row, col = 0, 0
         self.conn_table.clear()
         self.conn_table.setColumnCount(1)
-        self.conn_table.setRowCount(sum(len(c) for c in conns))
+        self.conn_table.setRowCount(sum(len(c) for _, c in conns))
         self.conn_table.setHorizontalHeaderLabels([title])
         for color, conn_grp in conns:
             for conn in conn_grp:
@@ -293,7 +293,7 @@ class BentenWindow(QWidget):
             return
 
         steps = [self.process_model.steps[item.data(0)] for item in items
-                 if item.data(0) not in ["inputs", "outputs"] and isinstance(item.data(0), str)]
+                 if item.data(0) not in [res_input_id, res_output_id] and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
             self.scene_double_clicked.emit([step.sub_workflow for step in steps])
