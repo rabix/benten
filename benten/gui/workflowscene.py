@@ -63,12 +63,10 @@ class WorkflowScene(ProcessScene):
 
         def get_label(_step: Step):
             _a_ifo = get_app_info(_step.sub_workflow.id)
-            if _a_ifo is not None:
-                name_version = "{name:} (v{version:})\n".format(**_a_ifo)
-            else:name_version = ""
-
-            return "{}\n{}{} ({})".format(_step.id, name_version, _step.process_type,
-                                         _step.sub_workflow.type_str())
+            return "\n".join(_x for _x in
+                      [_step.id, str(_a_ifo), "{} ({})".format(_step.process_type,
+                                                               _step.sub_workflow.type_str())]
+                      if _x is not "")
 
         for k, step in self.workflow.steps.items():
             graph[k] = {
