@@ -230,11 +230,13 @@ class BentenWindow(QWidget):
             if "inputs" in self.process_model.section_lines:
                 self.code_editor.scroll_to(self.process_model.section_lines["inputs"][0])
             conn = [c for c in self.process_model.connections if c.src.node_id is None]
+            color = Qt.green
         else:
             if "outputs" in self.process_model.section_lines:
                 self.code_editor.scroll_to(self.process_model.section_lines["outputs"][0])
             conn = [c for c in self.process_model.connections if c.dst.node_id is None]
-        self.populate_connection_table(info, [conn])
+            color = Qt.cyan
+        self.populate_connection_table(info, [(color, conn)])
 
     def highlight_step(self, info: str):
         step = self.process_model.steps[info]
@@ -244,7 +246,7 @@ class BentenWindow(QWidget):
         inbound_conn = [c for c in self.process_model.connections if c.dst.node_id == info]
         outbound_conn = [c for c in self.process_model.connections if c.src.node_id == info]
 
-        self.populate_connection_table(step.id, [inbound_conn, outbound_conn])
+        self.populate_connection_table(step.id, [(Qt.green, inbound_conn), (Qt.cyan, outbound_conn)])
 
     def highlight_connection_between_nodes(self, info: tuple):
         def src_is_input(x): return x.src.node_id is None
@@ -261,7 +263,7 @@ class BentenWindow(QWidget):
         cond2 = dst_is_output if id2 == "outputs" else dst_is_node
 
         conn = [c for c in self.process_model.connections if cond1(c) and cond2(c)]
-        self.populate_connection_table(str(info), [conn])
+        self.populate_connection_table(str(info), [(Qt.white, conn)])
 
     def populate_connection_table(self, title, conns: [dict]):
         row, col = 0, 0
@@ -269,10 +271,11 @@ class BentenWindow(QWidget):
         self.conn_table.setColumnCount(1)
         self.conn_table.setRowCount(sum(len(c) for c in conns))
         self.conn_table.setHorizontalHeaderLabels([title])
-        for conn_grp in conns:
+        for color, conn_grp in conns:
             for conn in conn_grp:
                 item = QTableWidgetItem(str(conn))
                 item.setData(Qt.UserRole, conn)  # All other roles try to replace as display text
+                item.setBackgroundColor(color)
                 self.conn_table.setItem(row, col, item)
                 row += 1
 
