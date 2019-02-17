@@ -97,25 +97,6 @@ class BentenWindow(QWidget):
         layout.addWidget(main_pane)
         self.setLayout(layout)
 
-        self.menu_bar = QMenuBar(self)
-        self.menu_bar.setNativeMenuBar(False)
-
-        file_menu = self.menu_bar.addMenu("CWL")
-        file_menu.setAutoFillBackground(True)
-
-        save_action = QAction("&Save", self)
-        save_action.setShortcut("Ctrl+S")
-        #save_action.triggered.connect(...)
-        file_menu.addAction(save_action)
-
-        push_action = QAction("&Push", self)
-        push_action.setShortcut("Ctrl+P")
-        #save_action.triggered.connect(...)
-        file_menu.addAction(push_action)
-
-        # For now this it is good that this menu does not use up all horizontal space
-        # layout.setMenuBar(self.menu_bar)
-
         self.manual_edit_throttler = ManualEditThrottler()
         self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
 
