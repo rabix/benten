@@ -49,6 +49,11 @@ spurious whitespace in a blank line anyway ...
 2019.02.12 preview
 ![2019.02.12 release](https://lh3.googleusercontent.com/1M5Qplw84aA6arEvgwLm9sxedjDgoCo3ZNL20lp7P3OfQYGqdStcDgrBgOiX6i2ke3apyyGulSBr3_gBVaohgPcq_4pvHsvxskjJCb_R9fxmxbo8Lg5UEEepVyc6-UKC3a2ov3sbVg=w2326-h1390-no)
 
+Each instance of _Benten_ (window that you open with a CWL document) is meant to edit that
+one workflow or tool. While you may be opening new tabs with sub-parts of the workflow, some
+of which may result in editing other files (if they are linked workflows/tools) _Benten_ treats
+it all as one unit. To edit a new workflow, you need to open another instance of _Benten_. You
+can open as many _Benten_ instances as you wish. 
 
 Benten has three main panes: Workflow map, Code editor and Connection table. The
 relative sizes of each can be changed by dragging dividing lines up/down, left/right.
@@ -118,6 +123,13 @@ Editing the raw CWL in the code editor tab will update the workflow map. Enterin
 invalid YAML will lock out the workflow map and command bar until the YAML is 
 fixed. Valid YAML that is invalid CWL will result in a workflow with warnings
 and errors.
+
+## A note on saving
+
+When editing inlined steps, all edits affect the one common main document and saving
+from any pane, saves that whole document to disk. After editing a linked workflow
+if you switch away from that tab, _Benten_ will require that you save or discard the
+edits. This is to ensure all workflow components are consistent on disk.
 
 # A note on the modular nature of CWL
 
@@ -210,6 +222,8 @@ auth_token   = 362736035870515331128527330659
 You can have several profiles on the same platform if, for example, you are an enterprise user and
 you belong to several divisions. Please refer to the API documentation for more detail.
 
+**The credential file is only parsed when _Benten_ is opened. If you change your credential file
+you have to close and re-open _Benten_ for the changes to take effect**
 
 ### Switching contexts while editing
 
@@ -270,6 +284,8 @@ development has completely diverged and it's basically a new app, you can delete
 and replace it with a new one. Now, when you push the App _Benten_ will create a new app from
 scratch.
 
+**This is the only case where you should edit a pushed app's `id` field. In all other cases
+_Benten_ will manage the app id for you once you have pushed the app**
 
 ## Switching version of Apps linked to the SBG eco-system
 
