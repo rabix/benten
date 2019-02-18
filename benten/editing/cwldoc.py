@@ -1,4 +1,6 @@
-"""Container for storing a CWL object in memory and for applying some edits to it"""
+"""Stores CWL document in several forms to provide data other classes need for navigation
+and manipulation. Importantly, implements logic to extract inline fragments and to apply
+edits of inline fragments back to main document."""
 from typing import Tuple
 from enum import IntEnum
 import pathlib
