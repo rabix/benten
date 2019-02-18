@@ -6,7 +6,7 @@ from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsPoly
 
 from .processscene import ProcessScene
 from ..models.workflow import Workflow, Step
-from ..sbg.appmanager import get_app_info
+from ..sbg.repomixin import get_app_info
 
 
 color_code = {
