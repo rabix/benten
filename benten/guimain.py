@@ -90,9 +90,13 @@ class MainWindow(QMainWindow):
             cwl_menu.addAction(push_action)
 
     def closeEvent(self, event: QCloseEvent):
-        settings = QSettings("sbg", "benten")
-        settings.setValue("geometry", self.saveGeometry())
-        super().closeEvent(event)
+        if self.tab_widget.ok_to_close_everything(event):
+            settings = QSettings("sbg", "benten")
+            settings.setValue("geometry", self.saveGeometry())
+            event.accept()
+        else:
+            event.ignore()
+        # super().closeEvent(event)
 
     @Slot()
     def exit_app(self, checked):

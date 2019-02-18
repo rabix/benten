@@ -14,7 +14,7 @@ Responsibilities
    when this external file changes.
 
 """
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 import pathlib
 
 from .bentenwindow import BentenWindow
@@ -24,8 +24,8 @@ from ..editing.documentmanager import DocumentManager
 
 class MDMUnit:
     def __init__(self, bw: BentenWindow, doc_man: (DocumentManager, None)):
-        self.window = bw
-        self.doc_man = doc_man
+        self.window: BentenWindow = bw
+        self.doc_man: DocumentManager = doc_man
 
     def set_document(self, cwl_doc: CwlDoc):
         self.window.set_document(cwl_doc=cwl_doc)
@@ -36,6 +36,17 @@ class MDMUnit:
 class MultiDocumentManager:
     def __init__(self):
         self.directory_of_documents: Dict[str, Dict[(Tuple[str], None), MDMUnit]] = {}
+
+    def lookup_parent_doc(self, cwl_doc: CwlDoc):
+        return next((mdmu[None] for mdmu in self.directory_of_documents.values()
+                    if mdmu[None].doc_man.path == cwl_doc.path), None)
+
+    def windows_for_this_doc(self, cwl_doc: CwlDoc, bw_list: List[BentenWindow]):
+        return [bw for bw in bw_list if bw.cwl_doc.path == cwl_doc.path]
+
+    def lookup_unsaved_docs(self):
+        return [mdmu[None] for mdmu in self.directory_of_documents.values()
+                if not mdmu[None].doc_man.status()["saved"]]
 
     def open_window(self, parent_path: pathlib.Path, inline_path: Tuple[str]):
         path_str = parent_path.resolve().as_uri()

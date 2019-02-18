@@ -1,16 +1,16 @@
 """This manages the tabs that we open as part of inspecting workflow steps. It also
 manages the synchronization between the windows since the code is interdependent in one
 way or the other"""
-from typing import Tuple
+from typing import Tuple, List
 import pathlib
 
 from PySide2.QtCore import Slot, Signal
-
-from PySide2.QtWidgets import QTabWidget, QTabBar
+from PySide2.QtGui import QCloseEvent
+from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
 
 from ..models.workflow import InvalidSub, InlineSub, ExternalSub
 from .bentenwindow import BentenWindow
-from .multidocumentmanager import MultiDocumentManager
+from .multidocumentmanager import MultiDocumentManager, MDMUnit
 
 import logging
 
@@ -33,7 +33,7 @@ class BentenMainWidget(QTabWidget):
         self.active_window: BentenWindow = None
 
         self.setTabsClosable(True)
-        self.tabCloseRequested.connect(self.removeTab)
+        self.tabCloseRequested.connect(self.tab_about_to_close)
 
         self.currentChanged.connect(self.breadcrumb_selected)
 
@@ -60,6 +60,49 @@ class BentenMainWidget(QTabWidget):
 
         if self.count() == 1:
             self._make_base_tab_unclosable()
+
+    def windows_for_this_doc(self, cwl_doc):
+        win_list = []
+        for index in range(self.count()):
+            bw = self.widget(index)
+            if bw.cwl_doc.path == cwl_doc.path:
+                win_list += [bw]
+        return win_list
+
+    @Slot(int)
+    def tab_about_to_close(self, index):
+        bw: BentenWindow = self.widget(index)
+        if len(self.windows_for_this_doc(bw.cwl_doc)) == 1:
+            mdmu = self.multi_document_manager.lookup_parent_doc(bw.cwl_doc)
+            if not mdmu.doc_man.status()["saved"]:
+                if not self.unsaved_changes_dialog([mdmu]):
+                    return
+
+        self.removeTab(index)
+
+    def ok_to_close_everything(self, event:QCloseEvent):
+        logger.debug("Closing Benten")
+        mdmu_l = self.multi_document_manager.lookup_unsaved_docs()
+        if len(mdmu_l):
+            return self.unsaved_changes_dialog(mdmu_l)
+        else:
+            return True
+
+    def unsaved_changes_dialog(self, mdmu_l: List[MDMUnit]):
+        plural = "documents" if len(mdmu_l) > 1 else "document"
+        button = QMessageBox.warning(
+            self, "Unsaved changes!",
+            "There are unsaved changes in your {}. Do you wish to save?".format(plural),
+            QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+            QMessageBox.Cancel)
+        if button == QMessageBox.Cancel:
+            return False
+        elif button == QMessageBox.Discard:
+            return True
+        else:
+            for mdmu in mdmu_l:
+                mdmu.doc_man.save()
+            return True
 
     @Slot()
     def breadcrumb_selected(self):

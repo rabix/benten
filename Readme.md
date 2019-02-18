@@ -52,7 +52,7 @@ spurious whitespace in a blank line anyway ...
 Each instance of _Benten_ (window that you open with a CWL document) is meant to edit that
 one workflow or tool. While you may be opening new tabs with sub-parts of the workflow, some
 of which may result in editing other files (if they are linked workflows/tools) _Benten_ treats
-it all as one unit. To edit a new workflow, you need to open another instance of _Benten_. You
+it all as one unit. To edit a new workflow, you should open another instance of _Benten_. You
 can open as many _Benten_ instances as you wish. 
 
 Benten has three main panes: Workflow map, Code editor and Connection table. The
