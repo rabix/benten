@@ -3,7 +3,11 @@
 
 This is a workflow helper for [Common Workflow Language](https://www.commonwl.org/) documents.
 
-<img align="right" width="100px" src="media/benten-icon.png"></img>
+<img align="right" height="150px" src="media/benten-icon.png"></img>
+<a href="https://photos.google.com/share/AF1QipNjSKiQfGUpBjfdXBB3LAqQduM0XP-g7-2Qb3n64ojlwAVXJIJb-VPV8Iv2XM1q-g/photo/AF1QipPko0RKYzHbtTk8escnKwRgCtafGLAknJgSi3vn?key=LUEwSkFHemhTTmdRcWxMMEl6S082WFlwcXBPNmR3">
+<img src="https://lh3.googleusercontent.com/wFZ0dCFMYhph08OD4i8A9kgOhNZLyG_cj3qjKwZUrv8v32qjb-UFQDBfjAS2Lj8LoltqPj3Lep2hwdL1BHp9NEzeaOtRoyj9bRu-V9K32zZG2GwMX6XLUXRATABr-rfhDTL3HkUIvScn24TylkjPV7u23oIFtRY5heDOf5ytGHee2z6Kc-S_IjPEGfwtRcQbQgvSa3JPtzQGfMln_etOitzWMFz0VLBhXliMQ85MZ2QzMLtpFBRhA8wf8eOQMU-P00wsPLA_McAfhNRnMiMKQ4gvJa4EuKWz7NqmGVOvaQXLfFgOWe79BJtkT7pLGingsUTdzuiAwcdIFVPssNT8m5mwiUkeFkSCT4z4mlB0GngepvNeAuWZOkQY-znZmXZWP3cYr8ojP5WHoBlxvOvXQHf0KVWy65pI2sW0pT9BOzbDg8234RxuA4yhT2nXE9eWf1E43IRIbDjzpN373LixecRFs4Wc0vz2w2tckASgghBuAXKWlMKV4IrycgxwJgRHyMOhOC9fS_VP_na9POUVpJft3rhsUnxTOgTUMSQRdCtV5ZuP-0jKHCf-4fBTLMmYzqYfDTagvLnIrEtGn-BulAFK4CRzaO7iebs62cRR5evyGcZdh7KvdpRgClwc3H0VOGTicpaOXT_-cjokI7zfr11cjqPMAde01e5Dhs0saqixvU4jew_acNYKoPUj4lO7z1edji0kT5W_xIIHcR25osCT=w1804-h1134-no"
+alt="Short 2019.02.18 preview video"
+height="150px" align="right"></img></a>
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows navigating 
 and editing the resultant document and sub-documents can get tedious. Keeping
@@ -17,17 +21,6 @@ _Benten_ is written using Python and [Pyside2] (QT for Python)
 
 [![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
-
-
-# Short demo video
-
-<a href="https://photos.google.com/share/AF1QipNjSKiQfGUpBjfdXBB3LAqQduM0XP-g7-2Qb3n64ojlwAVXJIJb-VPV8Iv2XM1q-g/photo/AF1QipMHjkLgH9jpR9ZdMpv_cZ-l7WRn3gWyQUU3z41I?key=LUEwSkFHemhTTmdRcWxMMEl6S082WFlwcXBPNmR3">
-<img 
-src="https://lh3.googleusercontent.com/jK4PwvYnoPnZRRlhcqQymE7k-eyyyb_LuBXS4xuX332OBMzDWQWAOSOK5U_khVhk7Lql9d2cO0KP4ThZXuwYFhpD8DjZKbz_ItCw1Y_uiRT1eWT7iBqibx0TSkf9sdsDQq5BLugFMpEtlaFbxOa1S-LrIyRgIFrD2F8NeesLj9NWFgF50tSzqdlfi6Nfn9eEubojVg44mMoYKjw6sAS3azljcrt0EOqMKOJfv8t6FHlwc2H35MJzpKlIe1Rkkv2OD2A35zCIWq7rzqVxsXZV87v3rplDtVODc9yAdjZsH9Do4v0DNN5pq0ei1SlPSfSLdz1jb89eclAJ2HnWb3uJkvMo5kPQ0xzDUX0QP3KBa2daGpSOyMkAKdeKBpqT-XbrG6jnwAIfqWkFdJHeDs99D4DchQI7f7O7ZTj0abi_dn3eP4EKvm7ozELb9GUc-EblJQAxYBgIPuGEyNUfmT2XOElOjwoAS_OzSIboK49H7XOlFH0Kx49VoAUfNagOqPAMuTMffMjIPUSITYQd7_ZdR5OVe4T-oN2n7jY14RO-vNB_MxuS9ApuMtGSH0e84Txcy1XEt5LskUNmkgeYjuDVHiNZO7m3CN1aWWDaOc5ue3giny7ZQDQb8KwCH9ujxTv851M6sW4jTxr_UsOZNnu0x7e-UuHE85igjWcbD8PhSupM9jqnDnvy39NRYmYYbrRY33KK35ta4_NQYZk_m0Wutj2x=w1804-h1134-no"
-alt="Short 2019.02.18 preview video"
-width="200">
-</img>
-</a>
 
 
 # Installation
