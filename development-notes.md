@@ -1,5 +1,20 @@
 # Developer notes
 
+## Edit notification flow
+
+```
+if document is loaded into tab
+    if document fragment
+        inherits document saved attribute
+    else:
+        set saved text as loaded text
+
+if document edited:
+    re-parse document
+    
+```
+
+
 ## Manual edits to the CWL
 These are straightforward
 ```
