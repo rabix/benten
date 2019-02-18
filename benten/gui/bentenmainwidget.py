@@ -25,6 +25,9 @@ class BentenMainWidget(QTabWidget):
         super().__init__(parent)
 
         self.config = config
+        self.setDocumentMode(True)  # This is perfect!
+        self.setMovable(True)
+        self.setUsesScrollButtons(True)
 
         self.multi_document_manager = MultiDocumentManager()
         self.active_window: BentenWindow = None
