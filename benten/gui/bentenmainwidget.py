@@ -4,7 +4,7 @@ way or the other"""
 from typing import Tuple
 import pathlib
 
-from PySide2.QtCore import Slot
+from PySide2.QtCore import Slot, Signal
 
 from PySide2.QtWidgets import QTabWidget, QTabBar
 
@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 class BentenMainWidget(QTabWidget):
+
+    need_title_change = Signal(str)
+
     def __init__(self, config, parent=None):
         super().__init__(parent)
 
@@ -75,9 +78,31 @@ class BentenMainWidget(QTabWidget):
                 raise RuntimeError("Code error: Unknown sub workflow type!")
 
     @Slot(object)
-    def edit_registered(self, cwl_doc):
-        cwl_doc_to_save = self.multi_document_manager.apply_document_edits(cwl_doc=cwl_doc)
-        if cwl_doc_to_save is not None and self.config["files"]["autosave"]:
-            logger.debug("Autosaving {}".format(cwl_doc_to_save.path))
-            path = cwl_doc_to_save.path.resolve()
-            path.open("w").write(cwl_doc_to_save.raw_cwl)
+    def edit_registered(self, cwl_doc, force_save=False):
+        doc_man = self.multi_document_manager.apply_document_edits(cwl_doc=cwl_doc)
+        status = doc_man.status()
+        # todo: warn if external edits have taken place
+        if not status["saved"]:
+            logger.debug("{} needs saving".format(doc_man.path))
+            if self.config.getboolean("files", "autosave", fallback=False) or force_save:
+                logger.debug("Saving {}".format(doc_man.path))
+                doc_man.save()
+        else:
+            logger.debug("Document already saved")
+
+        self._refresh_tab_titles()
+
+    @Slot()
+    def cwl_save(self):
+        self.edit_registered(cwl_doc=self.active_window.cwl_doc, force_save=True)
+
+    def _refresh_tab_titles(self):
+        pass
+
+    @Slot()
+    def right_click_over_step(self):
+        pass
+
+    @Slot()
+    def cwl_push_to_sbg(self):
+        pass
