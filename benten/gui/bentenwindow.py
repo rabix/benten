@@ -136,7 +136,7 @@ class BentenWindow(QWidget):
 
     @Slot()
     def manual_edit(self):
-        """Called when the user is done their burst of typing, or we switch tabs ..."""
+        """Called when the user is done with their burst of typing, or we switch away from this tab"""
         logger.debug("Registering manual edit ...")
         self.update_from_code()
         self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
