@@ -19,6 +19,17 @@ _Benten_ is written using Python and [Pyside2] (QT for Python)
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 
 
+# Short demo video
+
+<a href="https://photos.google.com/share/AF1QipNjSKiQfGUpBjfdXBB3LAqQduM0XP-g7-2Qb3n64ojlwAVXJIJb-VPV8Iv2XM1q-g/photo/AF1QipMHjkLgH9jpR9ZdMpv_cZ-l7WRn3gWyQUU3z41I?key=LUEwSkFHemhTTmdRcWxMMEl6S082WFlwcXBPNmR3">
+<img 
+src="https://lh3.googleusercontent.com/jK4PwvYnoPnZRRlhcqQymE7k-eyyyb_LuBXS4xuX332OBMzDWQWAOSOK5U_khVhk7Lql9d2cO0KP4ThZXuwYFhpD8DjZKbz_ItCw1Y_uiRT1eWT7iBqibx0TSkf9sdsDQq5BLugFMpEtlaFbxOa1S-LrIyRgIFrD2F8NeesLj9NWFgF50tSzqdlfi6Nfn9eEubojVg44mMoYKjw6sAS3azljcrt0EOqMKOJfv8t6FHlwc2H35MJzpKlIe1Rkkv2OD2A35zCIWq7rzqVxsXZV87v3rplDtVODc9yAdjZsH9Do4v0DNN5pq0ei1SlPSfSLdz1jb89eclAJ2HnWb3uJkvMo5kPQ0xzDUX0QP3KBa2daGpSOyMkAKdeKBpqT-XbrG6jnwAIfqWkFdJHeDs99D4DchQI7f7O7ZTj0abi_dn3eP4EKvm7ozELb9GUc-EblJQAxYBgIPuGEyNUfmT2XOElOjwoAS_OzSIboK49H7XOlFH0Kx49VoAUfNagOqPAMuTMffMjIPUSITYQd7_ZdR5OVe4T-oN2n7jY14RO-vNB_MxuS9ApuMtGSH0e84Txcy1XEt5LskUNmkgeYjuDVHiNZO7m3CN1aWWDaOc5ue3giny7ZQDQb8KwCH9ujxTv851M6sW4jTxr_UsOZNnu0x7e-UuHE85igjWcbD8PhSupM9jqnDnvy39NRYmYYbrRY33KK35ta4_NQYZk_m0Wutj2x=w1804-h1134-no"
+alt="Short 2019.02.18 preview video"
+width="200">
+</img>
+</a>
+
+
 # Installation
 
 Benten requires Python 3.7. (I prefer to set up a Python 3.7 virtual env)
@@ -31,23 +42,10 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 benten -v <your-workflow-name.cwl>      # Open your-workflow-name.cwl in Benten with debug logging
 ```
 
-# Limitations/Quirks
-
-## YAML flowstyle
-YAML allows you to use a `flow style` which is very concise. If you put the top level
-elements (`cwlVersion`, `class`, `steps` etc.) in flow style _Benten_ will not work for you. 
-If you put the elements in the `step` field in flow style, _Benten_ will not work for you.
-
-## Inline step editing and blank lines
-If you have an inline step, and have a blank line with white-spaces, on editing the step these 
-white-spaces will disappear from your blank line. In general it is a good practice not to have 
-spurious whitespace in a blank line anyway ...
-
-
 # Manual/Features
 
 2019.02.18 preview
-![2019.02.18 release](https://lh3.googleusercontent.com/B2jn-vkTJmRc47WT3tQE11YHG6tP_if2RSdnmp0HlTj5VHxy9x99k0g7WV6mnhkK0MHXDBj8ryczwmhiRoAIsJCcOXmxbjXOd3HAxXPzV60l2zgwdl7WAoacWoF7Su4J-sTdC2Sl8BaecVUEVt8nsfXlN1yR5PEoAaWUQWPhRkVyCrrmkbualrvvDdbOBVsvNspW0GxISV7vKGJcOxXgF2lFTybhzMEdOoImkSqff0qiOnMgwPnPeqxyTGl_T2S2bDoJK77qst6_EZft367m8gbobiuJ2VCSD3DS2luNTUIiUw-7KtF6tVf4-vtWyQ71UtYqaAM4ekUUSeZvYWMU-f6Frm0FYvZvDV5fJmXJwnOv34ZH2CZbDsUzEp4GvAC-yta2MAVPDrQ1TdZ1y0NE1n8GAVIPPTf95TDfXs0lcdYxaCMeuCQNNui2wcA2bVl3wKMkTVnbKmXw_gKlnd6bCl5dGAcXWLYfcLDvpnm3kJrFcfE19Mz3tQfB5hd1w1NkbnUVJoAQJX6Viq-tCs6PsNEQZk68ZN8BYeLiSheCgNkBuOc8j9rLMBqdvhR4bRZZrf7ah2uTSX6ajpfYSTGqYh2EeE-awltNhKDIzixpuykvBxRLniliJElCn_AJhXqgQN9KBAxnnIiHy0Kjv5cW-2Cf3saZopS8z9jRZWc6EAGpvNEwdyBloJaXyyjqdj88_gCwfBm7lAU2hlMC7E588v6C=w2170-h1356-no)
+![2019.02.18 release](https://lh3.googleusercontent.com/jK4PwvYnoPnZRRlhcqQymE7k-eyyyb_LuBXS4xuX332OBMzDWQWAOSOK5U_khVhk7Lql9d2cO0KP4ThZXuwYFhpD8DjZKbz_ItCw1Y_uiRT1eWT7iBqibx0TSkf9sdsDQq5BLugFMpEtlaFbxOa1S-LrIyRgIFrD2F8NeesLj9NWFgF50tSzqdlfi6Nfn9eEubojVg44mMoYKjw6sAS3azljcrt0EOqMKOJfv8t6FHlwc2H35MJzpKlIe1Rkkv2OD2A35zCIWq7rzqVxsXZV87v3rplDtVODc9yAdjZsH9Do4v0DNN5pq0ei1SlPSfSLdz1jb89eclAJ2HnWb3uJkvMo5kPQ0xzDUX0QP3KBa2daGpSOyMkAKdeKBpqT-XbrG6jnwAIfqWkFdJHeDs99D4DchQI7f7O7ZTj0abi_dn3eP4EKvm7ozELb9GUc-EblJQAxYBgIPuGEyNUfmT2XOElOjwoAS_OzSIboK49H7XOlFH0Kx49VoAUfNagOqPAMuTMffMjIPUSITYQd7_ZdR5OVe4T-oN2n7jY14RO-vNB_MxuS9ApuMtGSH0e84Txcy1XEt5LskUNmkgeYjuDVHiNZO7m3CN1aWWDaOc5ue3giny7ZQDQb8KwCH9ujxTv851M6sW4jTxr_UsOZNnu0x7e-UuHE85igjWcbD8PhSupM9jqnDnvy39NRYmYYbrRY33KK35ta4_NQYZk_m0Wutj2x=w1804-h1134-no)
 
 Each instance of _Benten_ (window that you open with a CWL document) is meant to edit that
 one workflow or tool. While you may be opening new tabs with sub-parts of the workflow, some
@@ -376,6 +374,19 @@ dependencies, or, if you are feeling particularly adventurous, do a mass update.
 In some cases, your colleagues will pull rank on you and force push their update on you. But that
 is a social matter for you all to sort out.
 
+
+# Limitations/Quirks
+
+## YAML flowstyle
+YAML allows you to use a `flow style` which is very concise. If you put the top level
+elements (`cwlVersion`, `class`, `steps` etc.) in flow style _Benten_ will not work for you. 
+If you put the elements in the `step` field in flow style, _Benten_ will not work for you.
+
+## Inline step editing and blank lines
+If you have an inline step, and have a blank line with white-spaces, on editing the step these 
+white-spaces will disappear from your blank line. In general it is a good practice not to have 
+spurious whitespace in a blank line anyway ...
+
  
 # License
 [Apache 2.0](LICENSE)
@@ -383,7 +394,12 @@ is a social matter for you all to sort out.
 
 # Acknowledgments
 
-The code editor is a trivially modified copy of the Pyzo code editor component 
+**QT**: I've been using QT for C++ projects since 2001. It is awesome to be still 
+using this tool-kit two decades later and via Python. Many thanks to the
+great [QT](https://www.qt.io/) team, and the [Pyside2](https://wiki.qt.io/Qt_for_Python) 
+(QT for Python) team.
+
+**Pyzo**: The code editor is a trivially modified copy of the Pyzo code editor component 
 distributed with the [Pyzo IDE](https://pyzo.org/about_pyzo.html). The Pyzo
 code is distributed under the [BSD license](benten/gui/codeeditor/license.txt).
 Many thanks to the Pyzo team for taking the care to modularize their code so
