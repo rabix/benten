@@ -57,7 +57,7 @@ class CodeEditor(
     ShowWhitespace,
     ShowLineEndings,
     Wrap,
-    BreakPoints,
+    # BreakPoints, -> todo: convert this to show error line by line
     LineNumbers,
 
     AutoCompletion,  # Escape: first remove autocompletion,
