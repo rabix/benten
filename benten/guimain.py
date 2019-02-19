@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('cwl', nargs='?', help="Path to CWL document")
+    parser.add_argument('cwl', help="Path to CWL document")
     parser.add_argument('-v', action='count', help="Verbosity level")
 
     args = parser.parse_args()
@@ -147,13 +147,12 @@ def main():
 
     # Load the file AFTER the geometry is set ...
     path_str = args.cwl
-    if path_str is not None:
-        path = pathlib.Path(path_str)
-        if not path.exists():
-            with open(path, "w") as f:
-                pass
-        window.tab_widget.open_document(path, None)
-        window.setWindowTitle(str(path.absolute()))
+    path = pathlib.Path(path_str)
+    if not path.exists():
+        with open(path, "w") as f:
+            pass
+    window.tab_widget.open_document(path, None)
+    window.setWindowTitle(str(path.absolute()))
 
     sys.exit(app.exec_())
 
