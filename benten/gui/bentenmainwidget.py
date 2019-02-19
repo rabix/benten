@@ -65,7 +65,6 @@ class BentenMainWidget(QTabWidget):
     def _refresh_tab_titles(self):
         for index in range(self.count()):
             bw: BentenWindow = self.widget(index)
-            print(bw.step_id)
             cwl_doc = bw.cwl_doc
             tab_name = ".".join([x for x in ([bw.step_id] + (cwl_doc.inline_path or []))
                                  if x is not None] or ["root"])
