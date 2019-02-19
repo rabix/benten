@@ -45,21 +45,33 @@ class BentenMainWidget(QTabWidget):
         if tbr is not None:
             tbr.hide()
 
-    def open_document(self, parent_path: pathlib.Path, inline_path: Tuple[str, ...]):
+    def open_document(self, parent_path: pathlib.Path, inline_path: Tuple[str, ...], step_id=None):
         bw = self.multi_document_manager.open_window(parent_path, inline_path)
+        bw.step_id = step_id
         for idx in range(self.count()):
             if self.widget(idx) == bw:
                 self.setCurrentIndex(idx)
         else:
-            tab_name = ".".join(inline_path) if inline_path else "root"
             bw.scene_double_clicked.connect(self.scene_double_clicked)
             bw.edit_registered.connect(self.edit_registered)
-            idx = self.addTab(bw, tab_name)
-            self.setTabToolTip(idx, str(parent_path) + "#" + tab_name)
+            idx = self.addTab(bw, "...")
             self.setCurrentIndex(idx)
 
         if self.count() == 1:
             self._make_base_tab_unclosable()
+
+        self._refresh_tab_titles()
+
+    def _refresh_tab_titles(self):
+        for index in range(self.count()):
+            bw: BentenWindow = self.widget(index)
+            print(bw.step_id)
+            cwl_doc = bw.cwl_doc
+            tab_name = ".".join([x for x in ([bw.step_id] + (cwl_doc.inline_path or []))
+                                 if x is not None] or ["root"])
+            self.setTabText(index, tab_name)
+            self.setTabToolTip(index, str(cwl_doc.path) +
+                               (":{}".format(cwl_doc.inline_path) if cwl_doc.inline_path else ""))
 
     def windows_for_this_doc(self, cwl_doc):
         win_list = []
@@ -112,14 +124,15 @@ class BentenMainWidget(QTabWidget):
         self.active_window.set_active_window()
 
     @Slot(object)
-    def scene_double_clicked(self, sub_workflows):
-        for sub in sub_workflows:
+    def scene_double_clicked(self, steps):
+        for step in steps:
+            sub = step.sub_workflow
             if isinstance(sub, InvalidSub):
                 continue
             elif isinstance(sub, InlineSub):
                 self.open_document(sub.path, sub.inline_path)
             elif isinstance(sub, ExternalSub):
-                self.open_document(sub.path, None)
+                self.open_document(sub.path, None, step_id=step.id)
             else:
                 raise RuntimeError("Code error: Unknown sub workflow type!")
 
@@ -141,9 +154,6 @@ class BentenMainWidget(QTabWidget):
     @Slot()
     def cwl_save(self):
         self.edit_registered(cwl_doc=self.active_window.cwl_doc, force_save=True)
-
-    def _refresh_tab_titles(self):
-        pass
 
     @Slot()
     def right_click_over_step(self):

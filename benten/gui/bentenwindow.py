@@ -101,6 +101,7 @@ class BentenWindow(QWidget):
         self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
 
         self.cwl_doc: CwlDoc = None
+        self.step_id = None
         self.process_model: (Workflow,) = None
 
         # todo: To deprecate and use different mechanism
@@ -296,4 +297,4 @@ class BentenWindow(QWidget):
                  if item.data(0) not in [res_input_id, res_output_id] and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
-            self.scene_double_clicked.emit([step.sub_workflow for step in steps])
+            self.scene_double_clicked.emit(steps)
