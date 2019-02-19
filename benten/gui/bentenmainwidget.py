@@ -149,6 +149,10 @@ class BentenMainWidget(QTabWidget):
     def right_click_over_step(self):
         pass
 
+    @Slot(str)
+    def profile_selected(self, profile):
+        print(profile)
+
     @Slot()
     def cwl_push_to_sbg(self):
         pass

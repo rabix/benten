@@ -70,10 +70,16 @@ class MainWindow(QMainWindow):
         for prof_name in profile_list:
             profile_action = QAction(prof_name, prof_menu)
             profile_action.setCheckable(True)
-            # profile_action.changed.connect(self.tab_widget.profile_selected)
             prof_action_group.addAction(profile_action)
             prof_menu.addAction(profile_action)  # Apparently we still need to add these
+
+        def _profile_selected(action: QAction):
+            prof_menu.setTitle(action.text())
+            self.tab_widget.profile_selected(action.text())
+
+        prof_action_group.triggered.connect(_profile_selected)
         prof_action_group.actions()[0].setChecked(True)
+        _profile_selected(prof_action_group.actions()[0])
 
     def _add_cwl_menu(self, menu, profile_list):
         cwl_menu = menu.addMenu("File")
