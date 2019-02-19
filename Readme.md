@@ -1,9 +1,7 @@
-# Benten
-## _(This software is in the very early stages of development)_
+# Benten (pre-alpha) <img align="left" height="100px" src="media/benten-icon.png"></img>
 
 This is a workflow helper for [Common Workflow Language](https://www.commonwl.org/) documents.
 
-<img align="right" height="150px" src="media/benten-icon.png"></img>
 <a href="https://photos.google.com/share/AF1QipNjSKiQfGUpBjfdXBB3LAqQduM0XP-g7-2Qb3n64ojlwAVXJIJb-VPV8Iv2XM1q-g/photo/AF1QipPko0RKYzHbtTk8escnKwRgCtafGLAknJgSi3vn?key=LUEwSkFHemhTTmdRcWxMMEl6S082WFlwcXBPNmR3">
 <img src="https://lh3.googleusercontent.com/wFZ0dCFMYhph08OD4i8A9kgOhNZLyG_cj3qjKwZUrv8v32qjb-UFQDBfjAS2Lj8LoltqPj3Lep2hwdL1BHp9NEzeaOtRoyj9bRu-V9K32zZG2GwMX6XLUXRATABr-rfhDTL3HkUIvScn24TylkjPV7u23oIFtRY5heDOf5ytGHee2z6Kc-S_IjPEGfwtRcQbQgvSa3JPtzQGfMln_etOitzWMFz0VLBhXliMQ85MZ2QzMLtpFBRhA8wf8eOQMU-P00wsPLA_McAfhNRnMiMKQ4gvJa4EuKWz7NqmGVOvaQXLfFgOWe79BJtkT7pLGingsUTdzuiAwcdIFVPssNT8m5mwiUkeFkSCT4z4mlB0GngepvNeAuWZOkQY-znZmXZWP3cYr8ojP5WHoBlxvOvXQHf0KVWy65pI2sW0pT9BOzbDg8234RxuA4yhT2nXE9eWf1E43IRIbDjzpN373LixecRFs4Wc0vz2w2tckASgghBuAXKWlMKV4IrycgxwJgRHyMOhOC9fS_VP_na9POUVpJft3rhsUnxTOgTUMSQRdCtV5ZuP-0jKHCf-4fBTLMmYzqYfDTagvLnIrEtGn-BulAFK4CRzaO7iebs62cRR5evyGcZdh7KvdpRgClwc3H0VOGTicpaOXT_-cjokI7zfr11cjqPMAde01e5Dhs0saqixvU4jew_acNYKoPUj4lO7z1edji0kT5W_xIIHcR25osCT=w1804-h1134-no"
 alt="Short 2019.02.18 preview video"
