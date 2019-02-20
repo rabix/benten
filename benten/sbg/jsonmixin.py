@@ -39,3 +39,10 @@ class JsonMixin:
             kwargs["path"] = new_path
 
         super(JsonMixin, self).__init__(*args, **kwargs)
+
+    @staticmethod
+    def detect_cwl_format(text):
+        if text.lstrip()[0] == "{":
+            return "json"
+        else:
+            return "yaml"

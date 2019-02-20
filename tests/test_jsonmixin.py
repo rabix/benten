@@ -24,6 +24,19 @@ def teardown():
         shutil.rmtree(test_dir)
 
 
+def test_json_detector():
+
+    class SBGCwlDoc(JsonMixin, CwlDoc):
+        def __init__(self, *args, **kwargs):
+            super(SBGCwlDoc, self).__init__(*args, **kwargs)
+
+    text = pathlib.Path(test_dir, "wf3.cwl").open("r").read()
+    assert SBGCwlDoc.detect_cwl_format(text) == "yaml"
+
+    text = pathlib.Path(test_dir, "wf3.json").open("r").read()
+    assert SBGCwlDoc.detect_cwl_format(text) == "json"
+
+
 def test_json_basic():
 
     class SBGCwlDoc(JsonMixin, CwlDoc):
