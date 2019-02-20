@@ -1,8 +1,8 @@
 import pygraphviz as pgv
 
-from PySide2.QtCore import Qt, QPointF
-from PySide2.QtGui import QBrush, QPen, QPolygonF
-from PySide2.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsPolygonItem
+from PySide2.QtCore import Qt, Slot
+from PySide2.QtGui import QBrush, QFont
+from PySide2.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsSimpleTextItem
 
 from .processscene import ProcessScene
 from ..models.workflow import Workflow, Step
@@ -28,6 +28,7 @@ class WorkflowScene(ProcessScene):
     def __init__(self, parent):
         super().__init__(parent)
         self.workflow = None
+        self.label_overlay = None
 
     def set_workflow(self, wf: Workflow):
         self.workflow = wf
@@ -113,3 +114,22 @@ class WorkflowScene(ProcessScene):
             elif v["type"] == "outputs":
                 txt = self.addText(v["label"])
                 txt.setPos(p[0] - txt.boundingRect().width()/2, p[1] - txt.boundingRect().height()/2)
+
+        self.create_overlay(graph, node_size)
+
+    def create_overlay(self, graph, node_size):
+        self.label_overlay = QGraphicsSimpleTextItem()
+        font = QFont("Helvetica [Cronyx]", 5)
+        for k, v in graph.items():
+            if v["type"] in ["inputs", "outputs"]: continue
+            p = v["pos"]
+            txt = QGraphicsSimpleTextItem(v["label"], self.label_overlay)
+            txt.setFont(font)
+            txt.setPos(p[0] - txt.boundingRect().width() / 2, p[1] - txt.boundingRect().height() - node_size/2)
+
+        self.addItem(self.label_overlay)
+        self.label_overlay.setVisible(False)
+
+    @Slot(bool)
+    def set_overlay_visible(self, visible=False):
+        self.label_overlay.setVisible(visible)
