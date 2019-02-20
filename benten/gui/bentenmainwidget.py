@@ -66,7 +66,7 @@ class BentenMainWidget(QTabWidget):
         for index in range(self.count()):
             bw: BentenWindow = self.widget(index)
             cwl_doc = bw.cwl_doc
-            tab_name = ".".join([x for x in ([bw.step_id] + (cwl_doc.inline_path or []))
+            tab_name = ".".join([x for x in ((bw.step_id,) + (cwl_doc.inline_path or ()))
                                  if x is not None] or ["root"])
             self.setTabText(index, tab_name)
             self.setTabToolTip(index, str(cwl_doc.path) +
@@ -160,7 +160,7 @@ class BentenMainWidget(QTabWidget):
 
     @Slot(str)
     def profile_selected(self, profile):
-        print(profile)
+        pass
 
     @Slot()
     def cwl_push_to_sbg(self):

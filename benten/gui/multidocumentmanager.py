@@ -19,6 +19,7 @@ import pathlib
 
 from .bentenwindow import BentenWindow
 from ..editing.cwldoc import CwlDoc
+from ..sbg.sbgcwldoc import SBGCwlDoc
 from ..editing.documentmanager import DocumentManager
 
 
@@ -52,7 +53,7 @@ class MultiDocumentManager:
         path_str = parent_path.resolve().as_uri()
         if path_str not in self.directory_of_documents or \
                 inline_path not in self.directory_of_documents[path_str]:
-            self.create_new_window(parent_path, inline_path)
+            path_str = self.create_new_window(parent_path, inline_path)
 
         return self.directory_of_documents[path_str][inline_path].window
         # The receiver - BentenMainWidget - has to find out if this is an existing tab
@@ -69,13 +70,23 @@ class MultiDocumentManager:
 
         if inline_path is None or len(inline_path) == 0:
             # New root document
-            self.directory_of_documents[path_str] = {}
             raw_cwl = parent_path.open("r").read()
-            cwl_doc = CwlDoc(raw_cwl=raw_cwl, path=parent_path, inline_path=None)
+            cwl_format = SBGCwlDoc.detect_cwl_format(raw_cwl)
+
+            if cwl_format == "json":
+                new_path = pathlib.Path(parent_path.parent, parent_path.name + ".cwl")
+                path_str = new_path.resolve().as_uri()
+                cwl_doc = SBGCwlDoc(raw_json=raw_cwl, new_path=new_path, inline_path=None)
+            else:
+                cwl_doc = SBGCwlDoc(raw_cwl=raw_cwl, path=parent_path, inline_path=None)
 
             doc_man = DocumentManager(cwl_doc=cwl_doc)
+            if cwl_format == "json":
+                doc_man.save()  # This converted document only exists in memory upto now
+
             mdm_unit = MDMUnit(bw=BentenWindow(), doc_man=doc_man)
             mdm_unit.set_document(cwl_doc=cwl_doc)
+            self.directory_of_documents[path_str] = {}
         else:
             # Find appropriate inline section of loaded document
             mdm_unit.set_document(
@@ -83,6 +94,7 @@ class MultiDocumentManager:
                     window.cwl_doc.get_nested_inline_step(inline_path))
 
         self.directory_of_documents[path_str][inline_path] = mdm_unit
+        return path_str
 
     def _nested_documents_are_open(self, path_str):
         return len(self.directory_of_documents[path_str]) > 1

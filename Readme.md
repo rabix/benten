@@ -375,6 +375,17 @@ If you have an inline step, and have a blank line with white-spaces, on editing 
 white-spaces will disappear from your blank line. In general it is a good practice not to have 
 spurious whitespace in a blank line anyway ...
 
+## Opening CWL in JSON format
+_Benten_ will open CWL in JSON format and will convert it on the fly to YAML. It will save this
+conversion as a file called `<original file>.cwl`. If the original workflows have linked 
+subworkflows that are in JSON, they can be opened in the same manner, but edits will go to the
+converted file, which is not the one linked from the workflow.
+
+Basically, if you are using _Benten_ presumably you do a lot of CWL coding by hand, and it's very
+likely you are doing this in YAML, not JSON, so the best flow is to just stay in YAML. **This 
+auto-conversion is offered as a convenience when you just want to peek at a CWL in JSON format,
+not for doing regular work in hand written JSON (shudder).**
+
  
 # License
 [Apache 2.0](LICENSE)
