@@ -79,6 +79,9 @@ class Port:
 
 
 class InvalidSub:
+    def __init__(self):
+        self.id = None
+
     @staticmethod
     def type_str():
         return "has errors"
