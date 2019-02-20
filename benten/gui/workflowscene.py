@@ -2,7 +2,7 @@ import pygraphviz as pgv
 
 from PySide2.QtCore import Qt, Slot
 from PySide2.QtGui import QBrush, QFont
-from PySide2.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsSimpleTextItem
+from PySide2.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsSimpleTextItem
 
 from .processscene import ProcessScene
 from ..models.workflow import Workflow, Step
@@ -128,7 +128,7 @@ class WorkflowScene(ProcessScene):
             txt.setPos(p[0] - txt.boundingRect().width() / 2, p[1] - txt.boundingRect().height() - node_size/2)
 
         self.addItem(self.label_overlay)
-        self.label_overlay.setVisible(False)
+        self.label_overlay.setVisible(True)
 
     @Slot(bool)
     def set_overlay_visible(self, visible=False):

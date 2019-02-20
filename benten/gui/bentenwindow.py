@@ -188,7 +188,14 @@ class BentenWindow(QWidget):
 
         pt = self.cwl_doc.process_type()
         t1 = time.time()
+
+        old_scene_rect = None
+        old_transform = None
         if pt == "Workflow":
+            if self.process_view.scene():  # There was a previous view which we should restore
+                old_scene_rect = self.process_view.sceneRect()
+                old_transform = self.process_view.transform()
+
             self.process_model = Workflow(cwl_doc=self.cwl_doc)
             scene = WorkflowScene(self)
             scene.selectionChanged.connect(self.something_selected)
@@ -206,7 +213,11 @@ class BentenWindow(QWidget):
 
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
+        if old_scene_rect is not None:
+            self.process_view.setSceneRect(old_scene_rect)
+            self.process_view.setTransform(old_transform)
+        else:
+            self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
 
         t2 = time.time()
 
@@ -290,7 +301,8 @@ class BentenWindow(QWidget):
     def something_double_clicked(self, event):
         items = self.process_view.scene().selectedItems()
         if len(items) == 0:
-            self.process_view.fitInView(self.process_view.scene().sceneRect(), Qt.KeepAspectRatio)
+            self.process_view.reset_zoom()
+            # self.process_view.fitInView(self.process_view.scene().sceneRect(), Qt.KeepAspectRatio)
             return
 
         steps = [self.process_model.steps[item.data(0)] for item in items
