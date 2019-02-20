@@ -1,5 +1,10 @@
 # Developer notes
 
+## Sources for test workflows
+
+https://github.com/genome/analysis-workflows
+
+
 ## Edit notification flow
 
 ```
@@ -132,6 +137,10 @@ to change is
 ### Can we embed a 'professional' editor somehow?
 
 https://github.com/pyzo/pyzo/tree/master/pyzo/codeeditor
+
+https://qutepart.readthedocs.io/en/latest/#
+
+https://pypi.org/project/pyqode.core/2.1.0/
 
 https://github.com/tucnak/novile
 
