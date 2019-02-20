@@ -1,6 +1,6 @@
 import pathlib
 
-import benten.sbg.repomixin as sam
+import benten.sbg.versionmixin as sam
 from benten.editing.cwldoc import CwlDoc
 
 
@@ -42,7 +42,7 @@ def test_app_version():
 
 def test_repomixin_basic():
 
-    class SBGCwlDoc(sam.RepoMixin, CwlDoc):
+    class SBGCwlDoc(sam.VersionMixin, CwlDoc):
         def __init__(self, *args, **kwargs):
             super(SBGCwlDoc, self).__init__(*args, **kwargs)
 

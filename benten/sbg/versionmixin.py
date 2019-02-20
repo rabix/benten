@@ -24,6 +24,10 @@ class SBGAppInfo:
         self.version = version
         self.local_edits = local_edits
 
+    def get_id_str(self):
+        "/".join([self.owner, self.project, self.name, self.version] +
+                 ([file_not_pushed_suffix] if self.local_edits else []))
+
     def __str__(self):
         return "{} (v:{})".format(self.name, str(self.version) + ("*" if self.local_edits else ""))
 
@@ -62,13 +66,13 @@ def get_id_line(cwl_lines):
     return next((l for l in cwl_lines if l.startswith("id:")), None)
 
 
-class RepoMixin:
+class VersionMixin:
     def __init__(self, *args, **kwargs):
         # https://stackoverflow.com/a/34998801/2512851
         # This mixin expects access to CwlDoc like properties at initialization
         # We call the ancestor first. This will either be CwlDoc, or other mixins, which, in turn
         # call their ancestors first, which will result in CwlDoc being called first.
-        super(RepoMixin, self).__init__(*args, **kwargs)
+        super(VersionMixin, self).__init__(*args, **kwargs)
         self.app_info = self.get_app_info()
 
     def get_app_info(self):
