@@ -1,7 +1,7 @@
 import pygraphviz as pgv
 
 from PySide2.QtCore import Qt, Slot
-from PySide2.QtGui import QBrush, QFont
+from PySide2.QtGui import QBrush, QFont, QPen
 from PySide2.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsSimpleTextItem
 
 from .processscene import ProcessScene
@@ -10,6 +10,7 @@ from ..sbg.repomixin import get_app_info
 
 
 color_code = {
+    "connections": Qt.gray,
     "inputs": Qt.green,
     "outputs": Qt.cyan,
     "CommandLineTool": Qt.gray,
@@ -83,11 +84,13 @@ class WorkflowScene(ProcessScene):
         for n in G.nodes():
             graph[n.name]["pos"] = str_to_pos(n)
 
+        pen = QPen(color_code["connections"])
         for e in G.edges():
             p0 = graph[e[0]]["pos"]
             p1 = graph[e[1]]["pos"]
             ln = self.addLine(p0[0], p0[1], p1[0], p1[1])
             ln.setFlag(QGraphicsItem.ItemIsSelectable, True)
+            ln.setPen(pen)
             ln.setData(0, (e[0], e[1]))
 
         node_size = 30
@@ -100,7 +103,6 @@ class WorkflowScene(ProcessScene):
             else:
                 item = QGraphicsEllipseItem(p[0] - node_size/2, p[1] - node_size/2, node_size, node_size)
 
-            # item.setPen(QPen(Qt.gray))
             item.setBrush(QBrush(color_code.get(v["type"], "white")))
             item.setToolTip(v["label"])
             item.setFlag(QGraphicsItem.ItemIsSelectable, True)
