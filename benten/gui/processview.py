@@ -22,5 +22,5 @@ class ProcessView(QGraphicsView):
     def wheelEvent(self, event: QWheelEvent):
         if self.scene():
             self.custom_zoom = True
-            scale = 1 + event.delta() / 50
+            scale = 1 + event.delta() / 500
             self.scale(scale, scale)
