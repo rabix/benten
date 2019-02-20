@@ -46,12 +46,8 @@ def test_repomixin_basic():
         def __init__(self, *args, **kwargs):
             super(SBGCwlDoc, self).__init__(*args, **kwargs)
 
-    print(SBGCwlDoc.__mro__)
-
     wf_path = pathlib.Path(current_path, "cwl/002.nested.inline.sbg.eco/wf3.cwl")
     c = SBGCwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path, inline_path=None)
-
-    print(c.app_info)
 
     assert c.app_info.owner == "kghose"
     assert c.app_info.project == "benten-demo"
