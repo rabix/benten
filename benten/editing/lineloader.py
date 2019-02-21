@@ -142,3 +142,17 @@ class YSafeLineLoader(Loader):
 
 def parse_cwl_with_line_info(raw_cwl: str):
     return _recurse_extract_meta(yaml.load(raw_cwl, YSafeLineLoader))
+
+
+def list_as_map(obj: Ylist, id_name: str) -> (Ydict, list):
+    """CWL has particular fields that can be expressed either as lists or maps. When expressed as a
+    list, each element has to be a dict with a particular field that acts as the key."""
+
+    dict_obj = Ydict({}, obj)
+    errors = []
+    for v in obj:
+        if id_name not in v or not isinstance(v, dict):
+            errors += [v]
+            continue
+        dict_obj[v[id_name]] = v
+    return dict_obj, errors

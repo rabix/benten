@@ -1,7 +1,7 @@
 import pathlib
 import pytest
 
-from benten.editing.lineloader import parse_cwl_with_line_info
+from benten.editing.lineloader import parse_cwl_with_line_info, list_as_map
 
 
 current_path = pathlib.Path(__file__).parent
@@ -62,3 +62,19 @@ def test_line_number_salmon():
     assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].style == "|"
     assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].start_mark.line == 672
     assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].end_mark.line == 693
+
+
+def test_list_as_map():
+
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl")
+    c = parse_cwl_with_line_info(raw_cwl=wf_path.open("r").read())
+
+    steps, errors = list_as_map(c["steps"], "id")
+
+    assert errors == []
+
+    assert steps.start_mark.line == 12
+    assert steps.end_mark.line == 24
+
+    assert steps["untar"].start_mark.line == 12
+    assert steps["untar"].end_mark.line == 19
