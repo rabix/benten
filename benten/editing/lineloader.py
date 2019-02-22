@@ -5,7 +5,7 @@ Some profiling information
 
 For "wgs.cwl"
 
-In [2]: %timeit data = parse_cwl_with_line_info(cwl)
+In [2]: %timeit data = parse_yaml_with_line_info(cwl)
 132 ms ± 1.51 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 In [3]: %timeit data = yaml.load(cwl, CSafeLoader)
@@ -20,7 +20,7 @@ For "salmon.cwl"
 In [6]: %timeit ruamel.yaml.load(cwl, Loader=ruamel.yaml.RoundTripLoader)
 715 ms ± 6.83 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
-In [7]: %timeit data = parse_cwl_with_line_info(cwl)
+In [7]: %timeit data = parse_yaml_with_line_info(cwl)
 40.1 ms ± 2.56 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 In [8]: %timeit data = yaml.load(cwl, CSafeLoader)
@@ -30,6 +30,8 @@ In [8]: %timeit data = yaml.load(cwl, CSafeLoader)
 (ruamel.yaml         0.15.88)
 
 """
+from typing import Union, List
+
 import yaml
 try:
     from yaml import CSafeLoader as Loader
@@ -113,17 +115,6 @@ def y_construct(v, node):
 meta_node_key = "_lineloader_secret_key_"
 
 
-def _recurse_extract_meta(x):
-    if isinstance(x, dict):
-        node = x.pop(meta_node_key)
-        return Ydict({k: _recurse_extract_meta(v) for k, v in x.items()}, node)
-    elif isinstance(x, list):
-        node = x.pop(-1)
-        return Ylist([_recurse_extract_meta(v) for v in x], node)
-    else:
-        return x
-
-
 class YSafeLineLoader(Loader):
 
     def construct_scalar(self, node):
@@ -140,19 +131,39 @@ class YSafeLineLoader(Loader):
         return seq
 
 
-def parse_cwl_with_line_info(raw_cwl: str):
+def _recurse_extract_meta(x):
+    if isinstance(x, dict):
+        node = x.pop(meta_node_key)
+        return Ydict({k: _recurse_extract_meta(v) for k, v in x.items()}, node)
+    elif isinstance(x, list):
+        node = x.pop(-1)
+        return Ylist([_recurse_extract_meta(v) for v in x], node)
+    else:
+        return x
+
+
+def parse_yaml_with_line_info(raw_cwl: str):
     return _recurse_extract_meta(yaml.load(raw_cwl, YSafeLineLoader))
 
 
-def list_as_map(obj: Ylist, id_name: str) -> (Ydict, list):
-    """CWL has particular fields that can be expressed either as lists or maps. When expressed as a
-    list, each element has to be a dict with a particular field that acts as the key."""
+def lookup(doc: Union[Ydict, Ylist], path: List[Union[str, int]]):
+    if len(path) > 1:
+        return lookup(doc[path[0]], path[1:])
+    else:
+        return doc[path[0]]
 
-    dict_obj = Ydict({}, obj)
-    errors = []
-    for v in obj:
-        if id_name not in v or not isinstance(v, dict):
-            errors += [v]
-            continue
-        dict_obj[v[id_name]] = v
-    return dict_obj, errors
+
+def reverse_lookup(line, col, doc: Union[Ydict, Ylist], path: List[Union[str, int]]=[]):
+    """Not as expensive as you'd think ... """
+    values = doc.items() if isinstance(doc, dict) else enumerate(doc)
+    for k, v in values:
+        if v.start_mark.line <= line <= v.end_mark.line:
+            if v.start_mark.line != v.end_mark.line or v.start_mark.column <= col <= v.end_mark.column:
+                if not isinstance(v, Ydict) and not isinstance(v, Ylist):
+                    return path + [k], v
+                else:
+                    return reverse_lookup(line, col, v, path + [k])
+
+
+def coordinates(v):
+    return (v.start_mark.line, v.start_mark.column), (v.end_mark.line, v.end_mark.column)
