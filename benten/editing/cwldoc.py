@@ -6,12 +6,34 @@ from enum import IntEnum
 import pathlib
 
 from .listormap import parse_cwl_to_lom
+from .lineloader import parse_yaml_with_line_info, Ydict, Ylist
+from .listasmap import lom
 
 
-class EditType(IntEnum):
-    Insert = 1
-    Replace = 2
-    Delete = 3
+# We've flattened them all together. The names don't clash (due to inheritance), so we are ok
+# if we run into trouble, we'll have to add context information (CWL type, parent type etc.)
+allowed_loms = {
+    "inputs": "id",
+    "outputs": "id",
+    "requirements": "class",
+    "hints": "class",
+    "fields": "name",
+    "steps": "id",
+    "in": "id"
+}
+
+
+def _recurse_convert_lam(doc: (Ydict, Ylist)):
+    if isinstance(doc, Ylist):
+        for v in doc:
+            _recurse_convert_lam(v)
+    elif isinstance(doc, Ydict):
+        for k, v in doc.items():
+            if k in allowed_loms:
+                doc[k] = lom(v)
+            _recurse_convert_lam(v)
+    else:
+        return doc
 
 
 class CwlDoc:
@@ -26,7 +48,8 @@ class CwlDoc:
     # But I'd don't want to accidentally do it twice
     def compute_cwl_dict(self):
         if self.cwl_dict is None:
-            self.cwl_dict = parse_cwl_to_lom(self.raw_cwl)
+            self.cwl_dict = parse_yaml_with_line_info(self.raw_cwl)
+            _recurse_convert_lam(self.cwl_dict)
 
     def process_type(self):
         return self.cwl_dict.get("class", "unknown")
@@ -36,7 +59,7 @@ class CwlDoc:
             if len(_inline_path) == 0:
                 return _doc_dict
             else:
-                for _id, step in _doc_dict["steps"]:
+                for _id, step in lom(_doc_dict["steps"]).items():
                     if _id == _inline_path[0]:
                         return _find_step(step["run"], _inline_path[1:])
 
@@ -46,8 +69,8 @@ class CwlDoc:
         nested_doc = _find_step(self.cwl_dict, inline_path)
 
         # Now we have a dict with line numbers, which we'll use to extract from the main doc
-        start_line = nested_doc.start_line
-        end_line = nested_doc.end_line
+        start_line = nested_doc.start.line
+        end_line = nested_doc.end.line
         indent_level = len(self.cwl_lines[start_line]) - len(self.cwl_lines[start_line].lstrip())
 
         return start_line, end_line, indent_level
@@ -80,3 +103,5 @@ class CwlDoc:
 
         self.cwl_lines = self.cwl_lines[:start_line] + new_lines + self.cwl_lines[end_line:]
         return "".join(self.cwl_lines)
+
+

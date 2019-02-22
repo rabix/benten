@@ -3,6 +3,7 @@ import pathlib
 import pytest
 
 from benten.editing.cwldoc import CwlDoc
+from benten.editing.listasmap import lom
 
 
 current_path = pathlib.Path(__file__).parent
@@ -30,8 +31,9 @@ def test_basics_salmon():
 
     assert c.process_type() == "Workflow"
 
-    assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"].start_line == 2093
-    assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"]["source"] == "Salmon_Index/salmon_index_archive"
+    assert lom(cwl["steps"])["Salmon_Quant___Reads"]["in"]["salmon_index_archive"].start.line == 2093
+    assert lom(cwl["steps"])["Salmon_Quant___Reads"]["in"]["salmon_index_archive"]["source"] == \
+           "Salmon_Index/salmon_index_archive"
 
 
 def test_inline_salmon():
@@ -47,14 +49,14 @@ def test_inline_salmon():
     assert c2.process_type() == "CommandLineTool"
 
     assert cwl["class"] == "CommandLineTool"
-    assert cwl["inputs"]["output_name"].start_line == 634 - 629
+    assert cwl["inputs"]["output_name"].start.line == 634 - 629
 
     c2 = c.get_nested_inline_step(("Salmon_Quant___Reads",))
     c2.compute_cwl_dict()
     cwl = c2.cwl_dict
 
     assert cwl["class"] == "CommandLineTool"
-    assert cwl["outputs"]["mapping_info"].start_line == 2955 - 2160
+    assert cwl["outputs"]["mapping_info"].start.line == 2955 - 2160
 
 
 def test_nested_inline():
@@ -68,13 +70,13 @@ def test_nested_inline():
     cwl = c2.cwl_dict
 
     assert cwl["class"] == "CommandLineTool"
-    assert cwl["inputs"]["input"].start_line == 1021 - 1013
+    assert cwl["inputs"]["input"].start.line == 1021 - 1013
 
     c2 = c.get_nested_inline_step(("wf2", "wf1", "wf0"))
     c2.compute_cwl_dict()
     cwl = c2.cwl_dict
 
-    assert cwl["steps"]["pass_through"]["in"]["input"].start_line == 1071 - 987
+    assert cwl["steps"]["pass_through"]["in"]["input"].start.line == 1071 - 987
 
     with pytest.raises(RuntimeError):
         c3 = c2.get_nested_inline_step(("split",))
@@ -92,7 +94,7 @@ def test_nested_inline_both_list_and_dict():
     cwl = c2.cwl_dict
 
     assert cwl["class"] == "CommandLineTool"
-    assert cwl["inputs"].start_line == 23 - 21
+    assert cwl["inputs"].start.line == 23 - 21
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-nested-step-as-list.cwl")
     c = CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path, inline_path=None)
@@ -103,7 +105,7 @@ def test_nested_inline_both_list_and_dict():
     cwl = c2.cwl_dict
 
     assert cwl["class"] == "CommandLineTool"
-    assert cwl["inputs"].start_line == 23 - 21
+    assert cwl["inputs"].start.line == 23 - 21
 
 
 def test_edits_of_nested_inline_null():
