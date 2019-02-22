@@ -29,6 +29,9 @@ In [8]: %timeit data = yaml.load(cwl, CSafeLoader)
 
 (ruamel.yaml         0.15.88)
 
+**NOTE**
+For now, this code only puts in meta information in lists, seq and strings. This is sufficient
+for the editing we need to do in CWL docs. We can extend as needed
 """
 from typing import Union, List
 
@@ -43,7 +46,7 @@ except ImportError:
     from yaml import SafeLoader as Loader
 
 
-class Yint(int):
+class Yint(int):  # pragma: no cover
     def __new__(cls, value, node):
         x = int.__new__(cls, value)
         x.start_mark = node.start_mark
@@ -61,7 +64,7 @@ class Ystr(str):
         return x
 
 
-class Yfloat(float):
+class Yfloat(float):  # pragma: no cover
     def __new__(cls, value, node):
         x = float.__new__(cls, value)
         x.start_mark = node.start_mark
@@ -70,7 +73,7 @@ class Yfloat(float):
         return x
 
 
-class Ybool(int):
+class Ybool(int):  # pragma: no cover
     def __new__(cls, value, node):
         x = int.__new__(cls, bool(value))
         x.start_mark = node.start_mark
@@ -95,7 +98,7 @@ class Ylist(list):
         self.flow_style = node.flow_style
 
 
-def y_construct(v, node):
+def y_construct(v, node):  # pragma: no cover
     if isinstance(v, str):
         return Ystr(v, node)
     elif isinstance(v, int):
@@ -117,8 +120,10 @@ meta_node_key = "_lineloader_secret_key_"
 
 class YSafeLineLoader(Loader):
 
+    # The SafeLoader always passes str to this
     def construct_scalar(self, node):
-        return y_construct(super(YSafeLineLoader, self).construct_scalar(node), node)
+        # return y_construct(super(YSafeLineLoader, self).construct_scalar(node), node)
+        return Ystr(super(YSafeLineLoader, self).construct_scalar(node), node)
 
     def construct_mapping(self, node, deep=False):
         mapping = super().construct_mapping(node, deep=deep)

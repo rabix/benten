@@ -25,6 +25,8 @@ def test_basic_load():
     assert coordinates(
         doc["level1"]["level2"]["multiline doc preserve newlines"]) == ((24, 37), (30, 0))
 
+    # assert coordinates(doc["just to cover all types"][1]) == ((48, 29), (48, 35))
+
 
 def test_lookup():
     path = pathlib.Path(current_path, "cwl/sample.yaml")
