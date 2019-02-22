@@ -11,8 +11,8 @@ def test_basic_load():
     path = pathlib.Path(current_path, "cwl/sample.yaml")
     doc = parse_yaml_with_line_info(raw_cwl=path.open("r").read())
 
-    assert doc["flowstyle dict"].start_mark.line == 2
-    assert doc["flowstyle dict"].end_mark.line == 4
+    assert doc["flowstyle dict"].start.line == 2
+    assert doc["flowstyle dict"].end.line == 4
 
     assert coordinates(doc["flowstyle dict"]) == ((2, 16), (4, 41))
 
@@ -61,28 +61,28 @@ def test_line_number_dict():
     c = parse_yaml_with_line_info(raw_cwl=wf_path.open("r").read())
 
     assert c["cwlVersion"] == "v1.0"
-    assert c.start_mark.line == 0
-    assert c.end_mark.line == 24
+    assert c.start.line == 0
+    assert c.end.line == 24
 
-    assert c["inputs"].start_mark.line == 3
-    assert c["inputs"].start_mark.column == 2
+    assert c["inputs"].start.line == 3
+    assert c["inputs"].start.column == 2
 
-    assert c["inputs"]["inp"].start_mark.line == 3
-    assert c["inputs"]["inp"].start_mark.column == 7
+    assert c["inputs"]["inp"].start.line == 3
+    assert c["inputs"]["inp"].start.column == 7
 
-    assert c["outputs"].start_mark.line == 7
+    assert c["outputs"].start.line == 7
 
     assert len(c["steps"]) == 2
 
-    assert c["steps"]["untar"].start_mark.line == 13
-    assert c["steps"]["untar"].end_mark.line == 19
+    assert c["steps"]["untar"].start.line == 13
+    assert c["steps"]["untar"].end.line == 19
 
     assert c["steps"]["untar"]["out"].flow_style
-    assert c["steps"]["untar"]["out"][0].start_mark.line == 17
-    assert c["steps"]["untar"]["out"][0].start_mark.column == 10
+    assert c["steps"]["untar"]["out"][0].start.line == 17
+    assert c["steps"]["untar"]["out"][0].start.column == 10
 
-    assert c["steps"]["compile"].start_mark.line == 20
-    assert c["steps"]["compile"].end_mark.line == 24
+    assert c["steps"]["compile"].start.line == 20
+    assert c["steps"]["compile"].end.line == 24
 
 
 def test_line_number2():
@@ -94,11 +94,11 @@ def test_line_number2():
 
     assert len(c["steps"]) == 2
 
-    assert c["steps"].start_mark.line == 12
-    assert c["steps"].end_mark.line == 24
+    assert c["steps"].start.line == 12
+    assert c["steps"].end.line == 24
 
-    assert c["steps"][0].start_mark.line == 12
-    assert c["steps"][0].start_mark.column == 4
+    assert c["steps"][0].start.line == 12
+    assert c["steps"][0].start.column == 4
 
 
 def test_line_number_salmon():
@@ -108,5 +108,5 @@ def test_line_number_salmon():
 
     assert c["steps"][0]["run"]["outputs"][0]["doc"].style == ">"
     assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].style == "|"
-    assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].start_mark.line == 672
-    assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].end_mark.line == 693
+    assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].start.line == 672
+    assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].end.line == 693

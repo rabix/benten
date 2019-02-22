@@ -49,8 +49,8 @@ except ImportError:
 class Yint(int):  # pragma: no cover
     def __new__(cls, value, node):
         x = int.__new__(cls, value)
-        x.start_mark = node.start_mark
-        x.end_mark = node.end_mark
+        x.start = node.start_mark
+        x.end = node.end_mark
         x.style = node.style
         return x
 
@@ -58,8 +58,8 @@ class Yint(int):  # pragma: no cover
 class Ystr(str):
     def __new__(cls, value, node):
         x = str.__new__(cls, value)
-        x.start_mark = node.start_mark
-        x.end_mark = node.end_mark
+        x.start = node.start_mark
+        x.end = node.end_mark
         x.style = node.style
         return x
 
@@ -67,8 +67,8 @@ class Ystr(str):
 class Yfloat(float):  # pragma: no cover
     def __new__(cls, value, node):
         x = float.__new__(cls, value)
-        x.start_mark = node.start_mark
-        x.end_mark = node.end_mark
+        x.start = node.start_mark
+        x.end = node.end_mark
         x.style = node.style
         return x
 
@@ -76,8 +76,8 @@ class Yfloat(float):  # pragma: no cover
 class Ybool(int):  # pragma: no cover
     def __new__(cls, value, node):
         x = int.__new__(cls, bool(value))
-        x.start_mark = node.start_mark
-        x.end_mark = node.end_mark
+        x.start = node.start_mark
+        x.end = node.end_mark
         x.style = node.style
         return x
 
@@ -85,16 +85,16 @@ class Ybool(int):  # pragma: no cover
 class Ydict(dict):
     def __init__(self, value, node):
         dict.__init__(self, value)
-        self.start_mark = node.start_mark
-        self.end_mark = node.end_mark
+        self.start = node.start_mark
+        self.end = node.end_mark
         self.flow_style = node.flow_style
 
 
 class Ylist(list):
     def __init__(self, value, node):
         list.__init__(self, value)
-        self.start_mark = node.start_mark
-        self.end_mark = node.end_mark
+        self.start = node.start_mark
+        self.end = node.end_mark
         self.flow_style = node.flow_style
 
 
@@ -162,8 +162,8 @@ def reverse_lookup(line, col, doc: Union[Ydict, Ylist], path: List[Union[str, in
     """Not as expensive as you'd think ... """
     values = doc.items() if isinstance(doc, dict) else enumerate(doc)
     for k, v in values:
-        if v.start_mark.line <= line <= v.end_mark.line:
-            if v.start_mark.line != v.end_mark.line or v.start_mark.column <= col <= v.end_mark.column:
+        if v.start.line <= line <= v.end.line:
+            if v.start.line != v.end.line or v.start.column <= col <= v.end.column:
                 if not isinstance(v, Ydict) and not isinstance(v, Ylist):
                     return path + [k], v
                 else:
@@ -171,4 +171,4 @@ def reverse_lookup(line, col, doc: Union[Ydict, Ylist], path: List[Union[str, in
 
 
 def coordinates(v):
-    return (v.start_mark.line, v.start_mark.column), (v.end_mark.line, v.end_mark.column)
+    return (v.start.line, v.start.column), (v.end.line, v.end.column)
