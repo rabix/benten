@@ -5,8 +5,8 @@ import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QMenuBar, QAction
-from PySide2.QtGui import QTextCursor, QPainter
+    QAbstractItemView, QGraphicsSceneMouseEvent, QMenuBar, QAction, QFontDialog
+from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 from .codeeditor.editor import CodeEditor
 from .processview import ProcessView
@@ -67,6 +67,7 @@ class BentenWindow(QWidget):
         QWidget.__init__(self)
 
         self.code_editor: CodeEditor = CodeEditor(IndentUsingSpaces=True)
+        self.code_editor.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
         self.process_view: ProcessView = ProcessView(None)
 
         self.conn_table = QTableWidget()
@@ -201,8 +202,8 @@ class BentenWindow(QWidget):
             scene.selectionChanged.connect(self.something_selected)
             scene.double_click.connect(self.something_double_clicked)
             scene.set_workflow(self.process_model)
-            if self.process_model.problems_with_wf:
-                logger.warning(self.process_model.problems_with_wf)
+            if self.process_model.errors:
+                logger.warning(self.process_model.errors)
         elif pt in ["CommandLineTool", "ExpressionTool"]:
             self.process_model = Tool(cwl_doc=self.cwl_doc)
             scene = ToolScene(self)
