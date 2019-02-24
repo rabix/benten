@@ -17,11 +17,14 @@ class CommandWidget(QWidget):
         self.bw: 'BentenWindow' = parent
 
         self.command_line = QLineEdit()
+        self.command_line.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
         self.command_line.setToolTip("Enter commands here")
         self.command_line.returnPressed.connect(self.command_entered)
 
         self.command_log = QTextEdit()
         self.command_log.setReadOnly(True)
+        self.command_log.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
+
         self.command_log.setToolTip("Command and response history")
 
         layout = QVBoxLayout()
@@ -35,7 +38,9 @@ class CommandWidget(QWidget):
 
     def _set_up_dispatcher(self):
         return {
-            "revisions": self.get_app_revisions
+            "help": (self.print_help, "Print help"),
+            "?": (self.print_help, "Print help"),
+            "revisions": (self.get_app_revisions, "Print list of available revisions")
         }
 
     @Slot()
@@ -45,7 +50,7 @@ class CommandWidget(QWidget):
 
         if cmd in self.dispatch_table:
             try:
-                response = str(self.dispatch_table[cmd](arguments))
+                response = str(self.dispatch_table[cmd][0](arguments))
             except Exception as e:
                 response = "Command error:\n{}".format(str(e))
         else:
@@ -61,6 +66,9 @@ class CommandWidget(QWidget):
         self.command_log.moveCursor(QTextCursor.End)
         self.command_log.insertPlainText(response)
         self.command_log.moveCursor(QTextCursor.End)
+
+    def print_help(self, *args):
+        return "\n".join("{}\t - {}".format(k, v[1]) for k, v in self.dispatch_table.items())
 
     def get_app_revisions(self, *args):
         return "\n".join(
