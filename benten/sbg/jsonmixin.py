@@ -42,7 +42,8 @@ class JsonMixin:
 
     @staticmethod
     def detect_cwl_format(text):
-        if text.lstrip()[0] == "{":
-            return "json"
-        else:
-            return "yaml"
+        if text:
+            if text.lstrip()[0] == "{":
+                return "json"
+
+        return "yaml"

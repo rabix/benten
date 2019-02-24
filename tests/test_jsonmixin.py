@@ -30,6 +30,8 @@ def test_json_detector():
         def __init__(self, *args, **kwargs):
             super(SBGCwlDoc, self).__init__(*args, **kwargs)
 
+    assert SBGCwlDoc.detect_cwl_format("") == "yaml"
+
     text = pathlib.Path(test_dir, "wf3.cwl").open("r").read()
     assert SBGCwlDoc.detect_cwl_format(text) == "yaml"
 
