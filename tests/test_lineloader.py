@@ -1,7 +1,8 @@
 import pathlib
-import pytest
 
-from benten.editing.lineloader import parse_yaml_with_line_info, coordinates, lookup, reverse_lookup
+from benten.editing.lineloader import \
+    parse_yaml_with_line_info, coordinates, lookup, reverse_lookup, LAM, Ylist, Ydict, \
+    _recurse_extract_meta, y_construct, meta_node_key
 
 
 current_path = pathlib.Path(__file__).parent
@@ -110,3 +111,151 @@ def test_line_number_salmon():
     assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].style == "|"
     assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].start.line == 672
     assert c["steps"][0]["run"]["outputs"][0]["outputBinding"]["glob"].end.line == 693
+
+
+class Mark:
+    def __init__(self):
+        self.line = 22
+        self.column = 19
+
+
+class FakeNode:
+    def __init__(self):
+        self.start_mark = Mark()
+        self.end_mark = Mark()
+        self.flow_style = False
+        self.style = True
+
+
+def test_lam_basic():
+    a_list = Ylist([
+        {"id": "ln1", "line": "Billy left his home with a dollar in his pocket and a head full of dreams."},
+        {"id": "ln2", "line": "He said somehow, some way, it's gotta get better than this."},
+        {"id": "ln3", "line": "Patti packed her bags, left a note for her momma, she was just seventeen,"},
+        {"id": "ln4", "line": "There were tears in her eyes when she kissed her little sister goodbye."},
+        {             "line": "They held each other tight as they drove on through the night they were so excited."},
+        {             "line": "We got just one shot of life, let's take it while we're still not afraid."}
+    ], FakeNode())
+
+    a_map = LAM(a_list, FakeNode(), key_field="id")
+
+    assert len(a_map) == 4
+    assert a_map.start.line == 22
+    assert a_map.end.column == 19
+    assert not a_map.flow_style
+
+    assert "ln2" in a_map
+    assert a_map["ln4"]["line"] == "There were tears in her eyes when she kissed her little sister goodbye."
+
+    assert len(a_map.errors) == 2
+
+    another_list = Ylist([
+        {
+            ("class" if k == "id" else k): _v
+            for k, _v in v.items()
+        }
+        for v in a_list
+    ], FakeNode())
+
+    b_map = LAM(another_list, FakeNode(), key_field="class")
+
+    assert len(b_map) == 4
+
+    assert "ln2" in b_map
+    assert b_map["ln4"]["line"] == "There were tears in her eyes when she kissed her little sister goodbye."
+
+    assert len(b_map.errors) == 2
+
+
+def Y(obj):
+    if isinstance(obj, list):
+        return obj + [FakeNode()]
+    elif isinstance(obj, dict):
+        obj[meta_node_key] = FakeNode()
+        return obj
+    else:
+        v = y_construct(obj, FakeNode())
+        return y_construct(obj, FakeNode())
+
+
+def test_auto_switcher():
+    a_list = [
+        Y({"id": Y("ln1"), "line": Y("I don't know why I love her like I do")}),
+        Y({"id": Y("ln2"), "line": Y("All the changes you put me through")}),
+        Y({"id": Y("ln3"), "line": Y("Take my money, my cigarettes")}),
+        Y({"id": Y("ln4"), "line": Y("I haven't seen the worst of it yet")}),
+        FakeNode()
+    ]
+    res = _recurse_extract_meta(a_list, key="inputs", convert_to_lam=False)
+    assert isinstance(res, Ylist)
+
+    # _recurse_extract_meta mutates the original, so we have to create the lists afresh
+    a_list = [
+        Y({"id": Y("ln1"), "line": Y("I want to know that you'll tell me")}),
+        Y({"id": Y("ln2"), "line": Y("I love to stay")}),
+        Y({"id": Y("ln3"), "line": Y("Take me to the river, drop me in the water")}),
+        Y({"id": Y("ln4"), "line": Y("Take me to the river, dip me in the water")}),
+        Y({"id": Y("ln5"), "line": Y("Washing me down, washing me down")}),
+        FakeNode()
+    ]
+    res = _recurse_extract_meta(a_list, key="inputs", convert_to_lam=True)
+    assert isinstance(res, LAM)
+    assert len(res.errors) == 0
+
+    a_list = [
+        Y({"id": Y("ln1"), "line": Y("I don't know why you treat me so bad")}),
+        Y({"id": Y("ln2"), "line": Y("Think of all the things we could have had")}),
+        Y({"id": Y("ln3"), "line": Y("Love is an ocean that I can't forget")}),
+        Y({"id": Y("ln4"), "line": Y("My sweet sixteen I would never regret")}),
+        FakeNode()
+    ]
+    res = _recurse_extract_meta(a_list, key="outputs", convert_to_lam=True)
+    assert isinstance(res, LAM)
+    assert len(res.errors) == 0
+
+    a_map = {
+        "ln5": Y("I want to know that you'll tell me"),
+        "ln6": Y("I love to stay"),
+        "ln7": Y("Take me to the river, drop me in the water"),
+        "ln8": Y("Push me in the river, dip me in the water"),
+        "ln9": Y("Washing me down, washing me"),
+        meta_node_key: FakeNode()
+    }
+    res = _recurse_extract_meta(a_map, key="inputs", convert_to_lam=False)
+    assert isinstance(res, Ydict)
+
+    a_map = {
+        "ln5": Y("Hug me, squeeze me, love me, tease me"),
+        "ln6": Y("Till I can't, till I can't, till I can't take no more of it"),
+        "ln7": Y("Take me to the water, drop me in the river"),
+        "ln8": Y("Push me in the water, drop me in the river"),
+        "ln9": Y("Washing me down, washing me down"),
+        meta_node_key: FakeNode()
+    }
+    res = _recurse_extract_meta(a_map, key="inputs", convert_to_lam=True)
+    assert isinstance(res, Ydict)
+
+    list_with_missing_id = [
+        Y({"id": Y("ln1"), "line": Y("I don't know why I love you like I do")}),
+        Y({"id": Y("ln2"), "line": Y("All the troubles you put me through")}),
+        Y({"id": Y("ln3"), "line": Y("Sixteen candles there on my wall")}),
+        Y({                "line": Y("And here am I the biggest fool of them all")}),
+        FakeNode()
+    ]
+    res = _recurse_extract_meta(list_with_missing_id, key="outputs", convert_to_lam=True)
+    assert isinstance(res, LAM)
+    assert len(res.errors) == 1
+    assert isinstance(res.errors[0], Ydict)
+    assert res.errors[0].start.line == Mark().line
+
+    list_with_different_key = [
+        Y({"class": "ln1", "line": Y("I want to know that you'll tell me")}),
+        Y({"class": "ln2", "line": Y("I love to stay")}),
+        Y({"class": "ln3", "line": Y("Take me to the river and drop me in the water")}),
+        Y({"class": "ln4", "line": Y("Dip me in the river, drop me in the water")}),
+        Y({"class": "ln5", "line": Y("Washing me down, washing me down")}),
+        FakeNode()
+    ]
+    res = _recurse_extract_meta(list_with_different_key, key="requirements", convert_to_lam=True)
+    assert isinstance(res, LAM)
+    assert len(res.errors) == 0

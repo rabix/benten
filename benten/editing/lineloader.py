@@ -6,25 +6,28 @@ Some profiling information
 For "wgs.cwl"
 
 In [2]: %timeit data = parse_yaml_with_line_info(cwl)
-132 ms ± 1.51 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+127 ms ± 1.07 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+
+In [2]: %timeit data = parse_yaml_with_line_info(cwl, convert_to_lam=True)
+126 ms ± 1.23 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 In [3]: %timeit data = yaml.load(cwl, CSafeLoader)
-99.5 ms ± 2.4 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+95.5 ms ± 374 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 In [4]: %timeit ruamel.yaml.load(cwl, Loader=ruamel.yaml.RoundTripLoader)
-2.34 s ± 31.5 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+2.43 s ± 165 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
 
 For "salmon.cwl"
 
-In [6]: %timeit ruamel.yaml.load(cwl, Loader=ruamel.yaml.RoundTripLoader)
-715 ms ± 6.83 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+In [7]: %timeit ruamel.yaml.load(cwl, Loader=ruamel.yaml.RoundTripLoader)
+695 ms ± 6.26 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
-In [7]: %timeit data = parse_yaml_with_line_info(cwl)
-40.1 ms ± 2.56 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+In [8]: %timeit data = parse_yaml_with_line_info(cwl)
+36.8 ms ± 363 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
-In [8]: %timeit data = yaml.load(cwl, CSafeLoader)
-31.6 ms ± 2.46 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+In [9]: %timeit data = yaml.load(cwl, CSafeLoader)
+28.2 ms ± 250 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 
 (ruamel.yaml         0.15.88)
@@ -44,6 +47,10 @@ except ImportError:
                   "falling back to slower yaml.SafeLoader",
                   ImportWarning)
     from yaml import SafeLoader as Loader
+
+
+def load_yaml(raw_cwl: str):
+    return yaml.load(raw_cwl, Loader)
 
 
 class Yint(int):  # pragma: no cover
@@ -98,6 +105,41 @@ class Ylist(list):
         self.flow_style = node.flow_style
 
 
+# We've flattened them all together. The names don't clash (due to inheritance), so we are ok
+# if we run into trouble, we'll have to add context information (CWL type, parent type etc.)
+allowed_loms = {
+    "inputs": "id",
+    "outputs": "id",
+    "requirements": "class",
+    "hints": "class",
+    "fields": "name",
+    "steps": "id",
+    "in": "id"
+}
+
+
+class LAM(dict):
+    def __init__(self, value, node, key_field: str="id"):
+        secret_missing_key = "there is no CWL field that looks like this, and it can safely be used"
+        self.errors = []
+
+        def _add_error_line(ln):
+            self.errors += [ln]
+            return secret_missing_key
+
+        dict.__init__(self, {
+            (v.get(key_field) or _add_error_line(v)): v
+            for v in value
+        })
+
+        if secret_missing_key in self:
+            self.pop(secret_missing_key)
+
+        self.start = node.start_mark
+        self.end = node.end_mark
+        self.flow_style = node.flow_style
+
+
 def y_construct(v, node):  # pragma: no cover
     if isinstance(v, str):
         return Ystr(v, node)
@@ -136,19 +178,23 @@ class YSafeLineLoader(Loader):
         return seq
 
 
-def _recurse_extract_meta(x):
+def _recurse_extract_meta(x, key=None, convert_to_lam=False):
     if isinstance(x, dict):
         node = x.pop(meta_node_key)
-        return Ydict({k: _recurse_extract_meta(v) for k, v in x.items()}, node)
+        return Ydict({k: _recurse_extract_meta(v, k, convert_to_lam) for k, v in x.items()}, node)
     elif isinstance(x, list):
         node = x.pop(-1)
-        return Ylist([_recurse_extract_meta(v) for v in x], node)
+        _data = [_recurse_extract_meta(v, None, convert_to_lam) for v in x]
+        if convert_to_lam and key in allowed_loms:
+            if isinstance(x, list):
+                return LAM(_data, node, key_field=allowed_loms[key])
+        return Ylist(_data, node)
     else:
         return x
 
 
-def parse_yaml_with_line_info(raw_cwl: str):
-    return _recurse_extract_meta(yaml.load(raw_cwl, YSafeLineLoader))
+def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False):
+    return _recurse_extract_meta(yaml.load(raw_cwl, YSafeLineLoader), convert_to_lam=convert_to_lam)
 
 
 def lookup(doc: Union[Ydict, Ylist], path: List[Union[str, int]]):
