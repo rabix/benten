@@ -121,15 +121,15 @@ def test_connection_parsing():
         [True for conn in wf.connections
          if conn.dst.node_id == "merge" and conn.dst.port_id == "merge_in"]) == 3
 
-    line = (46, 51)
+    line = [(48, 48), (49, 49), (50, 50)]
     assert [conn.line
             for conn in wf.connections
-            if conn.dst.node_id == "merge" and conn.dst.port_id == "merge_in"] == [line] * 3
+            if conn.dst.node_id == "merge" and conn.dst.port_id == "merge_in"] == line
 
-    line = (16, 27)
+    line = [(18, 18), (19, 19)]
     assert [conn.line
             for conn in wf.connections
-            if conn.dst.port_id == "wf_out"] == [line] * 2
+            if conn.dst.port_id == "wf_out"] == line
 
 
 def test_connection_equivalence():
@@ -159,18 +159,16 @@ def test_connection_search():
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
-    c1 = WF.Connection(WF.Port(node_id=None, port_id="wf_in2"),
-                         WF.Port(node_id=None, port_id="wf_out2"), line=None)
-    assert wf.find_connection(c1) == (27, 33)
+    c1 = WF.Connection(src=WF.Port(node_id=None, port_id="wf_in2"),
+                       dst=WF.Port(node_id=None, port_id="wf_out2"), line=None)
+    assert wf.find_connection(c1) == (29, 29)
 
     c2 = WF.Connection(src=WF.Port(node_id=None, port_id="wf_in"),
                        dst=WF.Port(node_id="pass_through", port_id="pt_in1"),
                        line=None)
-
-    assert wf.find_connection(c2) == (36, 38)
+    assert wf.find_connection(c2) == (37, 37)
 
     c3 = WF.Connection(src=WF.Port(node_id=None, port_id="wf_in"),
                        dst=WF.Port(node_id="pass_through", port_id="pt_in2"),
                        line=None)
-
     assert wf.find_connection(c3) is None
