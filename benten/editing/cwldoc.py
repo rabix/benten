@@ -2,38 +2,9 @@
 and manipulation. Importantly, implements logic to extract inline fragments and to apply
 edits of inline fragments back to main document."""
 from typing import Tuple
-from enum import IntEnum
 import pathlib
 
-from .listormap import parse_cwl_to_lom
-from .lineloader import parse_yaml_with_line_info, Ydict, Ylist
-from .listasmap import lom
-
-
-# We've flattened them all together. The names don't clash (due to inheritance), so we are ok
-# if we run into trouble, we'll have to add context information (CWL type, parent type etc.)
-allowed_loms = {
-    "inputs": "id",
-    "outputs": "id",
-    "requirements": "class",
-    "hints": "class",
-    "fields": "name",
-    "steps": "id",
-    "in": "id"
-}
-
-
-def _recurse_convert_lam(doc: (Ydict, Ylist)):
-    if isinstance(doc, Ylist):
-        for v in doc:
-            _recurse_convert_lam(v)
-    elif isinstance(doc, Ydict):
-        for k, v in doc.items():
-            if k in allowed_loms:
-                doc[k] = lom(v)
-            _recurse_convert_lam(v)
-    else:
-        return doc
+from .lineloader import parse_yaml_with_line_info
 
 
 class CwlDoc:
@@ -48,8 +19,7 @@ class CwlDoc:
     # But I'd don't want to accidentally do it twice
     def compute_cwl_dict(self):
         if self.cwl_dict is None:
-            self.cwl_dict = parse_yaml_with_line_info(self.raw_cwl)
-            _recurse_convert_lam(self.cwl_dict)
+            self.cwl_dict = parse_yaml_with_line_info(self.raw_cwl, convert_to_lam=True) or {}
 
     def process_type(self):
         return self.cwl_dict.get("class", "unknown")
@@ -59,7 +29,7 @@ class CwlDoc:
             if len(_inline_path) == 0:
                 return _doc_dict
             else:
-                for _id, step in lom(_doc_dict["steps"]).items():
+                for _id, step in _doc_dict["steps"].items():
                     if _id == _inline_path[0]:
                         return _find_step(step["run"], _inline_path[1:])
 

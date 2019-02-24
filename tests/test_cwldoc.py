@@ -3,7 +3,6 @@ import pathlib
 import pytest
 
 from benten.editing.cwldoc import CwlDoc
-from benten.editing.listasmap import lom
 
 
 current_path = pathlib.Path(__file__).parent
@@ -31,8 +30,8 @@ def test_basics_salmon():
 
     assert c.process_type() == "Workflow"
 
-    assert lom(cwl["steps"])["Salmon_Quant___Reads"]["in"]["salmon_index_archive"].start.line == 2093
-    assert lom(cwl["steps"])["Salmon_Quant___Reads"]["in"]["salmon_index_archive"]["source"] == \
+    assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"].start.line == 2093
+    assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"]["source"] == \
            "Salmon_Index/salmon_index_archive"
 
 
