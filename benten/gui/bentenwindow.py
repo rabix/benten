@@ -5,7 +5,7 @@ import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QMenuBar, QAction, QFontDialog
+    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QAction, QFontDialog
 from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 from .codeeditor.editor import CodeEditor
@@ -70,17 +70,21 @@ class BentenWindow(QWidget):
         self.code_editor.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
         self.process_view: ProcessView = ProcessView(None)
 
+        self.utility_tab_widget = QTabWidget()
+
         self.conn_table = QTableWidget()
         self.conn_table.horizontalHeader().setStretchLastSection(True)
         self.conn_table.verticalHeader().setVisible(False)
         self.conn_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.conn_table.cellClicked.connect(self.connection_clicked)
 
+        self.utility_tab_widget.addTab(self.conn_table, "Connections")
+
         left_pane = QSplitter()
         left_pane.setHandleWidth(1)
         left_pane.setOrientation(Qt.Vertical)
         left_pane.addWidget(self.process_view)
-        left_pane.addWidget(self.conn_table)
+        left_pane.addWidget(self.utility_tab_widget)
         left_pane.setStretchFactor(0, 3)
         left_pane.setStretchFactor(1, 1)
 
