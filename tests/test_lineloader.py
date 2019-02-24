@@ -1,11 +1,21 @@
+import pytest
+
 import pathlib
 
 from benten.editing.lineloader import \
     parse_yaml_with_line_info, coordinates, lookup, reverse_lookup, LAM, Ylist, Ydict, \
-    _recurse_extract_meta, y_construct, meta_node_key
+    _recurse_extract_meta, y_construct, meta_node_key, DocumentError
 
 
 current_path = pathlib.Path(__file__).parent
+
+
+def test_load_malformed():
+    with pytest.raises(DocumentError) as e:
+        _ = parse_yaml_with_line_info(raw_cwl="id: [")
+
+    assert e.value.line == 1    # Gotta figure out why PyYaml thinks this is line 2
+    assert e.value.column == 0
 
 
 def test_basic_load():
