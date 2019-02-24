@@ -1,6 +1,6 @@
 """Load a JSON file, strip out insessential SBG tags and convert it into YAML. Change the
 base file name if needed."""
-from ..editing.listormap import yaml, Loader
+from ..editing.lineloader import yaml, Loader
 
 
 def _strip_sbg_tags(node):

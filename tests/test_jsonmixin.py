@@ -65,12 +65,12 @@ def test_json_basic():
     assert len(c.cwl_dict["steps"]) == 3
 
     # SBG tags should be stripped by default
-    assert not any(k for k, _ in c.cwl_dict if k[:4] == "sbg:")
-    assert not any(k for k, _ in c.cwl_dict["steps"]["wf0"] if k[:4] == "sbg:")
+    assert not any(k for k, _ in c.cwl_dict.items() if k[:4] == "sbg:")
+    assert not any(k for k, _ in c.cwl_dict["steps"]["wf0"].items() if k[:4] == "sbg:")
 
     # SBG tags should be kept
     c = SBGCwlDoc(raw_json=wf_path.open("r").read(), new_path=new_wf_path, strip_sbg_tags=False)
     c.compute_cwl_dict()
 
-    assert any(k for k, _ in c.cwl_dict if k[:4] == "sbg:")
-    assert any(k for k, _ in c.cwl_dict["steps"]["wf0"] if k[:4] == "sbg:")
+    assert any(k for k, _ in c.cwl_dict.items() if k[:4] == "sbg:")
+    assert any(k for k, _ in c.cwl_dict["steps"]["wf0"].items() if k[:4] == "sbg:")
