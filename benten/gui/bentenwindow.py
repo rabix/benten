@@ -10,6 +10,7 @@ from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 from .codeeditor.editor import CodeEditor
 from .processview import ProcessView
+from .commandline import CommandWindow
 from .unkscene import UnkScene
 from .toolscene import ToolScene
 from .workflowscene import WorkflowScene, res_input_id, res_output_id
@@ -72,12 +73,15 @@ class BentenWindow(QWidget):
 
         self.utility_tab_widget = QTabWidget()
 
+        self.command_window = CommandWindow()
+
         self.conn_table = QTableWidget()
         self.conn_table.horizontalHeader().setStretchLastSection(True)
         self.conn_table.verticalHeader().setVisible(False)
         self.conn_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.conn_table.cellClicked.connect(self.connection_clicked)
 
+        self.utility_tab_widget.addTab(self.command_window, "CMD")
         self.utility_tab_widget.addTab(self.conn_table, "Connections")
 
         left_pane = QSplitter()
@@ -295,6 +299,7 @@ class BentenWindow(QWidget):
                 item.setBackgroundColor(color)
                 self.conn_table.setItem(row, col, item)
                 row += 1
+        self.utility_tab_widget.setCurrentIndex(1)  # Make sure we can see the table
 
     @Slot(int, int)
     def connection_clicked(self, row, col):
