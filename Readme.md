@@ -51,7 +51,7 @@ connections are not shown: the workflow DAG just indicates the overall flow of
 data from input to out via the various process steps. 
 A hierarchical layout is used that emphasizes the dataflow.
 
-Scrolling will zoom in/out of the map. Dragging will move the map. Double-clicking
+The mouse wheel will zoom in/out of the map. Dragging will move the map. Double-clicking
 on an empty space will reset the view.
 
 Clicking on a flow line connecting two nodes will populate the connection table 

@@ -1,5 +1,34 @@
 # Developer notes
 
+## Operations a user should be able to do
+
+- Go to the line of a step
+- Add a step/remove a step
+- Open the step document (inline or linked)
+- List all connections between a pair of nodes, in to/out of a node
+- Goto the definition for a connection
+- Add a connection/remove a connection
+
+
+
+
+
+## QT and asyncio
+
+https://docs.python.org/3/library/asyncio-eventloop.html#executing-code-in-thread-or-process-pools
+
+https://doc.qt.io/archives/qq/qq27-responsive-guis.html
+
+## Evaluating JS
+
+https://doc.qt.io/qt-5/qjsengine.html#details
+
+
+## Travis CI keeping secrets
+
+https://docs.travis-ci.com/user/encrypting-files/
+
+
 ## Sources for test workflows
 
 https://github.com/genome/analysis-workflows
