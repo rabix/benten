@@ -15,5 +15,5 @@ def test_basic():
 
     assert c.process_type() == "Workflow"
 
-    assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"].start_line == 2093
+    assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"].start.line == 2093
     assert cwl["steps"]["Salmon_Quant___Reads"]["in"]["salmon_index_archive"]["source"] == "Salmon_Index/salmon_index_archive"
