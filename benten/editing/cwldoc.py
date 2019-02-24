@@ -4,22 +4,27 @@ edits of inline fragments back to main document."""
 from typing import Tuple
 import pathlib
 
-from .lineloader import parse_yaml_with_line_info
+from .lineloader import parse_yaml_with_line_info, DocumentError
 
 
 class CwlDoc:
-    def __init__(self, raw_cwl: str, path: pathlib.Path, inline_path: Tuple[str, ...]=None):
+    def __init__(self, raw_cwl: str, path: pathlib.Path, inline_path: Tuple[str, ...]=None,
+                 yaml_error=None):
         self.raw_cwl = raw_cwl
         self.path = path
         self.inline_path = inline_path
         self.cwl_lines = self.raw_cwl.splitlines(keepends=True)
         self.cwl_dict = None
+        self.yaml_error = [yaml_error] if yaml_error else []
 
     # I want to be conscious and in control of when this (semi)expensive computation is being done
     # But I'd don't want to accidentally do it twice
     def compute_cwl_dict(self):
         if self.cwl_dict is None:
-            self.cwl_dict = parse_yaml_with_line_info(self.raw_cwl, convert_to_lam=True) or {}
+            try:
+                self.cwl_dict = parse_yaml_with_line_info(self.raw_cwl, convert_to_lam=True) or {}
+            except DocumentError as e:
+                self.yaml_error += [e]
 
     def process_type(self):
         return self.cwl_dict.get("class", "unknown")

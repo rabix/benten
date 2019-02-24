@@ -2,10 +2,27 @@ import pathlib
 
 import pytest
 
-from benten.editing.cwldoc import CwlDoc
+from benten.editing.cwldoc import CwlDoc, DocumentError
 
 
 current_path = pathlib.Path(__file__).parent
+
+
+def test_malformed():
+
+    raw_cwl = "id: ["
+    c = CwlDoc(raw_cwl=raw_cwl, path=pathlib.Path("empty.cwl"), inline_path=None)
+    c.compute_cwl_dict()
+    assert len(c.yaml_error) == 1
+    assert c.yaml_error[0].line == 1
+    assert c.yaml_error[0].column == 0
+
+    c = CwlDoc(raw_cwl="id: [", path=pathlib.Path("empty.cwl"), inline_path=None,
+               yaml_error=DocumentError(0, 0, "Make sure this error is preserved"))
+    c.compute_cwl_dict()
+    assert len(c.yaml_error) == 2
+    assert c.yaml_error[0].line == 0
+    assert c.yaml_error[0].column == 0
 
 
 # The salmon workflow is a real workflow developed on the SBG platform. It has the benefit of
