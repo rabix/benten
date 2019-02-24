@@ -1,5 +1,5 @@
 """Provides a view into a CWL component, like a workflow. The view can be of a whole CWL file
-or a part of a CWL file, like an in-lined step. Changes to a part of a CWL file are """
+or a part of a CWL file, like an in-lined step."""
 
 import time
 
@@ -67,23 +67,47 @@ class BentenWindow(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
-        self.code_editor: CodeEditor = CodeEditor(IndentUsingSpaces=True)
-        self.code_editor.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
+        self.code_editor: CodeEditor = self._setup_code_editor()
         self.process_view: ProcessView = ProcessView(None)
+        self.utility_tab_widget, self.command_window, self.conn_table \
+            = self._setup_utility_tab()
+        self._setup_panes()
 
-        self.utility_tab_widget = QTabWidget()
+        self.manual_edit_throttler = ManualEditThrottler()
+        self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
 
-        self.command_window = CommandWindow()
+        self.cwl_doc: CwlDoc = None
+        self.step_id = None
+        self.process_model: (Workflow,) = None
 
-        self.conn_table = QTableWidget()
-        self.conn_table.horizontalHeader().setStretchLastSection(True)
-        self.conn_table.verticalHeader().setVisible(False)
-        self.conn_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.conn_table.cellClicked.connect(self.connection_clicked)
+        # todo: To deprecate and use different mechanism
+        self.current_programmatic_edit: ProgrammaticEdit = None
 
-        self.utility_tab_widget.addTab(self.command_window, "CMD")
-        self.utility_tab_widget.addTab(self.conn_table, "Connections")
+        self.is_active_window = False
 
+    def _setup_code_editor(self):
+        ce = CodeEditor(IndentUsingSpaces=True)
+        ce.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
+        ce.textChanged.connect(self.user_still_typing)
+        return ce
+
+    def _setup_utility_tab(self):
+        utility_tab_widget = QTabWidget()
+
+        command_window = CommandWindow()
+
+        conn_table = QTableWidget()
+        conn_table.horizontalHeader().setStretchLastSection(True)
+        conn_table.verticalHeader().setVisible(False)
+        conn_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        conn_table.cellClicked.connect(self.connection_clicked)
+
+        utility_tab_widget.addTab(command_window, "CMD")
+        utility_tab_widget.addTab(conn_table, "Connections")
+
+        return utility_tab_widget, command_window, conn_table
+
+    def _setup_panes(self):
         left_pane = QSplitter()
         left_pane.setHandleWidth(1)
         left_pane.setOrientation(Qt.Vertical)
@@ -105,20 +129,6 @@ class BentenWindow(QWidget):
         layout.setMargin(0)
         layout.addWidget(main_pane)
         self.setLayout(layout)
-
-        self.manual_edit_throttler = ManualEditThrottler()
-        self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
-
-        self.cwl_doc: CwlDoc = None
-        self.step_id = None
-        self.process_model: (Workflow,) = None
-
-        # todo: To deprecate and use different mechanism
-        self.current_programmatic_edit: ProgrammaticEdit = None
-
-        self.is_active_window = False
-
-        self.code_editor.textChanged.connect(self.user_still_typing)
 
     def set_document(self, cwl_doc):
         # This registers as a manual edit but we wish to skip the throttler
