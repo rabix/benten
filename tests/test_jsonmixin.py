@@ -4,11 +4,16 @@ import shutil
 import pytest
 
 from benten.sbg.jsonmixin import JsonMixin
-from benten.editing.cwldoc import CwlDoc
+from benten.editing.cwldoc import CwlDoc, DocumentError
 
 
 current_path = pathlib.Path(__file__).parent
 test_dir = "jsonmixin-test-temp-cwl-dir"
+
+
+class SBGCwlDoc(JsonMixin, CwlDoc):
+    def __init__(self, *args, **kwargs):
+        super(SBGCwlDoc, self).__init__(*args, **kwargs)
 
 
 def setup():
@@ -26,10 +31,6 @@ def teardown():
 
 def test_json_detector():
 
-    class SBGCwlDoc(JsonMixin, CwlDoc):
-        def __init__(self, *args, **kwargs):
-            super(SBGCwlDoc, self).__init__(*args, **kwargs)
-
     assert SBGCwlDoc.detect_cwl_format("") == "yaml"
 
     assert SBGCwlDoc.detect_cwl_format("\n\n   ") == "yaml"
@@ -43,11 +44,16 @@ def test_json_detector():
     assert SBGCwlDoc.detect_cwl_format(text) == "json"
 
 
-def test_json_basic():
+def test_malformed_json():
 
-    class SBGCwlDoc(JsonMixin, CwlDoc):
-        def __init__(self, *args, **kwargs):
-            super(SBGCwlDoc, self).__init__(*args, **kwargs)
+    bad_doc = SBGCwlDoc(raw_json="\n\n{", new_path=pathlib.Path(test_dir, "malformed.cwl"))
+
+    assert len(bad_doc.yaml_error) == 1
+    assert bad_doc.yaml_error[0].line == 3
+    assert bad_doc.yaml_error[0].column == 0
+
+
+def test_json_basic():
 
     # Existing behavior should not change
     wf_path = pathlib.Path(test_dir, "wf3.cwl")

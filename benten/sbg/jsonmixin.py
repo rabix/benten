@@ -1,6 +1,6 @@
 """Load a JSON file, strip out insessential SBG tags and convert it into YAML. Change the
 base file name if needed."""
-from ..editing.lineloader import yaml, Loader
+from ..editing.lineloader import yaml, Loader, ParserError, DocumentError
 
 
 def _strip_sbg_tags(node):
@@ -35,7 +35,12 @@ class JsonMixin:
         if raw_json is not None:
             if new_path is None:
                 raise RuntimeError("New CWL filename after conversion must be provided")
-            kwargs["raw_cwl"] = yaml.safe_dump(import_json(raw_json, strip_sbg_tags=strip_sbg_tags))
+            try:
+                kwargs["raw_cwl"] = yaml.safe_dump(import_json(raw_json, strip_sbg_tags=strip_sbg_tags))
+            except ParserError as e:
+                kwargs["raw_cwl"] = raw_json
+                kwargs["yaml_error"] = DocumentError(e.problem_mark.line, e.problem_mark.column, str(e))
+
             kwargs["path"] = new_path
 
         super(JsonMixin, self).__init__(*args, **kwargs)
