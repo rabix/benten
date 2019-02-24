@@ -45,3 +45,5 @@ level1:
         list2:
                 - Who's gonna come around
                 - When you break
+
+just to cover all types: [1, 3.4567, yes, no]
