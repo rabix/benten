@@ -11,6 +11,7 @@ from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
 from ..models.workflow import InvalidSub, InlineSub, ExternalSub
 from .bentenwindow import BentenWindow
 from .multidocumentmanager import MultiDocumentManager, MDMUnit
+from ..sbg.profiles import Profiles
 
 import logging
 
@@ -29,7 +30,10 @@ class BentenMainWidget(QTabWidget):
         self.setMovable(True)
         self.setUsesScrollButtons(True)
 
-        self.multi_document_manager = MultiDocumentManager()
+        self.sbg_profiles = Profiles(config=config)
+
+        self.api = None
+        self.multi_document_manager = MultiDocumentManager(benten_main_window=self)
         self.active_window: BentenWindow = None
 
         self.setTabsClosable(True)
@@ -160,7 +164,8 @@ class BentenMainWidget(QTabWidget):
 
     @Slot(str)
     def profile_selected(self, profile):
-        pass
+        self.api = self.sbg_profiles[profile]
+        logger.debug("Profile set to: {}".format(profile))
 
     @Slot()
     def cwl_push_to_sbg(self):

@@ -15,7 +15,7 @@ from .unkscene import UnkScene
 from .toolscene import ToolScene
 from .workflowscene import WorkflowScene, res_input_id, res_output_id
 
-from ..editing.cwldoc import CwlDoc
+from ..sbg.sbgcwldoc import SBGCwlDoc
 from ..models.unk import Unk
 from ..models.tool import Tool
 from ..models.workflow import Workflow
@@ -64,8 +64,10 @@ class BentenWindow(QWidget):
     scene_double_clicked = Signal(object)
     edit_registered = Signal(object)
 
-    def __init__(self):
+    def __init__(self, benten_main_window):
         QWidget.__init__(self)
+
+        self.bmw = benten_main_window
 
         self.code_editor: CodeEditor = self._setup_code_editor()
         self.process_view: ProcessView = ProcessView(None)
@@ -76,7 +78,7 @@ class BentenWindow(QWidget):
         self.manual_edit_throttler = ManualEditThrottler()
         self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
 
-        self.cwl_doc: CwlDoc = None
+        self.cwl_doc: SBGCwlDoc = None
         self.step_id = None
         self.process_model: (Workflow,) = None
 
@@ -94,7 +96,7 @@ class BentenWindow(QWidget):
     def _setup_utility_tab(self):
         utility_tab_widget = QTabWidget()
 
-        command_window = CommandWidget()
+        command_window = CommandWidget(self)
 
         conn_table = QTableWidget()
         conn_table.horizontalHeader().setStretchLastSection(True)
@@ -200,9 +202,10 @@ class BentenWindow(QWidget):
 
         t0 = time.time()
 
-        self.cwl_doc = CwlDoc(raw_cwl=modified_cwl,
-                              path=self.cwl_doc.path,
-                              inline_path=self.cwl_doc.inline_path)
+        self.cwl_doc = SBGCwlDoc(raw_cwl=modified_cwl,
+                                 path=self.cwl_doc.path,
+                                 inline_path=self.cwl_doc.inline_path,
+                                 api=self.bmw.api)
         self.cwl_doc.compute_cwl_dict()
 
         pt = self.cwl_doc.process_type()

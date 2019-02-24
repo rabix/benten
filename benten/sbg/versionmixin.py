@@ -11,7 +11,7 @@ as well as base docs.
 5. It will add a pushed/not pushed status to the class. These are blocking operations, so use with
    due care
 """
-
+from sevenbridges import Api
 
 file_not_pushed_suffix = "-local-edits"
 
@@ -67,16 +67,23 @@ def get_id_line(cwl_lines):
 
 
 class VersionMixin:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, api: Api=None, **kwargs):
         # https://stackoverflow.com/a/34998801/2512851
         # This mixin expects access to CwlDoc like properties at initialization
         # We call the ancestor first. This will either be CwlDoc, or other mixins, which, in turn
         # call their ancestors first, which will result in CwlDoc being called first.
         super(VersionMixin, self).__init__(*args, **kwargs)
         self.app_info = self.get_app_info()
+        self.api: Api = api
 
     def get_app_info(self):
         id_line = get_id_line(self.cwl_lines)
         if id_line is None:
             return None
         return get_app_info(id_line[3:].strip())
+
+    def get_app_revisions(self, *args):
+        id_str = get_id_line(self.cwl_lines)[3:].strip()
+        id_str = "/".join(id_str.split("/")[:-1])
+        most_recent_app = self.api.apps.get(id=id_str)
+        return most_recent_app.raw["sbg:revisionsInfo"]

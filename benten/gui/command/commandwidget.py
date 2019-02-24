@@ -11,8 +11,10 @@ from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 class CommandWidget(QWidget):
 
-    def __init__(self):
+    def __init__(self, parent):
         QWidget.__init__(self)
+
+        self.bw: 'BentenWindow' = parent
 
         self.command_line = QLineEdit()
         self.command_line.setToolTip("Enter commands here")
@@ -29,10 +31,26 @@ class CommandWidget(QWidget):
         layout.setSpacing(0)
         self.setLayout(layout)
 
+        self.dispatch_table = self._set_up_dispatcher()
+
+    def _set_up_dispatcher(self):
+        return {
+            "revisions": self.get_app_revisions
+        }
+
     @Slot()
     def command_entered(self):
-        cmd = self.command_line.text()
-        response = "echo: {}".format(cmd)
+        cmd_line = self.command_line.text()
+        cmd, *arguments = cmd_line.split()
+
+        if cmd in self.dispatch_table:
+            try:
+                response = str(self.dispatch_table[cmd](arguments))
+            except Exception as e:
+                response = "Command error:\n{}".format(str(e))
+        else:
+            response = "Unknown command: {}".format(cmd)
+
         self.command_line.clear()
         self.response_received(cmd, response)
 
@@ -43,3 +61,8 @@ class CommandWidget(QWidget):
         self.command_log.moveCursor(QTextCursor.End)
         self.command_log.insertPlainText(response)
         self.command_log.moveCursor(QTextCursor.End)
+
+    def get_app_revisions(self, *args):
+        return "\n".join(
+            "v{}: {} - {}".format(rev["sbg:revision"], rev["sbg:revisionNotes"], rev["sbg:modifiedBy"])
+            for rev in self.bw.cwl_doc.get_app_revisions())

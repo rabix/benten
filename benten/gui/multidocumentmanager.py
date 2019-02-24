@@ -35,8 +35,9 @@ class MDMUnit:
 
 
 class MultiDocumentManager:
-    def __init__(self):
+    def __init__(self, benten_main_window):
         self.directory_of_documents: Dict[str, Dict[(Tuple[str], None), MDMUnit]] = {}
+        self.bmw = benten_main_window
 
     def lookup_parent_doc(self, cwl_doc: CwlDoc):
         return next((mdmu[None] for mdmu in self.directory_of_documents.values()
@@ -65,7 +66,7 @@ class MultiDocumentManager:
             # The sub-workflow must exist
             raise RuntimeError("Document {} does not exist".format(parent_path))
 
-        mdm_unit = MDMUnit(bw=BentenWindow(), doc_man=None)
+        mdm_unit = MDMUnit(bw=BentenWindow(benten_main_window=self.bmw), doc_man=None)
         path_str = parent_path.resolve().as_uri()
 
         if inline_path is None or len(inline_path) == 0:
@@ -76,15 +77,18 @@ class MultiDocumentManager:
             if cwl_format == "json":
                 new_path = pathlib.Path(parent_path.parent, parent_path.name + ".cwl")
                 path_str = new_path.resolve().as_uri()
-                cwl_doc = SBGCwlDoc(raw_json=raw_cwl, new_path=new_path, inline_path=None)
+                cwl_doc = SBGCwlDoc(raw_json=raw_cwl, new_path=new_path, inline_path=None,
+                                    api=self.bmw.api)
             else:
-                cwl_doc = SBGCwlDoc(raw_cwl=raw_cwl, path=parent_path, inline_path=None)
+                cwl_doc = SBGCwlDoc(raw_cwl=raw_cwl, path=parent_path, inline_path=None,
+                                    api=self.bmw.api)
 
             doc_man = DocumentManager(cwl_doc=cwl_doc)
             if cwl_format == "json":
                 doc_man.save()  # This converted document only exists in memory upto now
 
-            mdm_unit = MDMUnit(bw=BentenWindow(), doc_man=doc_man)
+            #mdm_unit = MDMUnit(bw=BentenWindow(), doc_man=doc_man)
+            mdm_unit.doc_man = doc_man
             mdm_unit.set_document(cwl_doc=cwl_doc)
             self.directory_of_documents[path_str] = {}
         else:
