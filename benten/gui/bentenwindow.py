@@ -5,12 +5,12 @@ import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QAction, QFontDialog
+    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget
 from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 from .codeeditor.editor import CodeEditor
 from .processview import ProcessView
-from .commandline import CommandWindow
+from .command.commandwidget import CommandWidget
 from .unkscene import UnkScene
 from .toolscene import ToolScene
 from .workflowscene import WorkflowScene, res_input_id, res_output_id
@@ -94,7 +94,7 @@ class BentenWindow(QWidget):
     def _setup_utility_tab(self):
         utility_tab_widget = QTabWidget()
 
-        command_window = CommandWindow()
+        command_window = CommandWidget()
 
         conn_table = QTableWidget()
         conn_table.horizontalHeader().setStretchLastSection(True)

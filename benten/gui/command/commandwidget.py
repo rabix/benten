@@ -9,7 +9,7 @@ from PySide2.QtWidgets import QVBoxLayout, QLineEdit, QTextEdit, QTableWidgetIte
 from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 
-class CommandWindow(QWidget):
+class CommandWidget(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
