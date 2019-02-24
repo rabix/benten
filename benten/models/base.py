@@ -7,3 +7,4 @@ class Base:
     def __init__(self, cwl_doc: CwlDoc):
         self.cwl_doc = cwl_doc or {}
         self.id = self.cwl_doc.cwl_dict.get("id", None)
+        self.errors = []
