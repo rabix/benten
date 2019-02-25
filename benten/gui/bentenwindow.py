@@ -25,12 +25,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ProgrammaticEdit:
-    def __init__(self, raw_cwl, cursor_line):
-        self.raw_cwl = raw_cwl
-        self.cursor_line = cursor_line
-
-
 class ManualEditThrottler:
     """Each manual edit we do (letter we type) triggers a manual edit. We need to manage
     these calls so they don't overwhelm the system and yet not miss out on the final edit in
@@ -81,9 +75,6 @@ class BentenWindow(QWidget):
         self.cwl_doc: SBGCwlDoc = None
         self.step_id = None
         self.process_model: (Workflow,) = None
-
-        # todo: To deprecate and use different mechanism
-        self.current_programmatic_edit: ProgrammaticEdit = None
 
         self.is_active_window = False
 
@@ -219,6 +210,7 @@ class BentenWindow(QWidget):
             self.process_model = Workflow(cwl_doc=self.cwl_doc)
             scene = WorkflowScene(self)
             scene.selectionChanged.connect(self.something_selected)
+            scene.nodes_added.connect(self.nodes_added)
             scene.double_click.connect(self.something_double_clicked)
             scene.set_workflow(self.process_model)
             if self.process_model.errors:
@@ -330,3 +322,9 @@ class BentenWindow(QWidget):
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
             self.scene_double_clicked.emit(steps)
+
+    @Slot(list)
+    def nodes_added(self, cwl_path_list):
+        for p in cwl_path_list:
+            edit = self.process_model.add_step(p)
+
