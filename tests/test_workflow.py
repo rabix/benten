@@ -50,6 +50,27 @@ steps:
     assert wf.steps["empty"].process_type == "invalid"
 
 
+def test_parsing_invalid_step():
+    wf_with_invalid_step = """
+class: Workflow
+cwlVersion: v1.0
+id: you/live/your/life
+inputs: []
+outputs: []
+steps:
+- id: in_the_songs_you_hear
+  in: []
+  out: []
+  run: On/the/rock/and/roll/radio.cwl
+"""
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_with_invalid_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    cwl_doc.compute_cwl_dict()
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+
+    assert wf.steps["in_the_songs_you_hear"].process_type == "invalid"
+    assert wf.steps["in_the_songs_you_hear"].sub_workflow.id is None
+
+
 def test_parsing_ports_with_plain_source():
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
     cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)

@@ -149,7 +149,7 @@ class Step:
                     wf_error_list += [
                         "Could not find sub workflow: {} (resolved to {})".format(
                             step_doc["run"], sub_p_path.as_uri())]
-                    sub_workflow = InvalidSub
+                    sub_workflow = InvalidSub()
             else:
                 sub_process = step_doc["run"]
                 sub_workflow = InlineSub(
