@@ -25,8 +25,14 @@ class SBGAppInfo:
         self.local_edits = local_edits
 
     def get_id_str(self):
-        "/".join([self.owner, self.project, self.name, self.version] +
-                 ([file_not_pushed_suffix] if self.local_edits else []))
+        return "/".join([self.owner, self.project, self.name, self.version] +
+                        ([file_not_pushed_suffix] if self.local_edits else []))
+
+    def get_app_base_path(self):
+        return "/".join([self.owner, self.project, self.name])
+
+    def get_app_path_with_version(self):
+        return "/".join([self.owner, self.project, self.name, self.version])
 
     def __str__(self):
         return "{} (v:{})".format(self.name, str(self.version) + ("*" if self.local_edits else ""))
@@ -66,6 +72,11 @@ def get_id_line(cwl_lines):
     return next((l for l in cwl_lines if l.startswith("id:")), None)
 
 
+class NotRegisteredWithSBG(Exception):
+    def __str__(self):
+        return "This app is not registered in the SBG repo"
+
+
 class VersionMixin:
     def __init__(self, *args, api: Api=None, **kwargs):
         # https://stackoverflow.com/a/34998801/2512851
@@ -83,7 +94,8 @@ class VersionMixin:
         return get_app_info(id_line[3:].strip())
 
     def get_app_revisions(self, *args):
-        id_str = get_id_line(self.cwl_lines)[3:].strip()
-        id_str = "/".join(id_str.split("/")[:-1])
-        most_recent_app = self.api.apps.get(id=id_str)
-        return most_recent_app.raw["sbg:revisionsInfo"]
+        if self.app_info is None:
+            raise NotRegisteredWithSBG()
+        else:
+            most_recent_app = self.api.apps.get(id=self.app_info.get_app_base_path())
+            return most_recent_app.raw["sbg:revisionsInfo"]

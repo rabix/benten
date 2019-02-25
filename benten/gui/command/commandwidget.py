@@ -52,7 +52,7 @@ class CommandWidget(QWidget):
             try:
                 response = str(self.dispatch_table[cmd][0](arguments))
             except Exception as e:
-                response = "Command error:\n{}".format(str(e))
+                response = f"Command error:\n{e}"
         else:
             response = "Unknown command: {}".format(cmd)
 
