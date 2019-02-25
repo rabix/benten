@@ -14,6 +14,8 @@ class CommandWidget(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self)
 
+        # This gives us the global context to access any functionality we need to
+        # get stuff done
         self.bw: 'BentenWindow' = parent
 
         self.command_line = QLineEdit()
@@ -34,14 +36,27 @@ class CommandWidget(QWidget):
         layout.setSpacing(0)
         self.setLayout(layout)
 
-        self.dispatch_table = self._set_up_dispatcher()
+        self.dispatch_table, self.help_table = self._set_up_dispatcher()
 
     def _set_up_dispatcher(self):
-        return {
-            "help": (self.print_help, "Print help"),
-            "?": (self.print_help, "Print help"),
-            "revisions": (self.get_app_revisions, "Print list of available revisions")
+        table = {
+            "help": {
+                "synonyms": ["?", "h"],
+                "help": "Print help",
+                "call": self.print_help
+            },
+            "revisions": {
+                "help": "Print list of available revisions",
+                "call": self.get_app_revisions
+            }
         }
+
+        expanded_table = {}
+        for k, v in table.items():
+            for _k in [k] + v.get("synonyms", []):
+                expanded_table[_k] = v
+
+        return expanded_table, table
 
     @Slot()
     def command_entered(self):
@@ -50,7 +65,7 @@ class CommandWidget(QWidget):
 
         if cmd in self.dispatch_table:
             try:
-                response = str(self.dispatch_table[cmd][0](arguments))
+                response = str(self.dispatch_table[cmd]["call"](arguments))
             except Exception as e:
                 response = f"Command error:\n{e}"
         else:
@@ -68,7 +83,8 @@ class CommandWidget(QWidget):
         self.command_log.moveCursor(QTextCursor.End)
 
     def print_help(self, *args):
-        return "\n".join("{}\t - {}".format(k, v[1]) for k, v in self.dispatch_table.items())
+        return "\n".join("{}\t - {}".format(",".join([k] + v.get("synonyms", [])), v["help"])
+                         for k, v in self.help_table.items())
 
     def get_app_revisions(self, *args):
         return "\n".join(
