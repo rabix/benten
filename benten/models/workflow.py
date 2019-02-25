@@ -152,9 +152,14 @@ class Step:
                     sub_workflow = InvalidSub()
             else:
                 sub_process = step_doc["run"]
-                sub_workflow = InlineSub(
-                    _id=sub_process.get("id", None),
-                    path=root, inline_path=(cwl_doc.inline_path or ()) + (step_id,))
+                if isinstance(sub_process, dict):
+                    sub_workflow = InlineSub(
+                        _id=sub_process.get("id", None),
+                        path=root, inline_path=(cwl_doc.inline_path or ()) + (step_id,))
+                else:
+                    sub_process = {}
+                    wf_error_list += ["Sub workflow is empty"]
+                    sub_workflow = InvalidSub()
 
             sinks = OrderedDict([
                 (k, Port(node_id=step_id, port_id=k))
@@ -276,7 +281,7 @@ class Workflow(Base):
 
             this_step: Step = self.steps[step_id]
             # TODO: error check
-            for step_sink_id, port_doc in step_doc.get("in", {}).items():
+            for step_sink_id, port_doc in (step_doc.get("in") or {}).items():
                 sink = this_step.available_sinks.get(step_sink_id, None)
                 if sink is None:
                     self.errors += ["No such sink: {}.{}".format(this_step.id, step_sink_id)]
@@ -304,7 +309,7 @@ class Workflow(Base):
                         continue
 
         # Connections to WF outputs
-        for out_id, out_doc in cwl_dict.get("outputs", {}).items():
+        for out_id, out_doc in (cwl_dict.get("outputs") or {}).items():
             sink = self.outputs[out_id]
 
             if "outputSource" in out_doc:
@@ -352,9 +357,9 @@ class Workflow(Base):
         else:
             text_lines += ["  {}:".format(step_id)]
 
-        text_lines += ["    in:"]
+        text_lines += ["    in: {}".format("" if in_ports else "[]")]
         for inp in in_ports:
-            text_lines += ["      {}:".format(inp)]
+            text_lines += ["      {}: []".format(inp)]
         text_lines += ["    out: {}".format(out_ports)]
         text_lines += ["    run: {}\n\n".format(self.cwl_doc.get_rel_path(path))]
 

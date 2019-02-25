@@ -71,6 +71,29 @@ steps:
     assert wf.steps["in_the_songs_you_hear"].sub_workflow.id is None
 
 
+def test_parsing_malformed_step():
+    wf_with_malformed_step = """
+class: Workflow
+cwlVersion: v1.0
+id: And when a young girl doesn't have any friends
+inputs: []
+outputs: []
+steps:
+- id: That's a really nice place to go
+  in:
+  out:
+  run: 
+"""
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_with_malformed_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    cwl_doc.compute_cwl_dict()
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+
+    assert wf.steps["That's a really nice place to go"].process_type == "invalid"
+    assert wf.steps["That's a really nice place to go"].sub_workflow.id is None
+
+    assert wf.errors == ["Sub workflow is empty"]
+
+
 def test_parsing_ports_with_plain_source():
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
     cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
@@ -193,3 +216,72 @@ def test_connection_search():
                        dst=WF.Port(node_id="pass_through", port_id="pt_in2"),
                        line=None)
     assert wf.find_connection(c3) is None
+
+
+def test_add_local_step_list():
+
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc.compute_cwl_dict()
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+
+    edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/arguments.cwl"))
+
+    assert edit.start.line == 24
+    assert edit.start.column == 0
+    assert edit.end is None
+
+    lines = edit.text.splitlines()
+    assert len(lines[0]) - len(lines[0].lstrip()) == 2
+    assert lines[0].lstrip().startswith("- id:")
+
+
+def test_add_local_step_dict():
+
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc.compute_cwl_dict()
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+
+    edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/arguments.cwl"))
+
+    assert edit.start.line == 24
+    assert edit.start.column == 0
+    assert edit.end is None
+
+    lines = edit.text.splitlines()
+    assert len(lines[0]) - len(lines[0].lstrip()) == 2
+    assert lines[0].lstrip().startswith("arguments.cwl:")
+
+
+def test_add_local_step_with_id():
+
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
+    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc.compute_cwl_dict()
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+
+    edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))
+
+    lines = edit.text.splitlines()
+    assert len(lines[0]) - len(lines[0].lstrip()) == 2
+    assert lines[0].lstrip().startswith("like_a_rock:")
+
+
+def test_add_duplicate_step():
+
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
+    raw_cwl = wf_path.open("r").read()
+    cwl_doc = WF.CwlDoc(raw_cwl=raw_cwl, path=wf_path)
+    cwl_doc.compute_cwl_dict()
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+    edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))
+
+    cwl_doc = WF.CwlDoc(raw_cwl=raw_cwl + edit.text, path=wf_path)
+    cwl_doc.compute_cwl_dict()
+    wf = WF.Workflow(cwl_doc=cwl_doc)
+    edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))
+
+    lines = edit.text.splitlines()
+    assert lines[0].lstrip().startswith("like_a_rock_1:")
+    assert lines[1].lstrip() == "in: []"
