@@ -33,10 +33,20 @@ import logging
 
 from .base import Base
 from ..editing.cwldoc import CwlDoc
-from ..editing.lineloader import load_yaml
+from ..editing.lineloader import load_yaml, LAM
+from ..editing.edit import Edit, EditMark
 
 
 logger = logging.getLogger(__name__)
+
+
+# We use this for the inputs/outputs of the subprocess and we ignore ports with no "id"
+# Having no "id" is an error, but in the subworkflow, and we don't bother to report that
+def _dictify(obj: (list, dict)):
+    if isinstance(obj, dict):
+        return obj
+    else:
+        return {v.get("id"): v for v in obj if v.get("id") is not None}
 
 
 def iter_scalar_or_list(obj: (list, str)):
@@ -116,18 +126,8 @@ class Step:
     def __repr__(self):
         return str(self.available_sinks.keys()) + "->" + self.id + "->" + str(self.available_sources.keys())
 
-
-
     @classmethod
     def from_doc(cls, step_id: str, line: (int, int), cwl_doc: CwlDoc, wf_error_list: List):
-
-        # We are looking at the inputs of the subprocess and we ignore inputs with no "id"
-        # Having not "id" is an error but in the subworkflow, and we don't bother to report that
-        def _dictify(obj: (list, dict)):
-            if isinstance(obj, dict):
-                return obj
-            else:
-                return {v.get("id"): v for v in obj if v.get("id") is not None}
 
         step_doc = cwl_doc.cwl_dict["steps"][step_id]
         root = cwl_doc.path
@@ -327,3 +327,36 @@ class Workflow(Base):
                 return existing_conn.line
         else:
             return None
+
+    def add_step(self, path: pathlib.Path):
+
+        sub_process = load_yaml(path.open("r").read())
+        base_step_id = sub_process.get("id", path.name.replace("-", "_").replace(" ", "_"))
+        step_id = base_step_id
+        ctr = 1
+        while step_id in self.cwl_doc.cwl_dict["steps"]:
+            step_id = "{}_{}".format(base_step_id, str(ctr))
+            ctr += 1
+
+        in_ports = _dictify(sub_process.get("inputs", {})).keys()
+        out_ports = _dictify(sub_process.get("outputs", {})).keys()
+
+        last_step_id = self.cwl_doc.cwl_dict["steps"].keys()[-1]
+        line_to_insert = self.cwl_doc.cwl_dict["steps"][last_step_id].end.line
+
+        text_lines = []
+        as_list = isinstance(self.cwl_doc.cwl_dict["steps"], LAM)
+        if as_list:
+            text_lines += ["  - id: {}".format(step_id)]
+        else:
+            text_lines += ["  {}:".format(step_id)]
+
+        text_lines += ["    in:"]
+        for inp in in_ports:
+            text_lines += ["      {}".format(inp)]
+        text_lines += ["    out: {}".format(out_ports)]
+        text_lines += ["    run: {}".format(path.relative_to(self.cwl_doc.path))]
+
+        start = EditMark(line_to_insert, 0)
+        end = None
+        return Edit(start, end, "\n".join(text_lines))
