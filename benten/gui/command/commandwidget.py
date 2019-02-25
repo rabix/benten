@@ -45,6 +45,16 @@ class CommandWidget(QWidget):
                 "help": "Print help",
                 "call": self.print_help
             },
+            "goto": {
+                "synonyms": ["g"],
+                "help": "goto <stepid> : Goto step",
+                "call": self.goto_step
+            },
+            "list": {
+                "synonyms": ["l"],
+                "help": "list : List all steps in workflow",
+                "call": self.list_steps
+            },
             "revisions": {
                 "help": "Print list of available revisions",
                 "call": self.get_app_revisions
@@ -72,21 +82,33 @@ class CommandWidget(QWidget):
             response = "Unknown command: {}".format(cmd)
 
         self.command_line.clear()
-        self.response_received(cmd, response)
+        self.response_received(cmd, arguments, response)
 
     @Slot(str, str)
-    def response_received(self, command, response):
+    def response_received(self, command, arguments, response):
         self.command_log.moveCursor(QTextCursor.End)
-        self.command_log.insertPlainText("\n" + "$> " + command + "\n")
+        self.command_log.insertPlainText("\n" + "$> " + command + " " + " ".join(arguments) + "\n")
         self.command_log.moveCursor(QTextCursor.End)
         self.command_log.insertPlainText(response)
         self.command_log.moveCursor(QTextCursor.End)
 
-    def print_help(self, *args):
-        return "\n".join("{}\t - {}".format(",".join([k] + v.get("synonyms", [])), v["help"])
+    def print_help(self, args):
+        return "\n".join("{}\t - {}".format(", ".join([k] + v.get("synonyms", [])), v["help"])
                          for k, v in self.help_table.items())
 
-    def get_app_revisions(self, *args):
+    def list_steps(self, args):
+        if self.bw.cwl_doc.process_type() in ["CommandLineTool", "ExpressionTool"]:
+            return "This process type does not contain steps"
+
+        return "Steps:\n" + "\t\n".join(step for step in self.bw.cwl_doc.cwl_dict["steps"].keys())
+
+    def goto_step(self, args):
+        if self.bw.cwl_doc.process_type() in ["CommandLineTool", "ExpressionTool"]:
+            return "This process type does not contain steps"
+
+        return self.bw.highlight_step(args[0], focus_conn=False)
+
+    def get_app_revisions(self, args):
         return "\n".join(
             "v{}: {} - {}".format(rev["sbg:revision"], rev["sbg:revisionNotes"], rev["sbg:modifiedBy"])
             for rev in self.bw.cwl_doc.get_app_revisions())

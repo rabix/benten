@@ -246,7 +246,10 @@ class BentenWindow(QWidget):
             color = Qt.cyan
         self.populate_connection_table(info, [(color, conn)])
 
-    def highlight_step(self, info: str):
+    def highlight_step(self, info: str, focus_conn=True):
+        if info not in self.process_model.steps:
+            return "No step with id: {}".format(info)
+
         step = self.process_model.steps[info]
         logger.debug("Scroll to line {}".format(step.line[0]))
         self.code_editor.scroll_to(step.line[0])
@@ -254,7 +257,10 @@ class BentenWindow(QWidget):
         inbound_conn = [c for c in self.process_model.connections if c.dst.node_id == info]
         outbound_conn = [c for c in self.process_model.connections if c.src.node_id == info]
 
-        self.populate_connection_table(step.id, [(Qt.green, inbound_conn), (Qt.cyan, outbound_conn)])
+        self.populate_connection_table(
+            step.id, [(Qt.green, inbound_conn), (Qt.cyan, outbound_conn)], focus_conn=focus_conn)
+
+        return "Selected step with id: {}".format(info)
 
     def highlight_connection_between_nodes(self, info: tuple):
         def src_is_input(x): return x.src.node_id is None
@@ -273,7 +279,7 @@ class BentenWindow(QWidget):
         conn = [c for c in self.process_model.connections if cond1(c) and cond2(c)]
         self.populate_connection_table(str(info), [(Qt.white, conn)])
 
-    def populate_connection_table(self, title, conns: [dict]):
+    def populate_connection_table(self, title, conns: [dict], focus_conn=True):
         row, col = 0, 0
         self.conn_table.clear()
         self.conn_table.setColumnCount(1)
@@ -286,7 +292,9 @@ class BentenWindow(QWidget):
                 item.setBackgroundColor(color)
                 self.conn_table.setItem(row, col, item)
                 row += 1
-        self.utility_tab_widget.setCurrentIndex(1)  # Make sure we can see the table
+
+        if focus_conn:
+            self.utility_tab_widget.setCurrentIndex(1)  # Make sure we can see the table
 
     @Slot(int, int)
     def connection_clicked(self, row, col):
