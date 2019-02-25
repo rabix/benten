@@ -6,6 +6,9 @@ from ....editing.edit import Edit  # God, we're in deep
 
 class BentenBasic:
 
+    def scroll_to(self, zero_indexed_line_no):
+        return self.gotoBlock(zero_indexed_line_no)
+
     def set_text(self, text):
         # This attempts to preserve the editor state before and after the insert
         # from https://www.qtcentre.org/threads/13933-Restoring-cursor-position-in-QTextEdit
@@ -25,3 +28,34 @@ class BentenBasic:
         new_cursor = self.textCursor()
         new_cursor.setPosition(original_cursor_pos, QtGui.QTextCursor.MoveAnchor)
         self.setTextCursor(new_cursor)
+
+    def insert_text(self, edit: Edit):
+
+        doc = self.document()
+
+        cursor = QtGui.QTextCursor(doc)
+        cursor.clearSelection()
+
+        cursor.beginEditBlock()
+
+        if edit.start.line == doc.blockCount():
+            if edit.start.column != 0:
+                raise RuntimeError("Implementation error! File bug report with stack trace please")
+            cursor.movePosition(cursor.End)
+            cursor.insertText("\n")
+        else:
+            cursor.movePosition(cursor.Start)
+            cursor.movePosition(cursor.NextBlock, n=edit.start.line)  # blocks == lines
+            cursor.movePosition(cursor.Right, n=edit.start.column)
+
+        # todo: select start and end mode
+        if edit.end is not None:
+            raise NotImplementedError("Replace not implemented yet")
+
+        cursor.insertText(edit.text)
+
+        cursor.endEditBlock()
+
+        self.updateMargins()
+        self.setTextCursor(cursor)
+

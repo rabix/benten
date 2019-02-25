@@ -633,10 +633,6 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
  
     
     ## Misc
-
-    def scroll_to(self, zero_indexed_line_no):
-        self.gotoLine(zero_indexed_line_no + 1)
-
     
     def gotoLine(self, lineNumber):
         """ gotoLine(lineNumber)
