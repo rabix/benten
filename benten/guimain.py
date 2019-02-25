@@ -3,9 +3,10 @@ import sys
 import pathlib
 
 from PySide2.QtCore import QSettings, Slot
-from PySide2.QtGui import QCloseEvent
-from PySide2.QtWidgets import QAction, QActionGroup, QApplication, QMainWindow
+from PySide2.QtGui import QCloseEvent, QIcon
+from PySide2.QtWidgets import QAction, QActionGroup, QApplication, QMainWindow, QMessageBox
 
+from .version import __version__
 from .configuration import Configuration
 from .gui.bentenmainwidget import BentenMainWidget
 from .gui.bentenwindow import BentenWindow
@@ -56,6 +57,16 @@ class MainWindow(QMainWindow):
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.exit_app)
         file_menu.addAction(exit_action)
+
+        def _about_dialog():
+            QMessageBox.about(self, "Benten {}".format(__version__),
+                              "This is a workflow helper for "
+                              "Common Workflow Language documents.\n"
+                              "See https://github.com/rabix/benten for details.")
+
+        about_action = QAction("&About", self)
+        about_action.triggered.connect(_about_dialog)
+        file_menu.addAction(about_action)
 
         self._add_profile_menu(menu, sbg_profiles.profiles)
         self._add_cwl_menu(menu, sbg_profiles.profiles)
@@ -135,7 +146,9 @@ def main():
 
     QApplication.setDesktopSettingsAware(True)
     app = QApplication(sys.argv)
+
     app.setApplicationDisplayName("Benten")
+    app.setWindowIcon(QIcon(str(pathlib.Path(pathlib.Path(__file__).parent, "benten-icon.png"))))
 
     window = MainWindow()
     window.show()
