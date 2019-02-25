@@ -211,11 +211,9 @@ class BentenWindow(QWidget):
         pt = self.cwl_doc.process_type()
         t1 = time.time()
 
-        old_scene_rect = None
         old_transform = None
         if pt == "Workflow":
             if self.process_view.scene():  # There was a previous view which we should restore
-                old_scene_rect = self.process_view.sceneRect()
                 old_transform = self.process_view.transform()
 
             self.process_model = Workflow(cwl_doc=self.cwl_doc)
@@ -235,8 +233,7 @@ class BentenWindow(QWidget):
 
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        if old_scene_rect is not None:
-            self.process_view.setSceneRect(old_scene_rect)
+        if old_transform is not None:
             self.process_view.setTransform(old_transform)
         else:
             self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
