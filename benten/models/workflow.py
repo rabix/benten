@@ -32,28 +32,13 @@ from collections import OrderedDict
 import logging
 
 from .base import Base
+from ..editing.utils import dictify, iter_scalar_or_list
 from ..editing.cwldoc import CwlDoc
-from ..editing.lineloader import load_yaml, LAM
-from ..editing.edit import Edit, EditMark
+from ..editing.lineloader import load_yaml
+from .workfloweditmixin import WorkflowEditMixin
 
 
 logger = logging.getLogger(__name__)
-
-
-# We use this for the inputs/outputs of the subprocess and we ignore ports with no "id"
-# Having no "id" is an error, but in the subworkflow, and we don't bother to report that
-def _dictify(obj: (list, dict)):
-    if isinstance(obj, dict):
-        return obj
-    else:
-        return {v.get("id"): v for v in obj if v.get("id") is not None}
-
-
-def iter_scalar_or_list(obj: (list, str)):
-    if isinstance(obj, list):
-        return obj
-    else:
-        return [obj]
 
 
 # Not only the line number, but in the future we can type the port and do type
@@ -163,12 +148,12 @@ class Step:
 
             sinks = OrderedDict([
                 (k, Port(node_id=step_id, port_id=k))
-                for k, v in _dictify(sub_process.get("inputs", {})).items()
+                for k, v in dictify(sub_process.get("inputs", {})).items()
             ])
 
             sources = OrderedDict([
                 (k, Port(node_id=step_id, port_id=k))
-                for k, v in _dictify(sub_process.get("outputs", {})).items()
+                for k, v in dictify(sub_process.get("outputs", {})).items()
             ])
 
         return cls(_id=step_id, line=line, sinks=sinks, sources=sources,
@@ -193,7 +178,7 @@ class WFConnectionError(Exception):
     pass
 
 
-class Workflow(Base):
+class Workflow(WorkflowEditMixin, Base):
     """This object carries the raw YAML and some housekeeping datastructures"""
 
     def __init__(self, cwl_doc: CwlDoc):
@@ -333,36 +318,3 @@ class Workflow(Base):
         else:
             return None
 
-    def add_step(self, path: pathlib.Path):
-
-        sub_process = load_yaml(path.open("r").read())
-        base_step_id = sub_process.get("id", path.name.replace("-", "_").replace(" ", "_"))
-        step_id = base_step_id
-        ctr = 1
-        while step_id in self.cwl_doc.cwl_dict["steps"]:
-            step_id = "{}_{}".format(base_step_id, str(ctr))
-            ctr += 1
-
-        in_ports = list(_dictify(sub_process.get("inputs", {})).keys())
-        out_ports = list(_dictify(sub_process.get("outputs", {})).keys())
-
-        *_, last_step_id = self.cwl_doc.cwl_dict["steps"].keys()
-        line_to_insert = self.cwl_doc.cwl_dict["steps"][last_step_id].end.line
-        column_to_insert = 0
-
-        text_lines = []
-        as_list = isinstance(self.cwl_doc.cwl_dict["steps"], LAM)
-        if as_list:
-            text_lines += ["  - id: {}".format(step_id)]
-        else:
-            text_lines += ["  {}:".format(step_id)]
-
-        text_lines += ["    in: {}".format("" if in_ports else "[]")]
-        for inp in in_ports:
-            text_lines += ["      {}: []".format(inp)]
-        text_lines += ["    out: {}".format(out_ports)]
-        text_lines += ["    run: {}\n\n".format(self.cwl_doc.get_rel_path(path))]
-
-        start = EditMark(line_to_insert, column_to_insert)
-        end = None
-        return Edit(start, end, "\n".join(text_lines))
