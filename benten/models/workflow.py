@@ -338,11 +338,12 @@ class Workflow(Base):
             step_id = "{}_{}".format(base_step_id, str(ctr))
             ctr += 1
 
-        in_ports = _dictify(sub_process.get("inputs", {})).keys()
-        out_ports = _dictify(sub_process.get("outputs", {})).keys()
+        in_ports = list(_dictify(sub_process.get("inputs", {})).keys())
+        out_ports = list(_dictify(sub_process.get("outputs", {})).keys())
 
-        last_step_id = self.cwl_doc.cwl_dict["steps"].keys()[-1]
+        *_, last_step_id = self.cwl_doc.cwl_dict["steps"].keys()
         line_to_insert = self.cwl_doc.cwl_dict["steps"][last_step_id].end.line
+        column_to_insert = 0
 
         text_lines = []
         as_list = isinstance(self.cwl_doc.cwl_dict["steps"], LAM)
@@ -353,10 +354,10 @@ class Workflow(Base):
 
         text_lines += ["    in:"]
         for inp in in_ports:
-            text_lines += ["      {}".format(inp)]
+            text_lines += ["      {}:".format(inp)]
         text_lines += ["    out: {}".format(out_ports)]
-        text_lines += ["    run: {}".format(path.relative_to(self.cwl_doc.path))]
+        text_lines += ["    run: {}\n\n".format(self.cwl_doc.get_rel_path(path))]
 
-        start = EditMark(line_to_insert, 0)
+        start = EditMark(line_to_insert, column_to_insert)
         end = None
         return Edit(start, end, "\n".join(text_lines))

@@ -156,25 +156,10 @@ class BentenWindow(QWidget):
 
     @Slot()
     def programmatic_edit(self):
-        """Called when we have a programmatic edit to execute"""
-        # https://doc.qt.io/qt-5/qsignalblocker.html
-        blk = QSignalBlocker(self.code_editor)
-
-        # https://programtalk.com/python-examples/PySide2.QtGui.QTextCursor/
-        # https://www.qtcentre.org/threads/43268-Setting-Text-in-QPlainTextEdit-without-Clearing-Undo-Redo-History
-        doc = self.code_editor.document()
-        insert_cursor = QTextCursor(doc)
-        insert_cursor.select(QTextCursor.SelectionType.Document)
-        insert_cursor.insertText(self.current_programmatic_edit.raw_cwl)
-
-        # https://stackoverflow.com/questions/27036048/how-to-scroll-to-the-specified-line-in-qplaintextedit
-        final_cursor = QTextCursor(
-            doc.findBlockByLineNumber(self.current_programmatic_edit.cursor_line))
-        self.code_editor.setTextCursor(final_cursor)
-        self.code_editor.update_line_number_area_width(0)  # This is needed so that everything aligns right
-        self.code_editor.highlight_current_line()
-
+        """Called when we have executed a programmatic edit"""
+        logger.debug("Registering programmatic edit ...")
         self.update_from_code()
+        self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
 
     # This only happens when we are in focus and the code has changed
     # It is only here that we do the (semi)expensive parsing computation
@@ -325,6 +310,8 @@ class BentenWindow(QWidget):
 
     @Slot(list)
     def nodes_added(self, cwl_path_list):
+        blk = QSignalBlocker(self.code_editor)
         for p in cwl_path_list:
             edit = self.process_model.add_step(p)
-
+            self.code_editor.insert_text(edit)
+        self.programmatic_edit()

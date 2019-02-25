@@ -3,6 +3,7 @@ and manipulation. Importantly, implements logic to extract inline fragments and 
 edits of inline fragments back to main document."""
 from typing import Tuple
 import pathlib
+import os
 
 from .lineloader import parse_yaml_with_line_info, DocumentError
 
@@ -28,6 +29,9 @@ class CwlDoc:
 
     def process_type(self):
         return self.cwl_dict.get("class", "unknown")
+
+    def get_rel_path(self, sub_path: pathlib.Path):
+        return os.path.relpath(sub_path.absolute(), self.path.absolute().parent)
 
     def _get_lines_for_nested_inline_step(self, inline_path: Tuple[str, ...]):
         def _find_step(_doc_dict, _inline_path):
