@@ -14,6 +14,8 @@ A full featured code editor component based on QPlainTextEdit.
 from .manager import Manager
 from .base import CodeEditorBase
 
+from .benten.basic import BentenBasic
+
 from .extensions.appearance import (HighlightMatchingBracket,
                                     HighlightMatchingOccurrences,
                                     HighlightCurrentLine,
@@ -77,6 +79,7 @@ class CodeEditor(
 
     SmartCopyAndPaste,  # overrides cut(), copy(), paste()
 
+    BentenBasic,
     CodeEditorBase,  # CodeEditorBase must be the last one in the list
 
 ):
