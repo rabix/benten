@@ -20,10 +20,6 @@ color_code = {
 }
 
 
-# We assume no one will give these ids to any step
-res_input_id = "##input##"
-res_output_id = "##output##"
-
 
 class WorkflowScene(ProcessScene):
     def __init__(self, parent):
@@ -38,14 +34,14 @@ class WorkflowScene(ProcessScene):
     def create_scene(self):
         G = pgv.AGraph(directed=True)
 
-        G.add_node(res_input_id)
+        G.add_node(Workflow.res_id("inputs"))
         G.add_nodes_from(self.workflow.steps)
-        G.add_node(res_output_id)
+        G.add_node(Workflow.res_id("outputs"))
 
         G.add_edges_from([
             (
-                e.src.node_id or res_input_id,
-                e.dst.node_id or res_output_id
+                e.src.node_id or Workflow.res_id("inputs"),
+                e.dst.node_id or Workflow.res_id("outputs")
             )
             for e in self.workflow.connections
         ])
@@ -53,11 +49,11 @@ class WorkflowScene(ProcessScene):
         G.layout("dot")
 
         graph = {
-            res_input_id: {
+            Workflow.res_id("inputs"): {
                 "type": "inputs",
                 "label": "Input"
             },
-            res_output_id: {
+            Workflow.res_id("outputs"): {
                 "type": "outputs",
                 "label": "Output"
             }

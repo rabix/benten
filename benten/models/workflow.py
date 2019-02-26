@@ -184,19 +184,10 @@ class Workflow(WorkflowEditMixin, Base):
     def __init__(self, cwl_doc: CwlDoc):
         super().__init__(cwl_doc=cwl_doc)
 
-        cwl_dict = self.cwl_doc.cwl_dict
-
-        self.section_lines = {}
-
         required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]
-        for sec in required_sections:
-            if sec not in cwl_dict:
-                self.errors += ["'{}' missing".format(sec)]
-            elif sec == "inputs":
-                self.section_lines["inputs"] = (cwl_dict["inputs"].start.line, cwl_dict["inputs"].end.line)
-            elif sec == "outputs":
-                self.section_lines["outputs"] = (cwl_dict["outputs"].start.line, cwl_dict["outputs"].end.line)
+        self.parse_sections(required_sections)
 
+        cwl_dict = self.cwl_doc.cwl_dict
         self.inputs = self._parse_ports(cwl_dict.get("inputs", {}))
         self.outputs = self._parse_ports(cwl_dict.get("outputs", {}))
 
