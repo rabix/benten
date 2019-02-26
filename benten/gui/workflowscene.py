@@ -20,10 +20,32 @@ color_code = {
 }
 
 
+class WFNodeItem(QGraphicsEllipseItem):
+    def __init__(self, *args, node_size=30, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.node_size = node_size
+        self.normal_brush = QBrush(kwargs.get("brush"))
+        self.selected_brush = QBrush(self.normal_brush.color(), Qt.NoBrush)
+
+    def set_normal_brush(self, normal: QBrush):
+        self.normal_brush = normal
+        color = normal.color()
+        color.setAlpha(125)
+        self.selected_brush = QBrush(color)
+
+    def paint(self, *args, **kwargs):
+        if self.isSelected():
+            self.setBrush(self.selected_brush)
+        else:
+            self.setBrush(self.normal_brush)
+        super(WFNodeItem, self).paint(*args, **kwargs)
+
+
 class WorkflowScene(ProcessScene):
     def __init__(self, parent):
         super().__init__(parent)
         self.workflow = None
+        self.node_size = 30
         self.label_overlay = None
 
     def set_workflow(self, wf: Workflow):
@@ -88,17 +110,20 @@ class WorkflowScene(ProcessScene):
             ln.setPen(pen)
             ln.setData(0, (e[0], e[1]))
 
-        node_size = 30
         for k, v in graph.items():
 
             p = v["pos"]
 
             if v["type"] in ["inputs", "outputs"]:
-                item = QGraphicsEllipseItem(p[0] - node_size, p[1] - node_size/2, 2 * node_size, node_size)
+                item = WFNodeItem(p[0] - self.node_size, p[1] - self.node_size / 2,
+                                  2 * self.node_size, self.node_size,
+                                  node_size=self.node_size)
             else:
-                item = QGraphicsEllipseItem(p[0] - node_size/2, p[1] - node_size/2, node_size, node_size)
+                item = WFNodeItem(p[0] - self.node_size / 2, p[1] - self.node_size / 2,
+                                  self.node_size, self.node_size,
+                                  node_size=self.node_size)
 
-            item.setBrush(QBrush(color_code.get(v["type"], "white")))
+            item.set_normal_brush(QBrush(color_code.get(v["type"], "white")))
             item.setToolTip(v["label"])
             item.setFlag(QGraphicsItem.ItemIsSelectable, True)
             item.setData(0, k)
@@ -112,7 +137,7 @@ class WorkflowScene(ProcessScene):
                 txt = self.addText(v["label"])
                 txt.setPos(p[0] - txt.boundingRect().width()/2, p[1] - txt.boundingRect().height()/2)
 
-        self.create_overlay(graph, node_size)
+        self.create_overlay(graph, self.node_size)
 
     def create_overlay(self, graph, node_size):
         self.label_overlay = QGraphicsSimpleTextItem()
