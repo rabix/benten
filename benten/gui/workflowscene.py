@@ -5,7 +5,7 @@ from PySide2.QtGui import QBrush, QFont, QPen
 from PySide2.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsSimpleTextItem
 
 from .processscene import ProcessScene
-from ..models.workflow import Workflow, Step
+from ..models.workflow import Workflow, Step, special_id_for_inputs, special_id_for_outputs
 from ..sbg.versionmixin import get_app_info
 
 
@@ -18,7 +18,6 @@ color_code = {
     "Workflow": Qt.blue,
     "invalid": Qt.white
 }
-
 
 
 class WorkflowScene(ProcessScene):
@@ -34,14 +33,14 @@ class WorkflowScene(ProcessScene):
     def create_scene(self):
         G = pgv.AGraph(directed=True)
 
-        G.add_node(Workflow.res_id("inputs"))
+        G.add_node(special_id_for_inputs)
         G.add_nodes_from(self.workflow.steps)
-        G.add_node(Workflow.res_id("outputs"))
+        G.add_node(special_id_for_outputs)
 
         G.add_edges_from([
             (
-                e.src.node_id or Workflow.res_id("inputs"),
-                e.dst.node_id or Workflow.res_id("outputs")
+                e.src.node_id or special_id_for_inputs,
+                e.dst.node_id or special_id_for_outputs
             )
             for e in self.workflow.connections
         ])
@@ -49,11 +48,11 @@ class WorkflowScene(ProcessScene):
         G.layout("dot")
 
         graph = {
-            Workflow.res_id("inputs"): {
+            special_id_for_inputs: {
                 "type": "inputs",
                 "label": "Input"
             },
-            Workflow.res_id("outputs"): {
+            special_id_for_outputs: {
                 "type": "outputs",
                 "label": "Output"
             }

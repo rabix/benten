@@ -31,7 +31,7 @@ import pathlib
 from collections import OrderedDict
 import logging
 
-from .base import Base
+from .base import Base, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
 from ..editing.utils import dictify, iter_scalar_or_list
 from ..editing.cwldoc import CwlDoc
 from ..editing.lineloader import load_yaml
@@ -308,4 +308,3 @@ class Workflow(WorkflowEditMixin, Base):
                 return existing_conn.line
         else:
             return None
-

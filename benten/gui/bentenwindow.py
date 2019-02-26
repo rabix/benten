@@ -18,7 +18,7 @@ from .workflowscene import WorkflowScene
 from ..sbg.sbgcwldoc import SBGCwlDoc
 from ..models.unk import Unk
 from ..models.tool import Tool
-from ..models.workflow import Workflow
+from ..models.workflow import Workflow, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
 
 import logging
 
@@ -254,7 +254,7 @@ class BentenWindow(QWidget):
                 self.highlight_connection_between_nodes(info)
 
     def highlight(self, info: str):
-        if info in [Workflow.res_id("inputs"), Workflow.res_id("outputs")]:
+        if info in special_ids_for_io:
             self.highlight_workflow_io(info)
         elif info in self.process_model.section_lines:
             self.code_editor.scroll_to(self.process_model.section_lines[info][0].line)
@@ -265,7 +265,7 @@ class BentenWindow(QWidget):
         sec = self.process_model.section_lines.get(info)
         if sec is not None:
             self.code_editor.scroll_to(sec[0].line)
-            if info == Workflow.res_id("inputs"):
+            if info == special_id_for_inputs:
                 conn = [c for c in self.process_model.connections if c.src.node_id is None]
                 color = Qt.green
             else:
@@ -338,7 +338,7 @@ class BentenWindow(QWidget):
             return
 
         steps = [self.process_model.steps[item.data(0)] for item in items
-                 if item.data(0) not in [Workflow.res_id("inputs"), Workflow.res_id("outputs")]
+                 if item.data(0) not in special_ids_for_io
                  and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
