@@ -13,7 +13,7 @@ from .processview import ProcessView
 from .command.commandwidget import CommandWidget
 from .unkscene import UnkScene
 from .toolscene import ToolScene
-from .workflowscene import WorkflowScene, res_input_id, res_output_id
+from .workflowscene import WorkflowScene
 
 from ..sbg.sbgcwldoc import SBGCwlDoc
 from ..models.unk import Unk
@@ -87,7 +87,7 @@ class BentenWindow(QWidget):
 
     def _setup_navbar(self):
         navbar = QComboBox()
-        navbar.activated[str].connect(self.highlight_step)
+        navbar.activated[str].connect(self.highlight)
         return navbar
 
     def _setup_utility_tab(self):
@@ -213,9 +213,6 @@ class BentenWindow(QWidget):
             scene.double_click.connect(self.something_double_clicked)
             scene.set_workflow(self.process_model)
 
-            self.navbar.clear()
-            self.navbar.insertItems(0, list(self.cwl_doc.cwl_dict["steps"].keys()))
-
             if self.process_model.errors:
                 logger.warning(self.process_model.errors)
         elif pt in ["CommandLineTool", "ExpressionTool"]:
@@ -226,6 +223,7 @@ class BentenWindow(QWidget):
             self.process_model = Unk(cwl_doc=self.cwl_doc)
             scene = UnkScene(self)
 
+        self._update_navbar()
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         if old_transform is not None:
@@ -238,21 +236,33 @@ class BentenWindow(QWidget):
         logger.debug("Parsed workflow in {}s ({} bytes) ".format(t1 - t0, len(modified_cwl)))
         logger.debug("Displayed workflow in {}s".format(t2 - t1))
 
+    def _update_navbar(self):
+        self.navbar.clear()
+        if isinstance(self.process_model, Workflow):
+            self.navbar.insertItems(0, sorted(self.process_model.steps.keys()))
+            self.navbar.insertSeparator(0)
+        self.navbar.insertItems(0, list(self.process_model.section_lines.keys()))
+
     @Slot()
     def something_selected(self):
         items = self.process_view.scene().selectedItems()
         if len(items) == 1:
             info = items[0].data(0)
             if isinstance(info, str):
-                if info in [res_input_id, res_output_id]:
-                    self.highlight_workflow_io(info)
-                else:
-                    self.highlight_step(info)
+                self.highlight(info)
             elif isinstance(info, tuple):
                 self.highlight_connection_between_nodes(info)
 
+    def highlight(self, info: str):
+        if info in [Workflow.res_id("input"), Workflow.res_id("output")]:
+            self.highlight_workflow_io(info)
+        elif info in self.process_model.section_lines:
+            self.code_editor.scroll_to(self.process_model.section_lines[info][0].line)
+        else:
+            self.highlight_step(info)
+
     def highlight_workflow_io(self, info: str):
-        if info == res_input_id:
+        if info == Workflow.res_id("input"):
             if "inputs" in self.process_model.section_lines:
                 self.code_editor.scroll_to(self.process_model.section_lines["inputs"][0])
             conn = [c for c in self.process_model.connections if c.src.node_id is None]
@@ -329,7 +339,8 @@ class BentenWindow(QWidget):
             return
 
         steps = [self.process_model.steps[item.data(0)] for item in items
-                 if item.data(0) not in [res_input_id, res_output_id] and isinstance(item.data(0), str)]
+                 if item.data(0) not in [Workflow.res_id("inputs"), Workflow.res_id("outputs")]
+                 and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
             self.scene_double_clicked.emit(steps)

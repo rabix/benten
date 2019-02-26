@@ -82,5 +82,3 @@ class CwlDoc:
 
         self.cwl_lines = self.cwl_lines[:start_line] + new_lines + self.cwl_lines[end_line:]
         return "".join(self.cwl_lines)
-
-

@@ -1,6 +1,10 @@
-from .base import Base
+from .base import Base, CwlDoc
 
 
 class Tool(Base):
-    """In the future, this might scroll to components, or test expressions ..."""
-    pass
+
+    def __init__(self, cwl_doc: CwlDoc):
+        super().__init__(cwl_doc=cwl_doc)
+
+        required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]
+        self.parse_sections(required_sections)
