@@ -4,8 +4,8 @@ or a part of a CWL file, like an in-lined step."""
 import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
-from PySide2.QtWidgets import QHBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget
+from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
+    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox
 from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 from .codeeditor.editor import CodeEditor
@@ -64,6 +64,7 @@ class BentenWindow(QWidget):
         self.bmw = benten_main_window
 
         self.code_editor: CodeEditor = self._setup_code_editor()
+        self.navbar = self._setup_navbar()
         self.process_view: ProcessView = ProcessView(None)
         self.utility_tab_widget, self.command_window, self.conn_table \
             = self._setup_utility_tab()
@@ -83,6 +84,11 @@ class BentenWindow(QWidget):
         ce.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
         ce.textChanged.connect(self.user_still_typing)
         return ce
+
+    def _setup_navbar(self):
+        navbar = QComboBox()
+        navbar.activated[str].connect(self.highlight_step)
+        return navbar
 
     def _setup_utility_tab(self):
         utility_tab_widget = QTabWidget()
@@ -109,10 +115,18 @@ class BentenWindow(QWidget):
         left_pane.setStretchFactor(0, 3)
         left_pane.setStretchFactor(1, 1)
 
+        right_pane = QVBoxLayout()
+        right_pane.addWidget(self.navbar)
+        right_pane.addWidget(self.code_editor)
+        right_pane.setMargin(0)
+        right_pane.setSpacing(0)
+        _right_pane = QWidget()
+        _right_pane.setLayout(right_pane)
+
         main_pane = QSplitter(self)
         main_pane.setHandleWidth(1)
         main_pane.addWidget(left_pane)
-        main_pane.addWidget(self.code_editor)
+        main_pane.addWidget(_right_pane)
         main_pane.setStretchFactor(0, 5)
         main_pane.setStretchFactor(1, 3)
 
@@ -198,6 +212,10 @@ class BentenWindow(QWidget):
             scene.nodes_added.connect(self.nodes_added)
             scene.double_click.connect(self.something_double_clicked)
             scene.set_workflow(self.process_model)
+
+            self.navbar.clear()
+            self.navbar.insertItems(0, list(self.cwl_doc.cwl_dict["steps"].keys()))
+
             if self.process_model.errors:
                 logger.warning(self.process_model.errors)
         elif pt in ["CommandLineTool", "ExpressionTool"]:
