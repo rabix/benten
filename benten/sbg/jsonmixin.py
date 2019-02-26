@@ -1,22 +1,7 @@
 """Load a JSON file, strip out insessential SBG tags and convert it into YAML. Change the
 base file name if needed."""
+from .utils import _strip_sbg_tags
 from ..editing.lineloader import yaml, Loader, ParserError, DocumentError
-
-
-def _strip_sbg_tags(node):
-    if isinstance(node, dict):
-        return {
-            k: _strip_sbg_tags(v)
-            for k, v in node.items()
-            if k[:4] != "sbg:"
-        }
-    elif isinstance(node, list):
-        return [
-            _strip_sbg_tags(n)
-            for n in node
-        ]
-    else:
-        return node
 
 
 def import_json(raw_json, strip_sbg_tags=True):
