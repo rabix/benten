@@ -1,4 +1,6 @@
+import shutil
 import os
+import pathlib
 import pytest
 
 from benten.configuration import Configuration
@@ -27,6 +29,8 @@ auth_token   = 362736035870515331128527330659
 [a bad profile]
 """
 
+test_dir = "./benten-test-config"
+
 
 def setup():
     with open(test_credential_file_name, "w") as f:
@@ -35,10 +39,11 @@ def setup():
 
 def teardown():
     os.remove(test_credential_file_name)
+    shutil.rmtree(pathlib.Path(test_dir), ignore_errors=True)
 
 
 def test_basic(monkeypatch):
-    monkeypatch.setitem(os.environ, "XDG_CONFIG_HOME", "./benten-test-config")
+    monkeypatch.setitem(os.environ, "XDG_CONFIG_HOME", test_dir)
 
     config = Configuration()
     config["sbg"]["credentials_file"] = "does-not-exist"
