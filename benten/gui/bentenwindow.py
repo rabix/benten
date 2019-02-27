@@ -300,8 +300,8 @@ class BentenWindow(QWidget):
 
         id1, id2 = info
 
-        cond1 = src_is_input if id1 == res_input_id else src_is_node
-        cond2 = dst_is_output if id2 == res_output_id else dst_is_node
+        cond1 = src_is_input if id1 == special_id_for_inputs else src_is_node
+        cond2 = dst_is_output if id2 == special_id_for_outputs else dst_is_node
 
         conn = [c for c in self.process_model.connections if cond1(c) and cond2(c)]
         self.populate_connection_table(str(info), [(Qt.white, conn)])
