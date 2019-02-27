@@ -1,0 +1,10 @@
+class: Workflow
+cwlVersion: v1.0
+doc: ''
+id: test
+label: test
+inputs: []
+outputs: []
+steps: []
+requirements: []
+hints: []

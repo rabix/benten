@@ -24,15 +24,20 @@ def test_basic(monkeypatch):
     monkeypatch.setitem(os.environ, "XDG_CONFIG_HOME", test_dir)
     monkeypatch.setitem(os.environ, "XDG_DATA_HOME", test_dir)
 
-    # test creation of config dirs and default file
+    # test creation of config dirs and default files
     config = Configuration()
 
     assert "files" in config.sections()
     assert "autosave" in config["files"]
 
-    # test saving and loading of existing file
-    config["files"]["autosave"] = "False"
-    config.save()
+    assert config.getpath("cwl", "template_dir") == \
+           pathlib.Path(test_dir, "sevenbridges", "benten", "cwl-templates")
 
-    config.load()
-    assert not config.getboolean("files", "autosave")
+
+def test_template_copying(monkeypatch):
+    monkeypatch.setitem(os.environ, "XDG_CONFIG_HOME", test_dir)
+    monkeypatch.setitem(os.environ, "XDG_DATA_HOME", test_dir)
+
+    config = Configuration()
+
+    assert config.getpath("cwl", "template_dir").exists()

@@ -1,0 +1,10 @@
+class: CommandLineTool
+cwlVersion: v1.0
+doc: ''
+id: test
+label: test
+inputs: []
+outputs: []
+baseCommand: ''
+hints: []
+requirements: []

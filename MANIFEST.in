@@ -1,1 +1,2 @@
 include benten/gui/benten-icon.png
+recursive-include benten/000.package.data *

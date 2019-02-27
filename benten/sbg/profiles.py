@@ -4,7 +4,7 @@ import pathlib
 import sevenbridges as sbg
 
 from ..version import __version__
-from ..configuration import Configuration, configparser, default_credentials_file
+from ..configuration import Configuration, configparser
 
 
 class ProfileError(Exception):
@@ -17,8 +17,7 @@ class Profiles:
         self.config = config
 
         self.profile_parser: configparser.ConfigParser = configparser.ConfigParser()
-        self.credentials_file = pathlib.Path(
-            self.config.get("sbg", "credentials_file", fallback=str(default_credentials_file)))
+        self.credentials_file = self.config.getpath("sbg", "credentials_file")
 
         self.profiles = []
 

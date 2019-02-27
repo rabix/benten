@@ -7,7 +7,10 @@ from benten.configuration import Configuration
 from benten.sbg.profiles import Profiles, ProfileError
 
 
-test_credential_file_name = "my_credential_file"
+test_dir = pathlib.Path("benten-test-config")
+
+test_credential_fname = "my_credential_file"
+test_credential_path = pathlib.Path(test_dir, "sevenbridges", "benten", test_credential_fname)
 sample_credentials_file = \
 """
 [default]
@@ -29,21 +32,19 @@ auth_token   = 362736035870515331128527330659
 [a bad profile]
 """
 
-test_dir = "./benten-test-config"
-
 
 def setup():
-    with open(test_credential_file_name, "w") as f:
-        f.write(sample_credentials_file)
+    os.makedirs(test_credential_path.parent, exist_ok=True)
+    test_credential_path.open("w").write(sample_credentials_file)
 
 
 def teardown():
-    os.remove(test_credential_file_name)
+    os.remove(test_credential_path)
     shutil.rmtree(pathlib.Path(test_dir), ignore_errors=True)
 
 
 def test_basic(monkeypatch):
-    monkeypatch.setitem(os.environ, "XDG_CONFIG_HOME", test_dir)
+    monkeypatch.setitem(os.environ, "XDG_CONFIG_HOME", str(test_dir))
 
     config = Configuration()
     config["sbg"]["credentials_file"] = "does-not-exist"
@@ -51,7 +52,7 @@ def test_basic(monkeypatch):
 
     assert prof.profiles == []
 
-    config["sbg"]["credentials_file"] = test_credential_file_name
+    config["sbg"]["credentials_file"] = test_credential_fname
     prof = Profiles(config=config)
 
     assert prof.profiles == ["default", "cgc", "cavatica", "f4c", "a bad profile"]
