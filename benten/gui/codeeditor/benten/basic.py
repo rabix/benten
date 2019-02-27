@@ -48,9 +48,13 @@ class BentenBasic:
             cursor.movePosition(cursor.NextBlock, n=edit.start.line)  # blocks == lines
             cursor.movePosition(cursor.Right, n=edit.start.column)
 
-        # todo: select start and end mode
         if edit.end is not None:
-            raise NotImplementedError("Replace not implemented yet")
+            delta_line = edit.end.line - edit.start.line
+            delta_col = edit.end.column - edit.start.column
+            if delta_line > 0:
+                cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor, n=delta_line)
+            else:
+                cursor.movePosition(cursor.Right, cursor.KeepAnchor, n=delta_col)
 
         cursor.insertText(edit.text)
 
