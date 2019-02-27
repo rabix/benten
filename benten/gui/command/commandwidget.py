@@ -5,8 +5,8 @@ The command is echoed and the response printed below. The latest command is on t
 """
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QVBoxLayout, QLineEdit, QTextEdit, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QAction, QFontDialog
-from PySide2.QtGui import QTextCursor, QPainter, QFont
+    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QAction, QFontDialog, QCompleter
+from PySide2.QtGui import QTextCursor, QFont
 
 
 class CommandWidget(QWidget):
@@ -44,6 +44,11 @@ class CommandWidget(QWidget):
                 "synonyms": ["?", "h"],
                 "help": "Print help",
                 "call": self.print_help
+            },
+            "create": {
+                "help": "create <clt|et|wf> : When in an empty document, create a scaffold for CommandLineTool, "
+                        "ExpressionTool or Workflow",
+                "call": self.bw.create_scaffold
             },
             "goto": {
                 "synonyms": ["g"],
