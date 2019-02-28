@@ -151,16 +151,8 @@ The configuration file is found under `$XDG_CONFIG_HOME/sevenbridges/benten/conf
 (If `$XDG_CONFIG_HOME` is not set, `$HOME/.config/sevenbridges/benten/` is used)
 
 On first startup benten will create a default configuration file for you. The configuration
-file is in the `.ini` format and is fairly self-explanatory:
-
-```
-[files]
-autosave = True
-autoload = False
-
-[sbg]
-credentials_file = /Users/kghose/.sevenbridges/credentials
-```
+file is in the `.ini` format and is fairly self-explanatory. The default file can be
+found [here](https://github.com/rabix/benten/tree/master/benten/000.package.data/config.ini)
 
 ## Logs
 Log files are found under `$XDG_DATA_HOME/sevenbridges/benten/`

@@ -13,19 +13,40 @@ class WorkflowEditMixin:
         base_step_id = sub_process.get("id", path.name.replace("-", "_").replace(" ", "_"))
         step_id = base_step_id
         ctr = 1
-        while step_id in self.cwl_doc.cwl_dict["steps"]:
+        while step_id in self.cwl_doc.cwl_dict.get("steps", {}):
             step_id = "{}_{}".format(base_step_id, str(ctr))
             ctr += 1
 
         in_ports = list(dictify(sub_process.get("inputs", {})).keys())
         out_ports = list(dictify(sub_process.get("outputs", {})).keys())
-
-        *_, last_step_id = self.cwl_doc.cwl_dict["steps"].keys()
-        line_to_insert = self.cwl_doc.cwl_dict["steps"][last_step_id].end.line
-        column_to_insert = 0
+        end = None # Usually we just insert the text, but there is an edge case ...
 
         text_lines = []
-        as_list = isinstance(self.cwl_doc.cwl_dict["steps"], LAM)
+        as_list = isinstance(self.cwl_doc.cwl_dict.get("steps"), LAM)
+
+        # Quick surgery for docs with no steps or empty steps
+        if "steps" not in self.cwl_doc.cwl_dict:
+            # No step field
+            text_lines += ["steps:"]
+            as_list = False
+            line_to_insert = self.cwl_doc.cwl_dict.end.line
+            column_to_insert = 0
+        elif len(self.cwl_doc.cwl_dict["steps"]) == 0:
+            # Tricky, steps is empty
+            text_lines += ["steps:"]
+            as_list = False
+            line_to_insert = self.cwl_doc.cwl_dict["steps"].start.line
+            column_to_insert = 0 # self.cwl_doc.cwl_dict["steps"].end.column
+
+            # This is the edge case - we need to replace the entire, empty steps field
+            select_end_line = self.cwl_doc.cwl_dict["steps"].end.line
+            select_end_column = self.cwl_doc.cwl_dict["steps"].end.column
+            end = EditMark(select_end_line, select_end_column)
+        else:
+            *_, last_step_id = self.cwl_doc.cwl_dict["steps"].keys()
+            line_to_insert = self.cwl_doc.cwl_dict["steps"][last_step_id].end.line
+            column_to_insert = 0
+
         if as_list:
             text_lines += ["  - id: {}".format(step_id)]
         else:
@@ -38,5 +59,4 @@ class WorkflowEditMixin:
         text_lines += ["    run: {}\n\n".format(self.cwl_doc.get_rel_path(path))]
 
         start = EditMark(line_to_insert, column_to_insert)
-        end = None
         return Edit(start, end, "\n".join(text_lines))

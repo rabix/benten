@@ -11,7 +11,8 @@ class Base:
         self.errors = []
 
     @staticmethod
-    def res_id(name):
+    def special_id(name):
+        """We distinguish this from a step id and try and avoid name clashes"""
         return "- {} -".format(name)
 
     def parse_sections(self, required_sections: list):
@@ -21,7 +22,7 @@ class Base:
             if section in required_sections:
                 required_sections.remove(section)
             try:
-                self.section_lines[Base.res_id(section)] = \
+                self.section_lines[Base.special_id(section)] = \
                     (cwl_dict[section].start, cwl_dict[section].end)
             # todo: enhance YAML loader to construct ints, floats etc.
             except AttributeError:
@@ -30,3 +31,9 @@ class Base:
         if len(required_sections):
             for missing_section in required_sections:
                 self.errors += ["'{}' missing".format(missing_section)]
+
+
+# Some patterns we use a lot
+special_id_for_inputs = Base.special_id("inputs")
+special_id_for_outputs = Base.special_id("outputs")
+special_ids_for_io = [special_id_for_inputs, special_id_for_outputs]

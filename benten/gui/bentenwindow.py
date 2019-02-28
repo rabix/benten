@@ -1,12 +1,14 @@
 """Provides a view into a CWL component, like a workflow. The view can be of a whole CWL file
 or a part of a CWL file, like an in-lined step."""
-
+import pathlib
 import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
     QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox
 from PySide2.QtGui import QTextCursor, QPainter, QFont
+
+from ..editing.edit import Edit, EditMark
 
 from .codeeditor.editor import CodeEditor
 from .processview import ProcessView
@@ -18,7 +20,7 @@ from .workflowscene import WorkflowScene
 from ..sbg.sbgcwldoc import SBGCwlDoc
 from ..models.unk import Unk
 from ..models.tool import Tool
-from ..models.workflow import Workflow
+from ..models.workflow import Workflow, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
 
 import logging
 
@@ -165,13 +167,15 @@ class BentenWindow(QWidget):
     def manual_edit(self):
         """Called when the user is done with their burst of typing, or we switch away from this tab"""
         logger.debug("Registering manual edit ...")
-        self.update_from_code()
-        self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
+        self._register_edit()
 
     @Slot()
     def programmatic_edit(self):
         """Called when we have executed a programmatic edit"""
         logger.debug("Registering programmatic edit ...")
+        self._register_edit()
+
+    def _register_edit(self):
         self.update_from_code()
         self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
 
@@ -254,7 +258,7 @@ class BentenWindow(QWidget):
                 self.highlight_connection_between_nodes(info)
 
     def highlight(self, info: str):
-        if info in [Workflow.res_id("input"), Workflow.res_id("output")]:
+        if info in special_ids_for_io:
             self.highlight_workflow_io(info)
         elif info in self.process_model.section_lines:
             self.code_editor.scroll_to(self.process_model.section_lines[info][0].line)
@@ -262,17 +266,16 @@ class BentenWindow(QWidget):
             self.highlight_step(info)
 
     def highlight_workflow_io(self, info: str):
-        if info == Workflow.res_id("input"):
-            if "inputs" in self.process_model.section_lines:
-                self.code_editor.scroll_to(self.process_model.section_lines["inputs"][0])
-            conn = [c for c in self.process_model.connections if c.src.node_id is None]
-            color = Qt.green
-        else:
-            if "outputs" in self.process_model.section_lines:
-                self.code_editor.scroll_to(self.process_model.section_lines["outputs"][0])
-            conn = [c for c in self.process_model.connections if c.dst.node_id is None]
-            color = Qt.cyan
-        self.populate_connection_table(info, [(color, conn)])
+        sec = self.process_model.section_lines.get(info)
+        if sec is not None:
+            self.code_editor.scroll_to(sec[0].line)
+            if info == special_id_for_inputs:
+                conn = [c for c in self.process_model.connections if c.src.node_id is None]
+                color = Qt.green
+            else:
+                conn = [c for c in self.process_model.connections if c.dst.node_id is None]
+                color = Qt.cyan
+            self.populate_connection_table(info, [(color, conn)])
 
     def highlight_step(self, info: str, focus_conn=True):
         if info not in self.process_model.steps:
@@ -301,8 +304,8 @@ class BentenWindow(QWidget):
 
         id1, id2 = info
 
-        cond1 = src_is_input if id1 == res_input_id else src_is_node
-        cond2 = dst_is_output if id2 == res_output_id else dst_is_node
+        cond1 = src_is_input if id1 == special_id_for_inputs else src_is_node
+        cond2 = dst_is_output if id2 == special_id_for_outputs else dst_is_node
 
         conn = [c for c in self.process_model.connections if cond1(c) and cond2(c)]
         self.populate_connection_table(str(info), [(Qt.white, conn)])
@@ -339,7 +342,7 @@ class BentenWindow(QWidget):
             return
 
         steps = [self.process_model.steps[item.data(0)] for item in items
-                 if item.data(0) not in [Workflow.res_id("inputs"), Workflow.res_id("outputs")]
+                 if item.data(0) not in special_ids_for_io
                  and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
@@ -352,3 +355,26 @@ class BentenWindow(QWidget):
             edit = self.process_model.add_step(p)
             self.code_editor.insert_text(edit)
         self.programmatic_edit()
+
+    def create_scaffold(self, args):
+        if self.cwl_doc.raw_cwl:
+            return "Document not empty, will not create scaffold"
+
+        arg = args[0] if isinstance(args, list) else args
+
+        choices = {
+            "clt": "command-line-tool.cwl",
+            "et": "expression-tool.cwl",
+            "wf": "workflow.cwl"
+        }
+        scaffold_path = pathlib.Path(self.bmw.config.getpath("cwl", "template_dir"),
+                                     choices.get(arg, "doesnotexist"))
+
+        if scaffold_path.exists():
+            edit = Edit(start=EditMark(line=0, column=0), end=None,
+                        text=scaffold_path.open("r").read())
+            self.code_editor.insert_text(edit)
+            self.programmatic_edit()
+            return "Added scaffold from file {}".format(scaffold_path)
+        else:
+            return "No scaffold for process type {}. Valid arguments are {}".format(arg, list(choices.keys()))
