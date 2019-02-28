@@ -99,3 +99,10 @@ class VersionMixin:
         else:
             most_recent_app = self.api.apps.get(id=self.app_info.get_app_base_path())
             return most_recent_app.raw["sbg:revisionsInfo"]
+
+    def mark_as_locally_edited(self, flag):
+        if self.app_info is None:
+            return None
+
+        self.app_info.local_edits = flag
+        return self.app_info.get_id_str()
