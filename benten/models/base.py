@@ -6,9 +6,9 @@ class Base:
 
     def __init__(self, cwl_doc: CwlDoc):
         self.cwl_doc = cwl_doc or {}
-        self.id = self.cwl_doc.cwl_dict.get("id", None)
+        self.id = (self.cwl_doc.cwl_dict or {}).get("id", None)
         self.section_lines = {}
-        self.errors = []
+        self.cwl_errors = []
 
     @staticmethod
     def special_id(name):
@@ -30,7 +30,7 @@ class Base:
 
         if len(required_sections):
             for missing_section in required_sections:
-                self.errors += ["'{}' missing".format(missing_section)]
+                self.cwl_errors += ["'{}' missing".format(missing_section)]
 
 
 # Some patterns we use a lot

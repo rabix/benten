@@ -10,12 +10,24 @@ from benten.editing.lineloader import \
 current_path = pathlib.Path(__file__).parent
 
 
-def test_load_malformed():
+def test_load_malformed_parse():
     with pytest.raises(DocumentError) as e:
         _ = parse_yaml_with_line_info(raw_cwl="id: [")
 
     assert e.value.line == 1    # Gotta figure out why PyYaml thinks this is line 2
     assert e.value.column == 0
+
+
+def test_load_malformed_scan():
+    with pytest.raises(DocumentError) as e:
+        _ = parse_yaml_with_line_info(raw_cwl=\
+"""
+key:
+    missing colon
+    another key:""")
+
+    assert e.value.line == 3
+    assert e.value.column == 15
 
 
 def test_basic_load():

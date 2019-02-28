@@ -5,7 +5,7 @@ import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox
+    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox, QLabel
 from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 from ..editing.edit import Edit, EditMark
@@ -67,6 +67,7 @@ class BentenWindow(QWidget):
 
         self.code_editor: CodeEditor = self._setup_code_editor()
         self.navbar = self._setup_navbar()
+        self.yaml_error_banner = self._setup_yaml_banner()
         self.process_view: ProcessView = ProcessView(None)
         self.utility_tab_widget, self.command_window, self.conn_table \
             = self._setup_utility_tab()
@@ -77,7 +78,7 @@ class BentenWindow(QWidget):
 
         self.cwl_doc: SBGCwlDoc = None
         self.step_id = None
-        self.process_model: (Workflow,) = None
+        self.process_model: (Unk, Tool, Workflow) = None
 
         self.is_active_window = False
 
@@ -91,6 +92,12 @@ class BentenWindow(QWidget):
         navbar = QComboBox()
         navbar.activated[str].connect(self.highlight)
         return navbar
+
+    def _setup_yaml_banner(self):
+        banner = QLabel("Document has YAML errors")
+        banner.setStyleSheet("QLabel { background-color : red; color : white; }")
+        banner.setVisible(False)
+        return banner
 
     def _setup_utility_tab(self):
         utility_tab_widget = QTabWidget()
@@ -118,6 +125,7 @@ class BentenWindow(QWidget):
         left_pane.setStretchFactor(1, 1)
 
         right_pane = QVBoxLayout()
+        right_pane.addWidget(self.yaml_error_banner)
         right_pane.addWidget(self.navbar)
         right_pane.addWidget(self.code_editor)
         right_pane.setMargin(0)
@@ -188,19 +196,7 @@ class BentenWindow(QWidget):
             # Defer updating until we can be seen
             return
 
-        modified_cwl = self.code_editor.toPlainText()
-        if self.process_model is not None:
-            if self.process_model.cwl_doc.raw_cwl == modified_cwl:
-                logger.debug("Update asked for, but code hasn't changed.")
-                return
-
-        t0 = time.time()
-
-        self.cwl_doc = SBGCwlDoc(raw_cwl=modified_cwl,
-                                 path=self.cwl_doc.path,
-                                 inline_path=self.cwl_doc.inline_path,
-                                 api=self.bmw.api)
-        self.cwl_doc.compute_cwl_dict()
+        self.update_process_model_from_code()
 
         pt = self.cwl_doc.process_type()
         t1 = time.time()
@@ -209,25 +205,20 @@ class BentenWindow(QWidget):
         if pt == "Workflow":
             if self.process_view.scene():  # There was a previous view which we should restore
                 old_transform = self.process_view.transform()
-
-            self.process_model = Workflow(cwl_doc=self.cwl_doc)
             scene = WorkflowScene(self)
             scene.selectionChanged.connect(self.something_selected)
             scene.nodes_added.connect(self.nodes_added)
             scene.double_click.connect(self.something_double_clicked)
             scene.set_workflow(self.process_model)
-
-            if self.process_model.errors:
-                logger.warning(self.process_model.errors)
         elif pt in ["CommandLineTool", "ExpressionTool"]:
-            self.process_model = Tool(cwl_doc=self.cwl_doc)
             scene = ToolScene(self)
             scene.set_tool(self.process_model)
         else:
-            self.process_model = Unk(cwl_doc=self.cwl_doc)
             scene = UnkScene(self)
 
         self._update_navbar()
+        self._update_yaml_error_banner()
+
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         if old_transform is not None:
@@ -236,9 +227,49 @@ class BentenWindow(QWidget):
             self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
 
         t2 = time.time()
-
-        logger.debug("Parsed workflow in {}s ({} bytes) ".format(t1 - t0, len(modified_cwl)))
         logger.debug("Displayed workflow in {}s".format(t2 - t1))
+
+    # We refactored this out of update_from_code() because some chain edits
+    # need us to recompute the process model (for proper formatting of subsequent edits)
+    # but we don't want to waste time drawing each time - we can do that at the end
+    def update_process_model_from_code(self):
+        modified_cwl = self.code_editor.toPlainText()
+        if self.process_model is not None:
+            if self.process_model.cwl_doc.raw_cwl == modified_cwl:
+                logger.debug("Update asked for, but code hasn't changed.")
+                return
+
+        t0 = time.time()
+
+        try:
+            last_known_good_dict = self.cwl_doc.cwl_dict or {}
+        except AttributeError:
+            last_known_good_dict = {}
+
+        self.cwl_doc = SBGCwlDoc(raw_cwl=modified_cwl,
+                                 path=self.cwl_doc.path,
+                                 inline_path=self.cwl_doc.inline_path,
+                                 api=self.bmw.api)
+        self.cwl_doc.compute_cwl_dict()
+
+        if len(self.cwl_doc.yaml_error):
+            # Ok, these are fatal errors, leaving us in an un-parsable state. The best we
+            # can do is set the dict to the last known state
+            logger.error("YAML parsing error! Putting dict in last known good state")
+            self.cwl_doc.cwl_dict = last_known_good_dict
+            # This puts us in an invalid state, so we should be careful
+
+        pt = self.cwl_doc.process_type()
+        if pt == "Workflow":
+            self.process_model = Workflow(cwl_doc=self.cwl_doc)
+            if self.process_model.cwl_errors:
+                logger.warning(self.process_model.cwl_errors)
+        elif pt in ["CommandLineTool", "ExpressionTool"]:
+            self.process_model = Tool(cwl_doc=self.cwl_doc)
+        else:
+            self.process_model = Unk(cwl_doc=self.cwl_doc)
+
+        logger.debug("Parsed workflow in {}s ({} bytes) ".format(time.time() - t0, len(modified_cwl)))
 
     def _update_navbar(self):
         self.navbar.clear()
@@ -246,6 +277,9 @@ class BentenWindow(QWidget):
             self.navbar.insertItems(0, sorted(self.process_model.steps.keys()))
             self.navbar.insertSeparator(0)
         self.navbar.insertItems(0, list(self.process_model.section_lines.keys()))
+
+    def _update_yaml_error_banner(self):
+        self.yaml_error_banner.setVisible(self.cwl_doc.is_invalid())
 
     @Slot()
     def something_selected(self):
@@ -352,8 +386,8 @@ class BentenWindow(QWidget):
     def nodes_added(self, cwl_path_list):
         blk = QSignalBlocker(self.code_editor)
         for p in cwl_path_list:
-            edit = self.process_model.add_step(p)
-            self.code_editor.insert_text(edit)
+            self.update_process_model_from_code()
+            self.code_editor.insert_text(self.process_model.add_step(p))
         self.programmatic_edit()
 
     def create_scaffold(self, args):

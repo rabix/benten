@@ -29,34 +29,43 @@ class WorkflowEditMixin:
             # No step field
             text_lines += ["steps:"]
             as_list = False
+
             line_to_insert = self.cwl_doc.cwl_dict.end.line
             column_to_insert = 0
+            indent = 2 * " "
+
         elif len(self.cwl_doc.cwl_dict["steps"]) == 0:
             # Tricky, steps is empty
             text_lines += ["steps:"]
             as_list = False
+
             line_to_insert = self.cwl_doc.cwl_dict["steps"].start.line
             column_to_insert = 0 # self.cwl_doc.cwl_dict["steps"].end.column
+            indent = 2 * " "
 
             # This is the edge case - we need to replace the entire, empty steps field
             select_end_line = self.cwl_doc.cwl_dict["steps"].end.line
             select_end_column = self.cwl_doc.cwl_dict["steps"].end.column
             end = EditMark(select_end_line, select_end_column)
+
         else:
             *_, last_step_id = self.cwl_doc.cwl_dict["steps"].keys()
+
             line_to_insert = self.cwl_doc.cwl_dict["steps"][last_step_id].end.line
             column_to_insert = 0
+            step_line = self.cwl_doc.cwl_lines[self.cwl_doc.cwl_dict["steps"].start.line]
+            indent = (len(step_line) - len(step_line.lstrip())) * " "
 
         if as_list:
-            text_lines += ["  - id: {}".format(step_id)]
+            text_lines += [indent + "- id: {}".format(step_id)]
         else:
-            text_lines += ["  {}:".format(step_id)]
+            text_lines += [indent + "{}:".format(step_id)]
 
-        text_lines += ["    in: {}".format("" if in_ports else "[]")]
+        text_lines += [indent + "  in: {}".format("" if in_ports else "[]")]
         for inp in in_ports:
-            text_lines += ["      {}: []".format(inp)]
-        text_lines += ["    out: {}".format(out_ports)]
-        text_lines += ["    run: {}\n\n".format(self.cwl_doc.get_rel_path(path))]
+            text_lines += [indent + "    {}: []".format(inp)]
+        text_lines += [indent + "  out: {}".format(out_ports)]
+        text_lines += [indent + "  run: {}\n\n".format(self.cwl_doc.get_rel_path(path))]
 
         start = EditMark(line_to_insert, column_to_insert)
         return Edit(start, end, "\n".join(text_lines))

@@ -18,6 +18,12 @@ class CwlDoc:
         self.cwl_dict = None
         self.yaml_error = [yaml_error] if yaml_error else []
 
+    def is_invalid(self):
+        # We can't possibly have parsed the CWL if we had errors at the YAML level.
+        # This is meant for "last known good state" use cases. A client should use
+        # this to lockout certain interactions
+        return len(self.yaml_error) and self.cwl_dict is not None
+
     # I want to be conscious and in control of when this (semi)expensive computation is being done
     # But I'd don't want to accidentally do it twice
     def compute_cwl_dict(self):
@@ -69,10 +75,16 @@ class CwlDoc:
         return "".join(lines)
 
     def get_nested_inline_step(self, inline_path: Tuple[str, ...]):
+        if self.is_invalid():
+            raise RuntimeError("Can't do edits on invalid document")
+
         return CwlDoc(raw_cwl=self.get_raw_cwl_of_nested_inline_step(inline_path),
                       path=self.path, inline_path=inline_path)
 
     def get_raw_cwl_of_base_after_nested_edit(self, inline_path: Tuple[str, ...], new_cwl: str):
+        if self.is_invalid():
+            raise RuntimeError("Can't do edits on invalid document")
+
         start_line, end_line, indent_level = self._get_lines_for_nested_inline_step(inline_path)
 
         new_lines = [((' '*indent_level) if len(l) > 1 else "") + l
