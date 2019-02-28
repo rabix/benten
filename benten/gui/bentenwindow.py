@@ -78,7 +78,7 @@ class BentenWindow(QWidget):
 
         self.cwl_doc: SBGCwlDoc = None
         self.step_id = None
-        self.process_model: (Workflow,) = None
+        self.process_model: (Unk, Tool, Workflow) = None
 
         self.is_active_window = False
 
@@ -196,6 +196,43 @@ class BentenWindow(QWidget):
             # Defer updating until we can be seen
             return
 
+        self.update_process_model_from_code()
+
+        pt = self.cwl_doc.process_type()
+        t1 = time.time()
+
+        old_transform = None
+        if pt == "Workflow":
+            if self.process_view.scene():  # There was a previous view which we should restore
+                old_transform = self.process_view.transform()
+            scene = WorkflowScene(self)
+            scene.selectionChanged.connect(self.something_selected)
+            scene.nodes_added.connect(self.nodes_added)
+            scene.double_click.connect(self.something_double_clicked)
+            scene.set_workflow(self.process_model)
+        elif pt in ["CommandLineTool", "ExpressionTool"]:
+            scene = ToolScene(self)
+            scene.set_tool(self.process_model)
+        else:
+            scene = UnkScene(self)
+
+        self._update_navbar()
+        self._update_yaml_error_banner()
+
+        self.process_view.setScene(scene)
+        self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        if old_transform is not None:
+            self.process_view.setTransform(old_transform)
+        else:
+            self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
+
+        t2 = time.time()
+        logger.debug("Displayed workflow in {}s".format(t2 - t1))
+
+    # We refactored this out of update_from_code() because some chain edits
+    # need us to recompute the process model (for proper formatting of subsequent edits)
+    # but we don't want to waste time drawing each time - we can do that at the end
+    def update_process_model_from_code(self):
         modified_cwl = self.code_editor.toPlainText()
         if self.process_model is not None:
             if self.process_model.cwl_doc.raw_cwl == modified_cwl:
@@ -223,44 +260,16 @@ class BentenWindow(QWidget):
             # This puts us in an invalid state, so we should be careful
 
         pt = self.cwl_doc.process_type()
-        t1 = time.time()
-
-        old_transform = None
         if pt == "Workflow":
-            if self.process_view.scene():  # There was a previous view which we should restore
-                old_transform = self.process_view.transform()
-
             self.process_model = Workflow(cwl_doc=self.cwl_doc)
-            scene = WorkflowScene(self)
-            scene.selectionChanged.connect(self.something_selected)
-            scene.nodes_added.connect(self.nodes_added)
-            scene.double_click.connect(self.something_double_clicked)
-            scene.set_workflow(self.process_model)
-
             if self.process_model.cwl_errors:
                 logger.warning(self.process_model.cwl_errors)
         elif pt in ["CommandLineTool", "ExpressionTool"]:
             self.process_model = Tool(cwl_doc=self.cwl_doc)
-            scene = ToolScene(self)
-            scene.set_tool(self.process_model)
         else:
             self.process_model = Unk(cwl_doc=self.cwl_doc)
-            scene = UnkScene(self)
 
-        self._update_navbar()
-        self._update_yaml_error_banner()
-
-        self.process_view.setScene(scene)
-        self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        if old_transform is not None:
-            self.process_view.setTransform(old_transform)
-        else:
-            self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
-
-        t2 = time.time()
-
-        logger.debug("Parsed workflow in {}s ({} bytes) ".format(t1 - t0, len(modified_cwl)))
-        logger.debug("Displayed workflow in {}s".format(t2 - t1))
+        logger.debug("Parsed workflow in {}s ({} bytes) ".format(time.time() - t0, len(modified_cwl)))
 
     def _update_navbar(self):
         self.navbar.clear()
@@ -377,8 +386,8 @@ class BentenWindow(QWidget):
     def nodes_added(self, cwl_path_list):
         blk = QSignalBlocker(self.code_editor)
         for p in cwl_path_list:
-            edit = self.process_model.add_step(p)
-            self.code_editor.insert_text(edit)
+            self.update_process_model_from_code()
+            self.code_editor.insert_text(self.process_model.add_step(p))
         self.programmatic_edit()
 
     def create_scaffold(self, args):
