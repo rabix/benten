@@ -91,7 +91,7 @@ steps:
     assert wf.steps["That's a really nice place to go"].process_type == "invalid"
     assert wf.steps["That's a really nice place to go"].sub_workflow.id is None
 
-    assert wf.errors == ["Sub workflow is empty"]
+    assert wf.cwl_errors == ["Sub workflow is empty"]
 
 
 def test_parsing_ports_with_plain_source():

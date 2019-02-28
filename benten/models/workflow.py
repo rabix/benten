@@ -194,7 +194,7 @@ class Workflow(WorkflowEditMixin, Base):
         self.steps = OrderedDict(
             (k, Step.from_doc(
                 step_id=k, line=(v.start.line, v.end.line), cwl_doc=cwl_doc,
-                wf_error_list=self.errors))
+                wf_error_list=self.cwl_errors))
             for k, v in cwl_dict.get("steps", {}).items()
         )
 
@@ -252,7 +252,7 @@ class Workflow(WorkflowEditMixin, Base):
         # Connections into steps
         for step_id, step_doc in cwl_dict.get("steps", {}).items():
             if not isinstance(step_doc, dict):
-                self.errors += ["Invalid step: {}".format(step_id)]
+                self.cwl_errors += ["Invalid step: {}".format(step_id)]
                 continue
 
             this_step: Step = self.steps[step_id]
@@ -260,7 +260,7 @@ class Workflow(WorkflowEditMixin, Base):
             for step_sink_id, port_doc in (step_doc.get("in") or {}).items():
                 sink = this_step.available_sinks.get(step_sink_id, None)
                 if sink is None:
-                    self.errors += ["No such sink: {}.{}".format(this_step.id, step_sink_id)]
+                    self.cwl_errors += ["No such sink: {}.{}".format(this_step.id, step_sink_id)]
                     continue
 
                 if isinstance(port_doc, (str, list)):
@@ -272,7 +272,7 @@ class Workflow(WorkflowEditMixin, Base):
                         # Ignore default values for now
                         continue
                 else:
-                    self.errors += ["Can't parse source for {}.{}".format(this_step, step_sink_id)]
+                    self.cwl_errors += ["Can't parse source for {}.{}".format(this_step, step_sink_id)]
                     continue
 
                 for _src in iter_scalar_or_list(port_src):
@@ -281,7 +281,7 @@ class Workflow(WorkflowEditMixin, Base):
                         source = self._get_source(_src)
                         connections.append(Connection(source, sink, (_src.start.line, _src.end.line)))
                     except WFConnectionError as e:
-                        self.errors += ["{}.{}: {}".format(this_step, step_sink_id, e)]
+                        self.cwl_errors += ["{}.{}: {}".format(this_step, step_sink_id, e)]
                         continue
 
         # Connections to WF outputs
@@ -296,7 +296,7 @@ class Workflow(WorkflowEditMixin, Base):
                         source = self._get_source(_src)
                         connections.append(Connection(source, sink, (_src.start.line, _src.end.line)))
                     except WFConnectionError as e:
-                        self.errors += ["{}: {}".format(sink.port_id, e)]
+                        self.cwl_errors += ["{}: {}".format(sink.port_id, e)]
                         continue
 
         return connections

@@ -5,7 +5,7 @@ import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox
+    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox, QLabel
 from PySide2.QtGui import QTextCursor, QPainter, QFont
 
 from ..editing.edit import Edit, EditMark
@@ -67,6 +67,7 @@ class BentenWindow(QWidget):
 
         self.code_editor: CodeEditor = self._setup_code_editor()
         self.navbar = self._setup_navbar()
+        self.yaml_error_banner = self._setup_yaml_banner()
         self.process_view: ProcessView = ProcessView(None)
         self.utility_tab_widget, self.command_window, self.conn_table \
             = self._setup_utility_tab()
@@ -91,6 +92,12 @@ class BentenWindow(QWidget):
         navbar = QComboBox()
         navbar.activated[str].connect(self.highlight)
         return navbar
+
+    def _setup_yaml_banner(self):
+        banner = QLabel("Document has YAML errors")
+        banner.setStyleSheet("QLabel { background-color : red; color : white; }")
+        banner.setVisible(False)
+        return banner
 
     def _setup_utility_tab(self):
         utility_tab_widget = QTabWidget()
@@ -118,6 +125,7 @@ class BentenWindow(QWidget):
         left_pane.setStretchFactor(1, 1)
 
         right_pane = QVBoxLayout()
+        right_pane.addWidget(self.yaml_error_banner)
         right_pane.addWidget(self.navbar)
         right_pane.addWidget(self.code_editor)
         right_pane.setMargin(0)
@@ -196,11 +204,23 @@ class BentenWindow(QWidget):
 
         t0 = time.time()
 
+        try:
+            last_known_good_dict = self.cwl_doc.cwl_dict or {}
+        except AttributeError:
+            last_known_good_dict = {}
+
         self.cwl_doc = SBGCwlDoc(raw_cwl=modified_cwl,
                                  path=self.cwl_doc.path,
                                  inline_path=self.cwl_doc.inline_path,
                                  api=self.bmw.api)
         self.cwl_doc.compute_cwl_dict()
+
+        if len(self.cwl_doc.yaml_error):
+            # Ok, these are fatal errors, leaving us in an un-parsable state. The best we
+            # can do is set the dict to the last known state
+            logger.error("YAML parsing error! Putting dict in last known good state")
+            self.cwl_doc.cwl_dict = last_known_good_dict
+            # This puts us in an invalid state, so we should be careful
 
         pt = self.cwl_doc.process_type()
         t1 = time.time()
@@ -217,8 +237,8 @@ class BentenWindow(QWidget):
             scene.double_click.connect(self.something_double_clicked)
             scene.set_workflow(self.process_model)
 
-            if self.process_model.errors:
-                logger.warning(self.process_model.errors)
+            if self.process_model.cwl_errors:
+                logger.warning(self.process_model.cwl_errors)
         elif pt in ["CommandLineTool", "ExpressionTool"]:
             self.process_model = Tool(cwl_doc=self.cwl_doc)
             scene = ToolScene(self)
@@ -228,6 +248,8 @@ class BentenWindow(QWidget):
             scene = UnkScene(self)
 
         self._update_navbar()
+        self._update_yaml_error_banner()
+
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         if old_transform is not None:
@@ -246,6 +268,9 @@ class BentenWindow(QWidget):
             self.navbar.insertItems(0, sorted(self.process_model.steps.keys()))
             self.navbar.insertSeparator(0)
         self.navbar.insertItems(0, list(self.process_model.section_lines.keys()))
+
+    def _update_yaml_error_banner(self):
+        self.yaml_error_banner.setVisible(self.cwl_doc.is_invalid())
 
     @Slot()
     def something_selected(self):
