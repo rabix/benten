@@ -39,7 +39,7 @@ for the editing we need to do in CWL docs. We can extend as needed
 from typing import Union, List
 
 import yaml
-from yaml.parser import ParserError
+from yaml.parser import ParserError, ScannerError
 try:
     from yaml import CSafeLoader as Loader
 except ImportError:
@@ -204,7 +204,7 @@ class DocumentError(Exception):
 def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False):
     try:
         return _recurse_extract_meta(yaml.load(raw_cwl, YSafeLineLoader), convert_to_lam=convert_to_lam)
-    except ParserError as e:
+    except (ParserError, ScannerError) as e:
         raise DocumentError(e.problem_mark.line, e.problem_mark.column, str(e))
 
 
