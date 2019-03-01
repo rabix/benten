@@ -13,8 +13,6 @@ from ..editing.edit import Edit, EditMark
 from .codeeditor.editor import CodeEditor
 from .processview import ProcessView
 from .command.commandwidget import CommandWidget
-from .unkscene import UnkScene
-from .toolscene import ToolScene
 from .workflowscene import WorkflowScene
 
 from ..sbg.sbgcwldoc import SBGCwlDoc
@@ -93,7 +91,8 @@ class BentenWindow(QWidget):
         navbar.activated[str].connect(self.highlight)
         return navbar
 
-    def _setup_yaml_banner(self):
+    @staticmethod
+    def _setup_yaml_banner():
         banner = QLabel("Document has YAML errors")
         banner.setStyleSheet("QLabel { background-color : red; color : white; }")
         banner.setVisible(False)
@@ -111,7 +110,6 @@ class BentenWindow(QWidget):
         conn_table.cellClicked.connect(self.connection_clicked)
 
         utility_tab_widget.addTab(command_window, "CMD")
-        utility_tab_widget.addTab(conn_table, "Connections")
 
         return utility_tab_widget, command_window, conn_table
 
@@ -201,23 +199,28 @@ class BentenWindow(QWidget):
         pt = self.cwl_doc.process_type()
         t1 = time.time()
 
-        old_transform = None
         if pt == "Workflow":
-            if self.process_view.scene():  # There was a previous view which we should restore
-                old_transform = self.process_view.transform()
-            scene = WorkflowScene(self)
-            scene.selectionChanged.connect(self.something_selected)
-            scene.nodes_added.connect(self.nodes_added)
-            scene.double_click.connect(self.something_double_clicked)
-            scene.set_workflow(self.process_model)
+            self.configure_as_workflow()
         elif pt in ["CommandLineTool", "ExpressionTool"]:
-            scene = ToolScene(self)
-            scene.set_tool(self.process_model)
+            self.configure_as_tool()
         else:
-            scene = UnkScene(self)
+            self.configure_as_unknown()
 
         self._update_navbar()
         self._update_yaml_error_banner()
+
+        t2 = time.time()
+        logger.debug("Displayed workflow in {}s".format(t2 - t1))
+
+    def configure_as_workflow(self):
+        old_transform = None
+        if self.process_view.scene():  # There was a previous view which we should restore
+            old_transform = self.process_view.transform()
+        scene = WorkflowScene(self)
+        scene.selectionChanged.connect(self.something_selected)
+        scene.nodes_added.connect(self.nodes_added)
+        scene.double_click.connect(self.something_double_clicked)
+        scene.set_workflow(self.process_model)
 
         self.process_view.setScene(scene)
         self.process_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
@@ -225,9 +228,20 @@ class BentenWindow(QWidget):
             self.process_view.setTransform(old_transform)
         else:
             self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
+        self.process_view.setVisible(True)
+        self.conn_table.setVisible(True)
+        if self.utility_tab_widget.count() == 1:
+            self.utility_tab_widget.addTab(self.conn_table, "Connections")
 
-        t2 = time.time()
-        logger.debug("Displayed workflow in {}s".format(t2 - t1))
+    def configure_as_tool(self):
+        self.process_view.setVisible(False)
+        if self.utility_tab_widget.count() == 2:
+            self.utility_tab_widget.removeTab(1)
+
+    def configure_as_unknown(self):
+        self.process_view.setVisible(False)
+        if self.utility_tab_widget.count() == 2:
+            self.utility_tab_widget.removeTab(1)
 
     # We refactored this out of update_from_code() because some chain edits
     # need us to recompute the process model (for proper formatting of subsequent edits)
