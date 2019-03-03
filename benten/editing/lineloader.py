@@ -36,7 +36,7 @@ In [9]: %timeit data = yaml.load(cwl, CSafeLoader)
 For now, this code only puts in meta information in lists, seq and strings. This is sufficient
 for the editing we need to do in CWL docs. We can extend as needed
 """
-from typing import Union, List
+from typing import Tuple, Union, List
 
 import yaml
 from yaml.parser import ParserError, ScannerError
@@ -165,7 +165,6 @@ class YSafeLineLoader(Loader):
 
     # The SafeLoader always passes str to this
     def construct_scalar(self, node):
-        # return y_construct(super(YSafeLineLoader, self).construct_scalar(node), node)
         return Ystr(super(YSafeLineLoader, self).construct_scalar(node), node)
 
     def construct_mapping(self, node, deep=False):
@@ -208,23 +207,23 @@ def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False):
         raise DocumentError(e.problem_mark.line, e.problem_mark.column, str(e))
 
 
-def lookup(doc: Union[Ydict, Ylist], path: List[Union[str, int]]):
+def lookup(doc: Union[Ydict, Ylist], path: Tuple[Union[str, int]]):
     if len(path) > 1:
         return lookup(doc[path[0]], path[1:])
     else:
         return doc[path[0]]
 
 
-def reverse_lookup(line, col, doc: Union[Ydict, Ylist], path: List[Union[str, int]]=[]):
+def reverse_lookup(line, col, doc: Union[Ydict, Ylist], path: Tuple[Union[str, int]]=()):
     """Not as expensive as you'd think ... """
     values = doc.items() if isinstance(doc, dict) else enumerate(doc)
     for k, v in values:
         if v.start.line <= line <= v.end.line:
             if v.start.line != v.end.line or v.start.column <= col <= v.end.column:
                 if not isinstance(v, Ydict) and not isinstance(v, Ylist):
-                    return path + [k], v
+                    return path + (k,), v
                 else:
-                    return reverse_lookup(line, col, v, path + [k])
+                    return reverse_lookup(line, col, v, path + (k,))
 
 
 def coordinates(v):
