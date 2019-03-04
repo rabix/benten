@@ -79,10 +79,11 @@ class CwlProcess(CwlDoc):
         self.child_views: Dict[Tuple[Union[str, int], ...], CwlDoc] = {}
 
     # There are two ways to create a view
-    # a) Load it from a file on disk, creating a parent view (which is independent of this view)
+    # a) Load it from a file on disk, creating a parent view
     @staticmethod
     def create_from_file(path: pathlib.Path) -> 'CwlProcess':
         view = CwlProcess()
+        view.view_type = ViewType.Process
         view.raw_cwl = path.resolve().open("r").read()
         view.last_saved_raw_cwl = view.raw_cwl
         view.cwl_lines = view.raw_cwl.splitlines(keepends=True)
@@ -92,9 +93,10 @@ class CwlProcess(CwlDoc):
     # b) Create it as a view into a parent document -> child view
 
     # Either from a document position
-    def create_child_view_from_cursor(self, line, column) -> CwlDoc:
-        inline_path, _ = reverse_lookup(line, column, self.cwl_dict)
-        return self.create_child_view_from_path((self.inline_path or ()) + inline_path)
+    # def create_child_view_from_cursor(self, line, column) -> CwlDoc:
+    #     self.compute_cwl_dict()
+    #     inline_path, _ = reverse_lookup(line, column, self.cwl_dict)
+    #     return self.create_child_view_from_path((self.inline_path or ()) + inline_path)
 
     # Or from a path
     def create_child_view_from_path(
@@ -109,12 +111,22 @@ class CwlProcess(CwlDoc):
         if self.is_invalid():
             raise LockedDueToYAMLErrors()
 
-        view = CwlProcess()
-        view.raw_cwl = self._raw_cwl_from_inline_path(inline_path)
-        view.last_saved_raw_cwl = view.raw_cwl
-        view.cwl_lines = view.raw_cwl.splitlines(keepends=True)
+        raw_cwl, view_type = self._raw_cwl_from_inline_path(inline_path)
+        if view_type == ViewType.Process:
+            view = CwlProcess()
+            view.last_saved_raw_cwl = view.raw_cwl
+            view.cwl_lines = raw_cwl.splitlines(keepends=True)
+        else:
+            view = CwlDoc()
+
+        view.raw_cwl, view.view_type = raw_cwl, view_type
         view.path = self.path
-        view.inline_path = self.inline_path
+        view.inline_path = inline_path
+
+        view.parent_view = self
+        self.child_views[inline_path] = view
+
+        return view
 
     def is_invalid(self):
         return self.yaml_error is not None
@@ -165,19 +177,28 @@ class CwlProcess(CwlDoc):
         self.last_saved_raw_cwl = self.raw_cwl
         self.propagate_edits()
 
-    def synchronize_edit(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None) -> Edit:
-        super().synchronize_edit(raw_cwl, inline_path)
+    def get_edit_from_new_text(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None) -> Edit:
+        if inline_path is None:
+            inline_path = self.inline_path
 
-        return self._apply_edits_to_base_document(raw_cwl, inline_path)
+        if self.parent_view is not None:
+            return self.parent_view.get_edit_from_new_text(raw_cwl, inline_path)
+        else:
+            return self._get_edit_projected_to_base_document(raw_cwl, inline_path)
+
+    def set_raw_cwl(self, raw_cwl):
+        self.raw_cwl = raw_cwl
+        self.cwl_dict = None
 
     def propagate_edits(self):
-        super().propagate_edits()
+        if self.parent_view is not None:
+            self.parent_view.propagate_edits()
 
         self.cwl_lines = self.raw_cwl.splitlines(keepends=True)
         if len(self.child_views):
             self.compute_cwl_dict()
             for cv in self.child_views.values():
-                cv.raw_cwl = self._raw_cwl_from_inline_path(cv.inline_path)
+                cv.raw_cwl, cv.view_type = self._raw_cwl_from_inline_path(cv.inline_path)
                 if isinstance(cv, CwlProcess):
                     cv.cwl_lines = cv.raw_cwl.splitlines(keepends=True)
 
@@ -197,14 +218,6 @@ class CwlProcess(CwlDoc):
             return
 
         self.last_known_good_dict = self.cwl_dict
-        if self.view_type in [ViewType.Expression, ViewType.Doc]:
-            return
-
-        self.view_type = {
-            "CommandLineTool": ViewType.CommandLineTool,
-            "ExpressionTool": ViewType.ExpressionTool,
-            "Workflow": ViewType.Workflow
-        }.get(self.cwl_dict.get("class"), ViewType.UnknownTool)
 
     def type(self):
         return {
@@ -218,22 +231,25 @@ class CwlProcess(CwlDoc):
     # Implementation details ...
     #
 
-    def _raw_cwl_from_inline_path(self, inline_path):
+    def _raw_cwl_from_inline_path(self, inline_path) -> (CwlDoc, ViewType):
         value = lookup(self.cwl_dict, inline_path)
+        inferred_type = ViewType.Doc
 
         start_line, end_line = value.start.line, value.end.line
         sl = start_line
         indent_level = len(self.cwl_lines[sl]) - len(self.cwl_lines[sl].lstrip())
 
         if isinstance(value, Ydict):  # Currently, sole use case is in steps
+            inferred_type = ViewType.Process
             if value.flow_style:
                 if value == {}:
-                    return ""
+                    return "", inferred_type
                 else:
                     raise UnableToCreateView("Flow style elements can not be edited in a view")
-        elif isinstance(value, Ystr):  # Flow style expressions and documentation
+        elif isinstance(value, Ystr):  # Single line expressions and documentation
+            # todo: check for expressions
             if value.style == "":
-                return value
+                return value, inferred_type
 
         lines_we_need = self.cwl_lines[start_line:end_line]
         lines = [
@@ -242,9 +258,9 @@ class CwlProcess(CwlDoc):
         ]
         # All lines with text have the given indent level or more, so they are not an issue
         # Blank lines, however, can be zero length, hence the exception.
-        return "".join(lines)
+        return "".join(lines), inferred_type
 
-    def _apply_edits_to_base_document(
+    def _get_edit_projected_to_base_document(
             self, new_cwl: str, inline_path: Tuple[Union[str, int], ...]=None) -> Union[Edit, None]:
         original_value = lookup(self.cwl_dict, inline_path)
 
@@ -271,13 +287,13 @@ class CwlProcess(CwlDoc):
                 text_lines += "|-"
                 indent_level += 2
 
-        text_lines += [((' '*indent_level) if len(l) > 1 else "") + l
-                       for l in new_cwl.splitlines(keepends=True)]
-        # All lines with text have the given indent level or more, so they are not an issue
-        # Blank lines, however, can be zero length, hence the exception.
+        text_lines += [((' '*indent_level) if len(l) > 1 and n > 0 else "") + l
+                       for n, l in enumerate(new_cwl.splitlines(keepends=True))]
+        # 1. First line should have no indent - the cursor position takes care of that
+        # 2. All lines with text have the given indent level or more, so they are not an issue
+        #    Blank lines, however, can be zero length, hence the exception.
 
-        return Edit(start, end, "\n".join(text_lines))
+        return Edit(start, end, "".join(text_lines))
         # Notice that we haven't changed the contents of the doc, just created an Edit object
         # It is up to the GUI part to now take this edit, apply it to the base document and
         # then chain these to all the children.
-

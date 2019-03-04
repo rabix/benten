@@ -4,12 +4,12 @@ inputs:
   inp: File
   ex: string
 
-aaaaaa
 
 outputs:
   classout:
     type: File
     outputSource: compile/classfile
+
 
 steps:
   untar:
@@ -24,3 +24,8 @@ steps:
     in:
       src: untar/example_out
     out: [classfile]
+
+  # This is a YAML error
+  error:
+    in
+      src: untar/example_out

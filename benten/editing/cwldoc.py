@@ -38,9 +38,11 @@ class CwlDoc:
         self.inline_path = None
         self.view_type = None
 
-    def synchronize_edit(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
-        if self.parent_view is not None:
-            return self.parent_view.synchronize_edit(raw_cwl, (self.inline_path or ()) + inline_path)
+    def get_edit_from_new_text(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
+        if inline_path is None:
+            inline_path = self.inline_path
+        return self.parent_view.get_edit_from_new_text(raw_cwl, inline_path)
+        # It is an error for this type not to have a parent_view
 
     def get_rel_path(self, sub_path: pathlib.Path):
         """Path relative to this document e.g. for linked steps"""
