@@ -58,7 +58,7 @@ class BentenWindow(QWidget):
     scene_double_clicked = Signal(object)
     edit_registered = Signal(object)
 
-    def __init__(self, benten_main_window):
+    def __init__(self, cwl_doc, benten_main_window):
         QWidget.__init__(self)
 
         self.bmw = benten_main_window
@@ -74,7 +74,9 @@ class BentenWindow(QWidget):
         self.manual_edit_throttler = ManualEditThrottler()
         self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
 
-        self.cwl_doc: SBGCwlDoc = None
+        self.cwl_doc = cwl_doc
+        self.code_editor.set_text(self.cwl_doc.raw_cwl)
+
         self.step_id = None
         self.process_model: (Unk, Tool, Workflow) = None
 
@@ -145,11 +147,11 @@ class BentenWindow(QWidget):
         layout.addWidget(main_pane)
         self.setLayout(layout)
 
-    def set_document(self, cwl_doc):
-        # This registers as a manual edit but we wish to skip the throttler
-        blk = QSignalBlocker(self.code_editor)
-        self.cwl_doc = cwl_doc
-        self.code_editor.set_text(self.cwl_doc.raw_cwl)
+    # def set_document(self, cwl_doc):
+    #     # This registers as a manual edit but we wish to skip the throttler
+    #     blk = QSignalBlocker(self.code_editor)
+    #     self.cwl_doc = cwl_doc
+    #     self.code_editor.set_text(self.cwl_doc.raw_cwl)
 
     def set_active_window(self):
         """To be called whenever we switch tabs to this window. """
@@ -196,7 +198,7 @@ class BentenWindow(QWidget):
 
         self.update_process_model_from_code()
 
-        pt = self.cwl_doc.process_type()
+        pt = self.cwl_doc.type()
         t1 = time.time()
 
         if pt == "Workflow":
@@ -260,10 +262,12 @@ class BentenWindow(QWidget):
         except AttributeError:
             last_known_good_dict = {}
 
-        self.cwl_doc = SBGCwlDoc(raw_cwl=modified_cwl,
-                                 path=self.cwl_doc.path,
-                                 inline_path=self.cwl_doc.inline_path,
-                                 api=self.bmw.api)
+        self.cwl_doc.set_raw_cwl(modified_cwl)
+
+        # self.cwl_doc = SBGCwlDoc(raw_cwl=modified_cwl,
+        #                          path=self.cwl_doc.path,
+        #                          inline_path=self.cwl_doc.inline_path,
+        #                          api=self.bmw.api)
         self.cwl_doc.compute_cwl_dict()
 
         if len(self.cwl_doc.yaml_error):
@@ -273,7 +277,7 @@ class BentenWindow(QWidget):
             self.cwl_doc.cwl_dict = last_known_good_dict
             # This puts us in an invalid state, so we should be careful
 
-        pt = self.cwl_doc.process_type()
+        pt = self.cwl_doc.type()
         if pt == "Workflow":
             self.process_model = Workflow(cwl_doc=self.cwl_doc)
             if self.process_model.cwl_errors:

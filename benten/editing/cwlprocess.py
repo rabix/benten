@@ -71,7 +71,7 @@ class CwlProcess(CwlDoc):
         self.parent_view: Union[CwlDoc, 'CwlProcess'] = None
         self.cwl_dict = None
         self.cwl_lines = None
-        self.yaml_error = None
+        self.yaml_error = []
 
         self.last_known_good_dict = None
         self.last_saved_raw_cwl = None
@@ -129,7 +129,7 @@ class CwlProcess(CwlDoc):
         return view
 
     def is_invalid(self):
-        return self.yaml_error is not None
+        return len(self.yaml_error) > 0
 
     def changed_on_disk(self):
         if self.parent_view is not None:

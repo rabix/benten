@@ -30,7 +30,7 @@ class WFNodeItem(QGraphicsEllipseItem):
     def set_normal_brush(self, normal: QBrush):
         self.normal_brush = normal
         color = normal.color()
-        color.setAlpha(125)
+        color.setAlpha(75)
         self.selected_brush = QBrush(color)
 
     def paint(self, *args, **kwargs):

@@ -1,17 +1,19 @@
 """This manages the tabs that we open as part of inspecting workflow steps. It also
 manages the synchronization between the windows since the code is interdependent in one
 way or the other"""
-from typing import Tuple, List
+from typing import Tuple, List, Dict, Union
 import pathlib
 
 from PySide2.QtCore import Slot, Signal
 from PySide2.QtGui import QCloseEvent
 from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
 
+from ..editing.cwlprocess import CwlProcess
 from ..models.workflow import InvalidSub, InlineSub, ExternalSub
 from .bentenwindow import BentenWindow
-from .multidocumentmanager import MultiDocumentManager, MDMUnit
+# from .multidocumentmanager import MultiDocumentManager, MDMUnit
 from ..sbg.profiles import Profiles
+from ..sbg.jsonmixin import if_json_convert_to_yaml_and_save
 
 import logging
 
@@ -33,7 +35,8 @@ class BentenMainWidget(QTabWidget):
         self.sbg_profiles = Profiles(config=config)
 
         self.api = None
-        self.multi_document_manager = MultiDocumentManager(benten_main_window=self)
+        self.tab_directory: Dict[str, Dict[Union[Tuple[str], None], BentenWindow]] = {}
+        # self.multi_document_manager = MultiDocumentManager(benten_main_window=self)
         self.active_window: BentenWindow = None
 
         self.setTabsClosable(True)
@@ -50,8 +53,26 @@ class BentenMainWidget(QTabWidget):
             tbr.hide()
 
     def open_document(self, parent_path: pathlib.Path, inline_path: Tuple[str, ...], step_id=None):
-        bw = self.multi_document_manager.open_window(parent_path, inline_path)
-        bw.step_id = step_id
+        parent_path_str = parent_path.resolve().as_uri()
+        if parent_path_str in self.tab_directory:
+            if inline_path in self.tab_directory[parent_path_str]:
+                bw = self.tab_directory[parent_path_str][inline_path]
+            else:
+                root_bw = self.tab_directory[parent_path_str][None]
+                child_cwl_process = root_bw.cwl_doc.create_child_view_from_path(inline_path)
+                bw = self.tab_directory[parent_path_str][inline_path] = \
+                    BentenWindow(cwl_doc=child_cwl_process, benten_main_window=self)
+                bw.step_id = step_id
+        else:
+            new_path = if_json_convert_to_yaml_and_save(parent_path)
+            if new_path is not None:
+                parent_path = new_path
+                parent_path_str = parent_path.resolve().as_uri()
+
+            bw = BentenWindow(cwl_doc=CwlProcess.create_from_file(parent_path), benten_main_window=self)
+            self.tab_directory[parent_path_str] = {None: bw}
+            bw.step_id = step_id
+
         for idx in range(self.count()):
             if self.widget(idx) == bw:
                 self.setCurrentIndex(idx)
@@ -97,14 +118,15 @@ class BentenMainWidget(QTabWidget):
 
     def ok_to_close_everything(self, event:QCloseEvent):
         logger.debug("Closing Benten")
-        mdmu_l = self.multi_document_manager.lookup_unsaved_docs()
-        if len(mdmu_l):
-            return self.unsaved_changes_dialog(mdmu_l)
+        unsaved_root_docs = [win[None].cwl_doc for win in self.tab_directory.values()
+                             if win[None].cwl_doc.needs_saving()]
+        if len(unsaved_root_docs):
+            return self.unsaved_changes_dialog(unsaved_root_docs)
         else:
             return True
 
-    def unsaved_changes_dialog(self, mdmu_l: List[MDMUnit]):
-        plural = "documents" if len(mdmu_l) > 1 else "document"
+    def unsaved_changes_dialog(self, doc_l: List[CwlProcess]):
+        plural = "documents" if len(doc_l) > 1 else "document"
         button = QMessageBox.warning(
             self, "Unsaved changes!",
             "There are unsaved changes in your {}. Do you wish to save?".format(plural),
@@ -115,8 +137,8 @@ class BentenMainWidget(QTabWidget):
         elif button == QMessageBox.Discard:
             return True
         else:
-            for mdmu in mdmu_l:
-                mdmu.doc_man.save()
+            for doc in doc_l:
+                doc.save()
             return True
 
     @Slot()
@@ -140,15 +162,12 @@ class BentenMainWidget(QTabWidget):
                 raise RuntimeError("Code error: Unknown sub workflow type!")
 
     @Slot(object)
-    def edit_registered(self, cwl_doc, force_save=False):
-        doc_man = self.multi_document_manager.apply_document_edits(cwl_doc=cwl_doc)
-        status = doc_man.status()
-        # todo: warn if external edits have taken place
-        if not status["saved"]:
-            logger.debug("{} needs saving".format(doc_man.path))
+    def edit_registered(self, cwl_doc: CwlProcess, force_save=False):
+        if cwl_doc.needs_saving():
+            logger.debug("{} needs saving".format(cwl_doc.path))
             if self.config.getboolean("files", "autosave", fallback=False) or force_save:
-                logger.debug("Saving {}".format(doc_man.path))
-                doc_man.save()
+                logger.debug("Saving {}".format(cwl_doc.path))
+                cwl_doc.save()
         else:
             logger.debug("Document already saved")
 

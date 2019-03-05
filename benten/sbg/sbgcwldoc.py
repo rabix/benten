@@ -1,8 +1,7 @@
-from .jsonmixin import JsonMixin
 from .versionmixin import VersionMixin
-from ..editing.cwldoc import CwlDoc
+from ..editing.cwlprocess import CwlProcess
 
 
-class SBGCwlDoc(JsonMixin, VersionMixin, CwlDoc):
+class SBGCwlDoc(VersionMixin, CwlProcess):
     def __init__(self, *args, **kwargs):
         super(SBGCwlDoc, self).__init__(*args, **kwargs)
