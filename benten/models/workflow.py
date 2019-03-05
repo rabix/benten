@@ -140,7 +140,7 @@ class Step:
                 if isinstance(sub_process, dict):
                     sub_workflow = InlineSub(
                         _id=sub_process.get("id", None),
-                        path=root, inline_path=(cwl_doc.inline_path or ()) + (step_id,))
+                        path=root, inline_path=(cwl_doc.inline_path or ()) + ("steps", step_id, "run"))
                 else:
                     sub_process = {}
                     wf_error_list += ["Sub workflow is empty"]
