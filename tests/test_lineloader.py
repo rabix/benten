@@ -65,17 +65,17 @@ def test_reverse_lookup():
     path = pathlib.Path(current_path, "cwl/sample.yaml")
     doc = parse_yaml_with_line_info(raw_cwl=path.open("r").read())
 
-    assert reverse_lookup(19, 22, doc) == (["list", 1], "When you fall")
+    assert reverse_lookup(19, 22, doc) == (("list", 1), "When you fall")
 
     assert reverse_lookup(26, 22, doc) == \
-           (["level1", "level2", "multiline doc preserve newlines"],
+           (("level1", "level2", "multiline doc preserve newlines"),
             "When you call\n"
             "Who's gonna pay attention\n"
             "To your dreams\n"
             "Who's gonna plug their ears\n"
             "When you scream")
 
-    assert reverse_lookup(2, 64, doc) == (["flowstyle dict", "ln2"], "It's too late")
+    assert reverse_lookup(2, 64, doc) == (("flowstyle dict", "ln2"), "It's too late")
 
 
 def test_line_number_dict():
