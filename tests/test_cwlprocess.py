@@ -74,7 +74,7 @@ def test_create_from_file_with_yaml_errors():
     assert cwl_process.view_type == ViewType.Process
 
     with pytest.raises(LockedDueToYAMLErrors):
-        _ = cwl_process.create_child_view_from_path(("steps", "untar"))
+        _ = cwl_process.create_child_view_from_path(("steps", "untar", "run"))
 
 
 # def test_create_from_cursor():
