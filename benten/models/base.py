@@ -1,10 +1,10 @@
-from ..editing.cwldoc import CwlDoc
+from ..editing.cwlprocess import CwlProcess
 
 
 class Base:
     """We don't know what the user intends this to be"""
 
-    def __init__(self, cwl_doc: CwlDoc):
+    def __init__(self, cwl_doc: CwlProcess):
         self.cwl_doc = cwl_doc or {}
         self.id = (self.cwl_doc.cwl_dict or {}).get("id", None)
         self.section_lines = {}
