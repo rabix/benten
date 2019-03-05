@@ -11,9 +11,8 @@ from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
 from ..editing.cwlprocess import CwlProcess
 from ..models.workflow import InvalidSub, InlineSub, ExternalSub
 from .bentenwindow import BentenWindow
-# from .multidocumentmanager import MultiDocumentManager, MDMUnit
 from ..sbg.profiles import Profiles
-from ..sbg.jsonmixin import if_json_convert_to_yaml_and_save
+from ..sbg.jsonimport import if_json_convert_to_yaml_and_save
 
 import logging
 
