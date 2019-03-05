@@ -61,11 +61,19 @@ class WorkflowEditMixin:
         else:
             text_lines += [indent + "{}:".format(step_id)]
 
+        text_lines += [indent + "  label: {}".format(step_id)]
+        text_lines += [indent + "  doc:"]
         text_lines += [indent + "  in: {}".format("" if in_ports else "[]")]
         for inp in in_ports:
             text_lines += [indent + "    {}: []".format(inp)]
         text_lines += [indent + "  out: {}".format(out_ports)]
-        text_lines += [indent + "  run: {}\n\n".format(self.cwl_doc.get_rel_path(path))]
+        text_lines += [indent + "  run: {}".format(self.cwl_doc.get_rel_path(path))]
+        text_lines += [indent + "  scatter: "]
+        text_lines += [indent + "  scatterMethod: "]
+        text_lines += [indent + "  hints: []"]
+        text_lines += [indent + "  requirements: []"]
+
+        text_lines += ["\n"]
 
         start = EditMark(line_to_insert, column_to_insert)
         return Edit(start, end, "\n".join(text_lines))
