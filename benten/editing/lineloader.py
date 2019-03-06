@@ -208,10 +208,10 @@ def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False):
 
 
 def lookup(doc: Union[Ydict, Ylist], path: Tuple[Union[str, int]]):
-    if len(path) > 1:
-        return lookup(doc[path[0]], path[1:])
-    else:
-        return doc[path[0]]
+    sub_doc = doc
+    for p in path or []:
+        sub_doc = sub_doc[p]
+    return sub_doc
 
 
 def reverse_lookup(line, col, doc: Union[Ydict, Ylist], path: Tuple[Union[str, int]]=()):
