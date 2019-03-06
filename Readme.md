@@ -365,14 +365,22 @@ YAML allows you to use a `flow style` which is very concise. If you put the top 
 elements (`cwlVersion`, `class`, `steps` etc.) in flow style _Benten_ will not work for you. 
 If you put the elements in the `step` field in flow style, _Benten_ will not work for you.
 
+## Synchronized editing and undo/redo
+When you edit a view of a document (parent or child) your edits are propagated to all the views.
+However, except in the view where you made the original edit, the edit is created as an edit of the
+whole document. For this reason you'll lose your cursor place after an undo/redo. Also, this
+undo/redo registers as a new edit in the linked views. *In general, it is most comfortable to edit
+an inlined sub-workflow in it's own view.*
+
+
 ## Inline step editing and blank lines
 If you have an inline step, and have a blank line with white-spaces, on editing the step these 
 white-spaces will disappear from your blank line. In general it is a good practice not to have 
 spurious whitespace in a blank line anyway ...
 
 ## Opening CWL in JSON format
-_Benten_ will open CWL in JSON format and will convert it on the fly to YAML. It will save this
-conversion as a file called `<original file>.cwl`. If the original workflows have linked 
+If passed a CWL in JSON format _Benten_ will convert it to YAML, save this conversion as a file
+called `<original file>.cwl`. If the original workflows have linked
 subworkflows that are in JSON, they can be opened in the same manner, but edits will go to the
 converted file, which is not the one linked from the workflow.
 

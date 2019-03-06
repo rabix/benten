@@ -232,11 +232,8 @@ steps:
                  d: string
                  f: File
 """
-    edit = ch2.get_edit_from_new_text(new_raw_cwl)
-    parent.set_raw_cwl(editor_simulator(parent.raw_cwl, edit))
+    ch2.apply_edit(new_raw_cwl)
     assert parent.raw_cwl == expected_parent_text
-
-    parent.propagate_edits()
 
     expected_ch1_text = """class: Workflow
 inputs:
@@ -273,8 +270,85 @@ outputs:
     assert ch2.raw_cwl == expected_ch2_text
 
 
-def test_edit_chained_nested_step():
-    pass
+def test_edit_propagation_nested_step2():
+    path = pathlib.Path(current_path, "cwl", "001.basic", "wf-nested-multiple-levels.cwl")
+    parent = CwlProcess.create_from_file(path=path)
+
+    ch1 = parent.create_child_view_from_path(("steps", "s1", "run"))
+
+    new_raw_cwl = """class: CommandLineTool
+inputs:
+  c: File
+  b: string
+outputs:
+  d: string
+  f: File
+
+"""
+
+    expected_parent_text = """
+class: Workflow
+inputs:
+  a: File
+  b: string
+outputs:
+  a:
+    outputSource: [s1/d, s2/d]
+steps:
+
+  s1:
+    in:
+       c: a
+    out:
+       d: File
+    run:
+       class: CommandLineTool
+       inputs:
+         c: File
+         b: string
+       outputs:
+         d: string
+         f: File
+
+  s2:
+    in:
+       b: b
+    out:
+       d: File
+    run:
+        class: Workflow
+        inputs:
+          a: File
+        outputs:
+          a:
+            outputSource: s1/d
+        steps:
+
+          s1:
+            in:
+               c: a
+            out:
+               d: File
+            run:
+               class: CommandLineTool
+               inputs:
+                 c: File
+               outputs:
+                 d: File
+"""
+    ch1.apply_edit(new_raw_cwl)
+    assert parent.raw_cwl == expected_parent_text
+
+    expected_ch1_text = """class: CommandLineTool
+inputs:
+  c: File
+  b: string
+outputs:
+  d: string
+  f: File
+
+"""
+    assert ch1.raw_cwl == expected_ch1_text
 
 
 def test_view_deleted_from_parent():
@@ -477,4 +551,4 @@ def test_child_view_of_step_with_empty_dict():
 #         _ = c2.get_raw_cwl_of_base_after_nested_edit(inline_path=nested_path, new_cwl=new_cwl)
 
 
-# test_edit_propagation_nested_step()
+test_edit_propagation_nested_step2()

@@ -5,13 +5,6 @@ from typing import Tuple, Union
 import pathlib
 import os
 from enum import IntEnum, auto
-from abc import abstractmethod
-
-from ..implementationerror import ImplementationError
-from .lineloader import (parse_yaml_with_line_info,
-                         DocumentError,
-                         lookup, reverse_lookup,
-                         Ydict, Ylist, Ystr)
 
 
 class ViewType(IntEnum):
@@ -38,11 +31,12 @@ class CwlDoc:
         self.inline_path = None
         self.view_type = None
 
-    def get_edit_from_new_text(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
+    def apply_edit(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
+        """Called, from the base, when we have changed something in the raw_cwl"""
         if inline_path is None:
             inline_path = self.inline_path
-        return self.parent_view.get_edit_from_new_text(raw_cwl, inline_path)
-        # It is an error for this type not to have a parent_view
+        if self.parent_view is not None:
+            self.parent_view.apply_edit(raw_cwl=raw_cwl, inline_path=inline_path)
 
     def get_rel_path(self, sub_path: pathlib.Path):
         """Path relative to this document e.g. for linked steps"""
@@ -67,7 +61,5 @@ class CwlDoc:
         if self.parent_view is not None:
             return self.parent_view.load()
 
-    def propagate_edits(self):
-        """Called, from the base, when we have changed something in the raw_cwl"""
-        if self.parent_view is not None:
-            self.parent_view.propagate_edits()
+    def set_raw_cwl(self, raw_cwl: str):
+        self.raw_cwl = raw_cwl

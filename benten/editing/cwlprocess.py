@@ -177,30 +177,19 @@ class CwlProcess(CwlDoc):
         self.last_saved_raw_cwl = self.raw_cwl
         self.propagate_edits()
 
-    def get_edit_from_new_text(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None) -> Edit:
+    def apply_edit(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
         if inline_path is None:
             inline_path = self.inline_path
-
         if self.parent_view is not None:
-            return self.parent_view.get_edit_from_new_text(raw_cwl, inline_path)
-        else:
-            return self._get_edit_projected_to_base_document(raw_cwl, inline_path)
+            return self.parent_view.apply_edit(raw_cwl=raw_cwl, inline_path=inline_path)
+
+        self.set_raw_cwl(self.apply_edit_to_text(self.get_edit_from_new_text(raw_cwl, inline_path)))
+        self.propagate_edits()
 
     def set_raw_cwl(self, raw_cwl):
         self.raw_cwl = raw_cwl
-        self.cwl_dict = None
-
-    def propagate_edits(self):
-        if self.parent_view is not None:
-            self.parent_view.propagate_edits()
-
         self.cwl_lines = self.raw_cwl.splitlines(keepends=True)
-        if len(self.child_views):
-            self.compute_cwl_dict()
-            for cv in self.child_views.values():
-                cv.raw_cwl, cv.view_type = self._raw_cwl_from_inline_path(cv.inline_path)
-                if isinstance(cv, CwlProcess):
-                    cv.cwl_lines = cv.raw_cwl.splitlines(keepends=True)
+        self.cwl_dict = None
 
     # I want to be conscious and in control of when this (semi)expensive computation is being done
     # But I'd don't want to accidentally do it twice
@@ -230,6 +219,45 @@ class CwlProcess(CwlDoc):
     #
     # Implementation details ...
     #
+
+    def get_edit_from_new_text(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None) -> Edit:
+        if inline_path is None:
+            inline_path = self.inline_path
+
+        if self.parent_view is not None:
+            return self.parent_view.get_edit_from_new_text(raw_cwl, inline_path)
+        else:
+            return self._get_edit_projected_to_base_document(raw_cwl, inline_path)
+
+    def apply_edit_to_text(self, edit: Edit):
+        existing_lines = self.cwl_lines
+        lines_to_insert = edit.text.splitlines(keepends=True)
+
+        if edit.end is None:
+            edit.end = edit.start
+
+        if edit.end.line != edit.start.line:
+            edit.end.column = 0
+
+        new_lines = existing_lines[:edit.start.line] + \
+                    [existing_lines[edit.start.line][:edit.start.column]] + \
+                    lines_to_insert + \
+                    (([existing_lines[edit.end.line][edit.end.column:]] +
+                      (existing_lines[edit.end.line + 1:] if edit.end.line + 1 < len(existing_lines) else []))
+                     if edit.end.line < len(existing_lines) else [])
+
+        return "".join(new_lines)
+
+    def propagate_edits(self):
+        if self.parent_view is not None:
+            return self.parent_view.propagate_edits()
+
+        if len(self.child_views):
+            self.compute_cwl_dict()
+            # Todo: trap YAML errors and lock moving away from tab -> do this in original tab
+            for cv in self.child_views.values():
+                raw_cwl, cv.view_type = self._raw_cwl_from_inline_path(cv.inline_path)
+                cv.set_raw_cwl(raw_cwl=raw_cwl)
 
     def _raw_cwl_from_inline_path(self, inline_path) -> (CwlDoc, ViewType):
         value = lookup(self.cwl_dict, inline_path)

@@ -5,10 +5,14 @@ class Base:
     """We don't know what the user intends this to be"""
 
     def __init__(self, cwl_doc: CwlProcess):
-        self.cwl_doc = cwl_doc or {}
+        self.cwl_doc = cwl_doc
+        self._original_raw_cwl = cwl_doc.raw_cwl
         self.id = (self.cwl_doc.cwl_dict or {}).get("id", None)
         self.section_lines = {}
         self.cwl_errors = []
+
+    def up_to_date(self):
+        return self._original_raw_cwl == self.cwl_doc.raw_cwl
 
     @staticmethod
     def special_id(name):

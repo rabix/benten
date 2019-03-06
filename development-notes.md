@@ -33,6 +33,8 @@ https://docs.travis-ci.com/user/encrypting-files/
 
 https://github.com/genome/analysis-workflows
 
+https://github.com/vetscience/Assemblosis
+
 
 ## Edit notification flow
 

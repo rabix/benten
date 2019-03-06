@@ -184,8 +184,14 @@ class BentenWindow(QWidget):
         self._register_edit()
 
     def _register_edit(self):
+        # self.cwl_doc.set_raw_cwl()
+        modified_cwl = self.code_editor.toPlainText()
+        if modified_cwl == self.cwl_doc.raw_cwl:
+            return
+
+        self.cwl_doc.apply_edit(modified_cwl, self.cwl_doc.inline_path)
         self.update_from_code()
-        self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
+        # self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
 
     # This only happens when we are in focus and the code has changed
     # It is only here that we do the (semi)expensive parsing computation
@@ -196,6 +202,7 @@ class BentenWindow(QWidget):
             # Defer updating until we can be seen
             return
 
+        self.refresh_editor_with_changed_code()
         self.update_process_model_from_code()
 
         pt = self.cwl_doc.type()
@@ -213,6 +220,11 @@ class BentenWindow(QWidget):
 
         t2 = time.time()
         logger.debug("Displayed workflow in {}s".format(t2 - t1))
+
+    def refresh_editor_with_changed_code(self):
+        if self.code_editor.toPlainText() != self.cwl_doc.raw_cwl:
+            blk = QSignalBlocker(self.code_editor)
+            self.code_editor.set_text(self.cwl_doc.raw_cwl)
 
     def configure_as_workflow(self):
         old_transform = None
@@ -249,9 +261,8 @@ class BentenWindow(QWidget):
     # need us to recompute the process model (for proper formatting of subsequent edits)
     # but we don't want to waste time drawing each time - we can do that at the end
     def update_process_model_from_code(self):
-        modified_cwl = self.code_editor.toPlainText()
         if self.process_model is not None:
-            if self.process_model.cwl_doc.raw_cwl == modified_cwl:
+            if self.process_model.up_to_date():
                 logger.debug("Update asked for, but code hasn't changed.")
                 return
 
@@ -262,15 +273,10 @@ class BentenWindow(QWidget):
         except AttributeError:
             last_known_good_dict = {}
 
-        self.cwl_doc.set_raw_cwl(modified_cwl)
-
-        # self.cwl_doc = SBGCwlDoc(raw_cwl=modified_cwl,
-        #                          path=self.cwl_doc.path,
-        #                          inline_path=self.cwl_doc.inline_path,
-        #                          api=self.bmw.api)
+        # self.cwl_doc.set_raw_cwl(modified_cwl)
         self.cwl_doc.compute_cwl_dict()
 
-        if len(self.cwl_doc.yaml_error):
+        if self.cwl_doc.yaml_error is not None:
             # Ok, these are fatal errors, leaving us in an un-parsable state. The best we
             # can do is set the dict to the last known state
             logger.error("YAML parsing error! Putting dict in last known good state")
@@ -287,7 +293,7 @@ class BentenWindow(QWidget):
         else:
             self.process_model = Unk(cwl_doc=self.cwl_doc)
 
-        logger.debug("Parsed workflow in {}s ({} bytes) ".format(time.time() - t0, len(modified_cwl)))
+        logger.debug("Parsed workflow in {}s ({} bytes) ".format(time.time() - t0, len(self.cwl_doc.raw_cwl)))
 
     def _update_navbar(self):
         self.navbar.clear()
