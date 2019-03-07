@@ -97,6 +97,20 @@ class Ydict(dict):
         self.end = node.end_mark
         self.flow_style = node.flow_style
 
+    @classmethod
+    def empty(cls):
+        """This is to account for empty documents"""
+        class DummyNode:
+            class DummyMark:
+                line = 0
+                column = 0
+
+            start_mark = DummyMark()
+            end_mark = DummyMark()
+            flow_style = False
+
+        return cls({}, DummyNode())
+
 
 class Ylist(list):
     def __init__(self, value, node):

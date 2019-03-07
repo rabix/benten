@@ -204,7 +204,7 @@ class CwlProcess(CwlDoc):
             raise ImplementationError("Code should not try and parse expression or document fragments")
 
         try:
-            self.cwl_dict = parse_yaml_with_line_info(self.raw_cwl, convert_to_lam=True) or {}
+            self.cwl_dict = parse_yaml_with_line_info(self.raw_cwl, convert_to_lam=True) or Ydict.empty()
         except DocumentError as e:
             self.yaml_error = e
             return
@@ -301,7 +301,10 @@ class CwlProcess(CwlDoc):
         end = EditMark(original_value.end.line, original_value.end.column)
 
         sl = original_value.start.line
-        indent_level = len(self.cwl_lines[sl]) - len(self.cwl_lines[sl].lstrip())
+        if len(self.cwl_lines):
+            indent_level = len(self.cwl_lines[sl]) - len(self.cwl_lines[sl].lstrip())
+        else:
+            indent_level = 0
 
         if isinstance(original_value, Ydict):  # Currently, sole use case is in steps
             if original_value.flow_style:
