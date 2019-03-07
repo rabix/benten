@@ -1,14 +1,37 @@
 import pathlib
+import os
+import shutil
 import pytest
 
+from benten.editing.cwlprocess import CwlProcess
 import benten.models.workflow as WF
 
 current_path = pathlib.Path(__file__).parent
 
 
+test_dir = "workflowedit-test-dir"
+
+
+def setup():
+    if not os.path.exists(test_dir):
+        os.mkdir(test_dir)
+
+
+def teardown():
+    if os.path.exists(test_dir):
+        shutil.rmtree(test_dir)
+
+
+def create_cwl(cwl, fname):
+    path = pathlib.Path(test_dir, fname)
+    with open(path, "w") as f:
+        f.write(cwl)
+    return path
+
+
 def test_add_to_doc_missing_step_field():
     wf_with_no_step = """class: Workflow"""
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_with_no_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    cwl_doc = CwlProcess.create_from_file(create_cwl(wf_with_no_step, "no-step.cwl"))
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -25,7 +48,7 @@ def test_add_to_doc_missing_step_field():
 
 def test_add_to_doc_empty_step_field():
     wf_with_empty_step = """class: Workflow\nsteps: []"""
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_with_empty_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    cwl_doc = CwlProcess.create_from_file(create_cwl(wf_with_empty_step, "empty-step.cwl"))
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -44,7 +67,7 @@ def test_add_to_doc_empty_step_field():
 def test_add_local_step_list():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -62,7 +85,7 @@ def test_add_local_step_list():
 def test_add_local_step_dict():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -80,7 +103,7 @@ def test_add_local_step_dict():
 def test_add_local_step_with_id():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -94,27 +117,25 @@ def test_add_local_step_with_id():
 def test_add_duplicate_step():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
-    raw_cwl = wf_path.open("r").read()
-    cwl_doc = WF.CwlDoc(raw_cwl=raw_cwl, path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))
+    cwl_doc.apply_edit(edit)
 
-    cwl_doc = WF.CwlDoc(raw_cwl=raw_cwl + edit.text, path=wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))
 
     lines = edit.text.splitlines()
     assert lines[0].lstrip().startswith("like_a_rock_1:")
-    assert lines[1].lstrip() == "in: []"
+    assert lines[3].lstrip() == "in: []"
 
 
 def test_indentation():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list-indent4.cwl").resolve()
-    raw_cwl = wf_path.open("r").read()
-    cwl_doc = WF.CwlDoc(raw_cwl=raw_cwl, path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))

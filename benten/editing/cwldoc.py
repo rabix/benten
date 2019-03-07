@@ -31,12 +31,12 @@ class CwlDoc:
         self.inline_path = None
         self.view_type = None
 
-    def apply_edit(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
+    def apply_raw_text(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
         """Called, from the base, when we have changed something in the raw_cwl"""
         if inline_path is None:
             inline_path = self.inline_path
         if self.parent_view is not None:
-            self.parent_view.apply_edit(raw_cwl=raw_cwl, inline_path=inline_path)
+            self.parent_view.apply_raw_text(raw_cwl=raw_cwl, inline_path=inline_path)
 
     def get_rel_path(self, sub_path: pathlib.Path):
         """Path relative to this document e.g. for linked steps"""

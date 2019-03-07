@@ -80,9 +80,9 @@ class CwlProcess(CwlDoc):
 
     # There are two ways to create a view
     # a) Load it from a file on disk, creating a parent view
-    @staticmethod
-    def create_from_file(path: pathlib.Path) -> 'CwlProcess':
-        view = CwlProcess()
+    @classmethod
+    def create_from_file(cls, path: pathlib.Path) -> 'CwlProcess':
+        view = cls()
         view.view_type = ViewType.Process
         view.raw_cwl = path.resolve().open("r").read()
         view.last_saved_raw_cwl = view.raw_cwl
@@ -113,7 +113,7 @@ class CwlProcess(CwlDoc):
 
         raw_cwl, view_type = self._raw_cwl_from_inline_path(inline_path)
         if view_type == ViewType.Process:
-            view = CwlProcess()
+            view = type(self)()
             view.last_saved_raw_cwl = view.raw_cwl
             view.cwl_lines = raw_cwl.splitlines(keepends=True)
         else:
@@ -177,14 +177,17 @@ class CwlProcess(CwlDoc):
         self.last_saved_raw_cwl = self.raw_cwl
         self.propagate_edits()
 
-    def apply_edit(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
+    def apply_raw_text(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
         if inline_path is None:
             inline_path = self.inline_path
         if self.parent_view is not None:
-            return self.parent_view.apply_edit(raw_cwl=raw_cwl, inline_path=inline_path)
+            return self.parent_view.apply_raw_text(raw_cwl=raw_cwl, inline_path=inline_path)
 
         self.set_raw_cwl(self.apply_edit_to_text(self.get_edit_from_new_text(raw_cwl, inline_path)))
         self.propagate_edits()
+
+    def apply_edit(self, edit: Edit, inline_path: Tuple[Union[str, int], ...]=None):
+        self.apply_raw_text(self.apply_edit_to_text(edit), inline_path)
 
     def set_raw_cwl(self, raw_cwl):
         self.raw_cwl = raw_cwl
@@ -240,7 +243,7 @@ class CwlProcess(CwlDoc):
             edit.end.column = 0
 
         new_lines = existing_lines[:edit.start.line] + \
-                    [existing_lines[edit.start.line][:edit.start.column]] + \
+                    ([existing_lines[edit.start.line][:edit.start.column]] if edit.start.line < len(existing_lines) else []) + \
                     lines_to_insert + \
                     (([existing_lines[edit.end.line][edit.end.column:]] +
                       (existing_lines[edit.end.line + 1:] if edit.end.line + 1 < len(existing_lines) else []))

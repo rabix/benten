@@ -1,14 +1,42 @@
 import pathlib
+import os
+import shutil
 import pytest
 
+from benten.editing.cwlprocess import CwlProcess
 import benten.models.workflow as WF
 
 current_path = pathlib.Path(__file__).parent
 
 
+test_dir = "workflow-test-dir"
+
+
+def setup():
+    if not os.path.exists(test_dir):
+        os.mkdir(test_dir)
+
+
+def teardown():
+    if os.path.exists(test_dir):
+        shutil.rmtree(test_dir)
+
+
+def create_cwl(cwl, fname):
+    path = pathlib.Path(test_dir, fname)
+    with open(path, "w") as f:
+        f.write(cwl)
+    return path
+
+
 def test_parsing_empty_workflow():
-    empty_wf = ""
-    cwl_doc = WF.CwlDoc(raw_cwl=empty_wf, path=pathlib.Path("./nothing.cwl"))
+
+    path = create_cwl("", "nothing.cwl")
+    # path = pathlib.Path(test_dir, "nothing.cwl")
+    # with open(path, "w") as f:
+    #     f.write("")
+
+    cwl_doc = CwlProcess.create_from_file(path)
 
     with pytest.raises(AttributeError):
         _ = WF.Workflow(cwl_doc=cwl_doc)
@@ -34,11 +62,14 @@ steps:
   label: Umberto Eco
   in: []
   out: []
-  run: cwl/sbg/salmon.cwl
+  run: ../cwl/sbg/salmon.cwl
 - id: empty
 """
-
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_with_empty_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    path = create_cwl(wf_with_empty_step, "empty_step.cwl")
+    # path = pathlib.Path(test_dir, "empty_step.cwl")
+    # with open(path, "w") as f:
+    #     f.write(wf_with_empty_step)
+    cwl_doc = CwlProcess.create_from_file(path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
     # Basically we shouldn't choke because there is nothing in that step
@@ -63,7 +94,11 @@ steps:
   out: []
   run: On/the/rock/and/roll/radio.cwl
 """
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_with_invalid_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    path = create_cwl(wf_with_invalid_step, "invalid_step.cwl")
+    # path = pathlib.Path(test_dir, "empty_step.cwl")
+    # with open(path, "w") as f:
+    #     f.write(wf_with_invalid_step)
+    cwl_doc = CwlProcess.create_from_file(path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -84,7 +119,8 @@ steps:
   out:
   run: 
 """
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_with_malformed_step, path=pathlib.Path(current_path, "./nothing.cwl").resolve())
+    path = create_cwl(wf_with_malformed_step, "malformed_step.cwl")
+    cwl_doc = CwlProcess.create_from_file(path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -96,7 +132,7 @@ steps:
 
 def test_parsing_ports_with_plain_source():
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -109,7 +145,7 @@ def test_interface_parsing():
 
     # This is a public SBG workflow
     wf_path = pathlib.Path(current_path, "cwl/sbg/salmon.cwl").resolve()
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -142,7 +178,7 @@ def test_connection_parsing():
     # correctly. This workflow also has a small number of components so we can count things by
     # hand to put in the tests
     wf_path = pathlib.Path(current_path, "cwl/003.diff.dir.levels/lib/workflows/outer-wf.cwl").resolve()
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -199,7 +235,7 @@ def test_connection_equivalence():
 def test_connection_search():
     """Check connection finding"""
     wf_path = pathlib.Path(current_path, "cwl/003.diff.dir.levels/lib/workflows/outer-wf.cwl").resolve()
-    cwl_doc = WF.CwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path)
+    cwl_doc = CwlProcess.create_from_file(wf_path)
     cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
@@ -216,4 +252,3 @@ def test_connection_search():
                        dst=WF.Port(node_id="pass_through", port_id="pt_in2"),
                        line=None)
     assert wf.find_connection(c3) is None
-

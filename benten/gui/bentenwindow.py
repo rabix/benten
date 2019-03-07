@@ -189,7 +189,7 @@ class BentenWindow(QWidget):
         if modified_cwl == self.cwl_doc.raw_cwl:
             return
 
-        self.cwl_doc.apply_edit(modified_cwl, self.cwl_doc.inline_path)
+        self.cwl_doc.apply_raw_text(modified_cwl, self.cwl_doc.inline_path)
         self.update_from_code()
         # self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
 

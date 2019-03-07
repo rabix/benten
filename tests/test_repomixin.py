@@ -1,7 +1,7 @@
 import pathlib
 
 import benten.sbg.versionmixin as sam
-from benten.editing.cwldoc import CwlDoc
+from benten.editing.cwlprocess import CwlProcess
 
 
 current_path = pathlib.Path(__file__).parent
@@ -42,12 +42,12 @@ def test_app_version():
 
 def test_repomixin_basic():
 
-    class SBGCwlDoc(sam.VersionMixin, CwlDoc):
+    class SBGCwlDoc(sam.VersionMixin, CwlProcess):
         def __init__(self, *args, **kwargs):
             super(SBGCwlDoc, self).__init__(*args, **kwargs)
 
     wf_path = pathlib.Path(current_path, "cwl/002.nested.inline.sbg.eco/wf3.cwl")
-    c = SBGCwlDoc(raw_cwl=wf_path.open("r").read(), path=wf_path, inline_path=None)
+    c = SBGCwlDoc.create_from_file(wf_path)
 
     assert c.app_info.owner == "kghose"
     assert c.app_info.project == "benten-demo"

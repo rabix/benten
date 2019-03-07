@@ -84,10 +84,14 @@ class VersionMixin:
         # We call the ancestor first. This will either be CwlDoc, or other mixins, which, in turn
         # call their ancestors first, which will result in CwlDoc being called first.
         super(VersionMixin, self).__init__(*args, **kwargs)
-        self.app_info = self.get_app_info()
-        self.api: Api = api
+        self.api = None
+#        self.app_info = None
 
-    def get_app_info(self):
+    def set_api(self, api: Api=None):
+        self.api = api
+
+    @property
+    def app_info(self):
         id_line = get_id_line(self.cwl_lines)
         if id_line is None:
             return None
