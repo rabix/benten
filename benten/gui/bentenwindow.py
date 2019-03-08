@@ -5,8 +5,8 @@ import time
 
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QSplitter, QTableWidget, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox, QLabel
-from PySide2.QtGui import QTextCursor, QPainter, QFont
+    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox, QLabel, QShortcut
+from PySide2.QtGui import QTextCursor, QPainter, QFont, QKeySequence
 
 from ..editing.edit import Edit, EditMark
 
@@ -70,6 +70,7 @@ class BentenWindow(QWidget):
         self.utility_tab_widget, self.command_window, self.conn_table \
             = self._setup_utility_tab()
         self._setup_panes()
+        self.shortcuts = self._setup_shortcuts()
 
         self.manual_edit_throttler = ManualEditThrottler()
         self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
@@ -146,6 +147,20 @@ class BentenWindow(QWidget):
         layout.setMargin(0)
         layout.addWidget(main_pane)
         self.setLayout(layout)
+
+    def _setup_shortcuts(self):
+        @Slot()
+        def toggle_cmd_focus():
+            print("Boo!")
+            if self.code_editor.hasFocus():
+                self.command_window.command_line.setFocus()
+            else:
+                self.code_editor.setFocus()
+
+        command_window_shortcut = QShortcut(QKeySequence("Ctrl+P"), self)
+        command_window_shortcut.activated.connect(toggle_cmd_focus)
+
+        return [command_window_shortcut]
 
     # def set_document(self, cwl_doc):
     #     # This registers as a manual edit but we wish to skip the throttler

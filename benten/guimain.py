@@ -100,11 +100,11 @@ class MainWindow(QMainWindow):
         save_action.triggered.connect(self.tab_widget.cwl_save)
         cwl_menu.addAction(save_action)
 
-        if profile_list:
-            push_action = QAction("&Push", self)
-            push_action.setShortcut("Ctrl+P")
-            #save_action.triggered.connect(...)
-            cwl_menu.addAction(push_action)
+        # if profile_list:
+        #     push_action = QAction("&Push", self)
+        #     push_action.setShortcut("Ctrl+P")
+        #     #save_action.triggered.connect(...)
+        #     cwl_menu.addAction(push_action)
 
     def closeEvent(self, event: QCloseEvent):
         if self.tab_widget.ok_to_close_everything(event):
