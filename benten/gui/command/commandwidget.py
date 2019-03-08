@@ -50,6 +50,11 @@ class CommandWidget(QWidget):
                         "ExpressionTool or Workflow",
                 "call": self.bw.create_scaffold
             },
+            "new": {
+                "help": "new <step_id> [path] : Create scaffold for new inline step, or, "
+                        "if path is given new linked step",
+                "call": self.bw.scaffold_new_step
+            },
             "goto": {
                 "synonyms": ["g"],
                 "help": "goto <stepid> : Goto step",

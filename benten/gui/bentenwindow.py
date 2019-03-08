@@ -151,7 +151,6 @@ class BentenWindow(QWidget):
     def _setup_shortcuts(self):
         @Slot()
         def toggle_cmd_focus():
-            print("Boo!")
             if self.code_editor.hasFocus():
                 self.command_window.command_line.setFocus()
             else:
@@ -430,6 +429,8 @@ class BentenWindow(QWidget):
         self.programmatic_edit()
 
     def create_scaffold(self, args):
+        blk = QSignalBlocker(self.code_editor)
+
         if self.cwl_doc.raw_cwl:
             return "Document not empty, will not create scaffold"
 
@@ -451,3 +452,18 @@ class BentenWindow(QWidget):
             return "Added scaffold from file {}".format(scaffold_path)
         else:
             return "No scaffold for process type {}. Valid arguments are {}".format(arg, list(choices.keys()))
+
+    def scaffold_new_step(self, args):
+        blk = QSignalBlocker(self.code_editor)
+
+        if self.cwl_doc.type() != "Workflow":
+            return "Can only add new step to workflow"
+
+        if not 0 < len(args) < 3:
+            return "Arguments are <step_id> [path]"
+
+        step_id = args[0]
+        path = pathlib.Path(args[1]) if len(args) > 1 else None
+        self.code_editor.insert_text(self.process_model.add_step(path, step_id))
+        self.programmatic_edit()
+        return "Added new step"

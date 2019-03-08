@@ -7,10 +7,15 @@ from ..editing.edit import Edit, EditMark
 
 class WorkflowEditMixin:
 
-    def add_step(self, path: pathlib.Path):
+    def add_step(self, path: pathlib.Path=None, step_id=None):
 
-        sub_process = load_yaml(path.open("r").read())
-        base_step_id = sub_process.get("id", path.name.replace("-", "_").replace(" ", "_"))
+        sub_process = {}
+        base_step_id = step_id or "new_step"
+        if path:
+            if path.exists():
+                sub_process = load_yaml(path.open("r").read())
+                base_step_id = sub_process.get("id", path.name.replace("-", "_").replace(" ", "_"))
+
         step_id = base_step_id
         ctr = 1
         while step_id in self.cwl_doc.cwl_dict.get("steps", {}):
@@ -67,7 +72,10 @@ class WorkflowEditMixin:
         for inp in in_ports:
             text_lines += [indent + "    {}: []".format(inp)]
         text_lines += [indent + "  out: {}".format(out_ports)]
-        text_lines += [indent + "  run: {}".format(self.cwl_doc.get_rel_path(path))]
+        if path is None:  # new inline step
+            text_lines += [indent + "  run: {}"]
+        else:
+            text_lines += [indent + "  run: {}".format(self.cwl_doc.get_rel_path(path))]
         text_lines += [indent + "  scatter: "]
         text_lines += [indent + "  scatterMethod: "]
         text_lines += [indent + "  hints: []"]
