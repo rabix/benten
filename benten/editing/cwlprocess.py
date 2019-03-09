@@ -336,6 +336,12 @@ class CwlProcess(CwlDoc):
         # 2. All lines with text have the given indent level or more, so they are not an issue
         #    Blank lines, however, can be zero length, hence the exception.
 
+        # todo: keep an eye on, if this adds bugs
+        # We need to separate this block, even if the naughty user refuses to add a blank line at
+        # the end
+        if text_lines[-1][-1] != "\n":
+            text_lines[-1] += "\n"
+
         return Edit(start, end, "".join(text_lines))
         # Notice that we haven't changed the contents of the doc, just created an Edit object
         # It is up to the GUI part to now take this edit, apply it to the base document and
