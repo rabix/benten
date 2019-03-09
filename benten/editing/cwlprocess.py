@@ -213,7 +213,7 @@ class CwlProcess(CwlDoc):
 
     def type(self):
         return {
-            ViewType.Process: self.cwl_dict.get("class", "unknown"),
+            ViewType.Process: (self.cwl_dict or {}).get("class", "unknown"),
             ViewType.Doc: "Doc",
             ViewType.Expression : "Expression"
         }.get(self.view_type)
