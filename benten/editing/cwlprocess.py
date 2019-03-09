@@ -177,13 +177,21 @@ class CwlProcess(CwlDoc):
         self.last_saved_raw_cwl = self.raw_cwl
         self.propagate_edits()
 
+    def check_for_yaml_error_and_synchronize_new_cwl(self, raw_cwl):
+        self.set_raw_cwl(raw_cwl)
+        self.compute_cwl_dict()
+        if self.yaml_error is not None:
+            return
+        else:
+            self.apply_raw_text(raw_cwl)
+
     def apply_raw_text(self, raw_cwl: str, inline_path: Tuple[Union[str, int], ...]=None):
         if inline_path is None:
             inline_path = self.inline_path
         if self.parent_view is not None:
             return self.parent_view.apply_raw_text(raw_cwl=raw_cwl, inline_path=inline_path)
 
-        self.set_raw_cwl(self.apply_edit_to_text(self.get_edit_from_new_text(raw_cwl, inline_path)))
+        self.set_raw_cwl(self.apply_edit_to_text(self._get_edit_projected_to_base_document(raw_cwl, inline_path)))
         self.propagate_edits()
 
     def apply_edit(self, edit: Edit, inline_path: Tuple[Union[str, int], ...]=None):
@@ -258,10 +266,10 @@ class CwlProcess(CwlDoc):
 
         if len(self.child_views):
             self.compute_cwl_dict()
-            # Todo: trap YAML errors and lock moving away from tab -> do this in original tab
-            for cv in self.child_views.values():
-                raw_cwl, cv.view_type = self._raw_cwl_from_inline_path(cv.inline_path)
-                cv.set_raw_cwl(raw_cwl=raw_cwl)
+            if self.yaml_error is None:
+                for cv in self.child_views.values():
+                    raw_cwl, cv.view_type = self._raw_cwl_from_inline_path(cv.inline_path)
+                    cv.set_raw_cwl(raw_cwl=raw_cwl)
 
     def _raw_cwl_from_inline_path(self, inline_path) -> (CwlDoc, ViewType):
         value = lookup(self.cwl_dict, inline_path)

@@ -101,7 +101,7 @@ outputs:
         f: File
 """
 
-    edit = ch_p.get_edit_from_new_text(new_raw_cwl)
+    edit = cwl_process._get_edit_projected_to_base_document(new_raw_cwl, ch_p.inline_path)
 
     assert edit.text == expected_inserted_text
 
