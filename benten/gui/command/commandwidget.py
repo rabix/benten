@@ -50,6 +50,10 @@ class CommandWidget(QWidget):
                         "ExpressionTool or Workflow",
                 "call": self.bw.create_scaffold
             },
+            "docker": {
+                "help": "docker <docker_image> : Add DockerRequirement to CLT",
+                "call": self.bw.scaffold_docker
+            },
             "new": {
                 "help": "new <step_id> [path] : Create scaffold for new inline step, or, "
                         "if path is given new linked step",
