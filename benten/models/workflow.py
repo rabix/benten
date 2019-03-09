@@ -35,6 +35,7 @@ from .base import Base, special_id_for_inputs, special_id_for_outputs, special_i
 from ..editing.utils import dictify, iter_scalar_or_list
 from ..editing.cwldoc import CwlDoc
 from ..editing.lineloader import load_yaml
+from .editmixin import EditMixin
 from .workfloweditmixin import WorkflowEditMixin
 
 
@@ -178,7 +179,7 @@ class WFConnectionError(Exception):
     pass
 
 
-class Workflow(WorkflowEditMixin, Base):
+class Workflow(WorkflowEditMixin, EditMixin, Base):
     """This object carries the raw YAML and some housekeeping datastructures"""
 
     def __init__(self, cwl_doc: CwlDoc):
