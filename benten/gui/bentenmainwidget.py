@@ -74,6 +74,7 @@ class BentenMainWidget(QTabWidget):
         for idx in range(self.count()):
             if self.widget(idx) == bw:
                 self.setCurrentIndex(idx)
+                break
         else:
             bw.steps_to_open.connect(self.steps_to_open)
             bw.edit_registered.connect(self.edit_registered)
