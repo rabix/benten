@@ -69,6 +69,11 @@ class CommandWidget(QWidget):
                 "help": "list : List all steps in workflow",
                 "call": self.list_steps
             },
+            "open": {
+                "synonyms": ["o"],
+                "help": "open <step_id> [step_id, ...] : Open step(s) in new tab(s)",
+                "call": self.bw.step_ids_to_open
+            },
             "revisions": {
                 "help": "Print list of available revisions",
                 "call": self.get_app_revisions

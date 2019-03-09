@@ -75,7 +75,7 @@ class BentenMainWidget(QTabWidget):
             if self.widget(idx) == bw:
                 self.setCurrentIndex(idx)
         else:
-            bw.scene_double_clicked.connect(self.scene_double_clicked)
+            bw.steps_to_open.connect(self.steps_to_open)
             bw.edit_registered.connect(self.edit_registered)
             idx = self.addTab(bw, "...")
             self.setCurrentIndex(idx)
@@ -155,7 +155,7 @@ class BentenMainWidget(QTabWidget):
         self.active_window.set_active_window()
 
     @Slot(object)
-    def scene_double_clicked(self, steps):
+    def steps_to_open(self, steps):
         for step in steps:
             sub = step.sub_workflow
             if isinstance(sub, InvalidSub):

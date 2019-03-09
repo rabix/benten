@@ -56,7 +56,7 @@ class PersistentEditorState:
 
 class BentenWindow(QWidget):
 
-    scene_double_clicked = Signal(object)
+    steps_to_open = Signal(object)
     edit_registered = Signal(object)
 
     def __init__(self, cwl_doc, benten_main_window):
@@ -278,7 +278,7 @@ class BentenWindow(QWidget):
     def update_process_model_from_code(self):
         if self.process_model is not None:
             if self.process_model.up_to_date():
-                logger.debug("Update asked for, but code hasn't changed.")
+                logger.debug("{}: Update asked for, but code hasn't changed.".format(self.step_id))
                 return
 
         t0 = time.time()
@@ -413,7 +413,6 @@ class BentenWindow(QWidget):
         items = self.process_view.scene().selectedItems()
         if len(items) == 0:
             self.process_view.reset_zoom()
-            # self.process_view.fitInView(self.process_view.scene().sceneRect(), Qt.KeepAspectRatio)
             return
 
         steps = [self.process_model.steps[item.data(0)] for item in items
@@ -421,7 +420,11 @@ class BentenWindow(QWidget):
                  and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
-            self.scene_double_clicked.emit(steps)
+            self.steps_to_open.emit(steps)
+
+    def step_ids_to_open(self, step_ids):
+        steps = [step for step in self.process_model.steps.values() if step.id in step_ids ]
+        self.steps_to_open.emit(steps)
 
     @Slot(list)
     def nodes_added(self, cwl_path_list):
