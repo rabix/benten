@@ -35,7 +35,6 @@ class BentenMainWidget(QTabWidget):
 
         self.api = None
         self.tab_directory: Dict[str, Dict[Union[Tuple[str], None], BentenWindow]] = {}
-        # self.multi_document_manager = MultiDocumentManager(benten_main_window=self)
         self.active_window: BentenWindow = None
 
         self.setTabsClosable(True)
@@ -106,13 +105,21 @@ class BentenMainWidget(QTabWidget):
 
     @Slot(int)
     def tab_about_to_close(self, index):
-        bw: BentenWindow = self.widget(index)
-        if len(self.windows_for_this_doc(bw.cwl_doc)) == 1:
-            mdmu = self.multi_document_manager.lookup_parent_doc(bw.cwl_doc)
-            if not mdmu.doc_man.status()["saved"]:
-                if not self.unsaved_changes_dialog([mdmu]):
-                    return
+        def last_tab_for_this_file(_path, _bw):
+            for idx in range(self.count()):
+                _this = self.widget(idx)
+                if _this != _bw:
+                    if _this.cwl_doc.path == _path:
+                        return False
+            else:
+                return True
 
+        bw: BentenWindow = self.widget(index)
+        root_path = bw.cwl_doc.path
+        if last_tab_for_this_file(root_path, bw):
+            if bw.cwl_doc.needs_saving():
+                if not self.unsaved_changes_dialog([bw.cwl_doc]):
+                    return
         self.removeTab(index)
 
     def ok_to_close_everything(self, event:QCloseEvent):
