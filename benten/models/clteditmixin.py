@@ -1,8 +1,4 @@
-import pathlib
-
-from ..editing.utils import dictify
-from ..editing.lineloader import load_yaml, LAM
-from ..editing.edit import Edit, EditMark
+"""Scaffolding features for CommandLineTool"""
 
 
 class CltEditMixin:

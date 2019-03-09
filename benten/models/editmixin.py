@@ -1,7 +1,7 @@
 import pathlib
 
 from ..editing.utils import dictify
-from ..editing.lineloader import load_yaml, LAM
+from ..editing.lineloader import load_yaml, LAM, YNone
 from ..editing.edit import Edit, EditMark
 
 
@@ -22,8 +22,8 @@ class EditMixin:
             column_to_insert = 0
             indent = 2 * " "
 
-        elif len(self.cwl_doc.cwl_dict[section_key]) == 0:
-            # Tricky, section is empty
+        elif isinstance(self.cwl_doc.cwl_dict[section_key], YNone) or len(self.cwl_doc.cwl_dict[section_key]) == 0:
+            # Tricky, section is none or empty
             text_lines += ["{}:".format(section_key)]
             as_list = not prefer_dict
 
@@ -41,8 +41,8 @@ class EditMixin:
             sub_sec = self.cwl_doc.cwl_dict[section_key][sub_section_key]
 
             line_to_insert = sub_sec.start.line
-            column_to_insert = sub_sec.start.column - 2
-            indent = 2 * " "
+            column_to_insert = 0
+            indent = (sub_sec.start.column - 2) * " "
 
             # This is the edge case - we need to replace the entire, empty section
             select_end_line = sub_sec.end.line
