@@ -312,8 +312,8 @@ class CwlProcess(CwlDoc):
                     if new_cwl == "":
                         return None
                     else:
-                        text_lines += [""]
                         indent_level += 2
+                        text_lines += ["\n" + " " * indent_level]
                 else:
                     raise ImplementationError("Should not be viewing flow style elements")
         elif isinstance(original_value, Ystr):  # Expressions and documentation

@@ -1,11 +1,24 @@
 import pathlib
-
+import os
+import shutil
 import pytest
 
-from benten.editing.cwlprocess import CwlProcess, ViewType, LockedDueToYAMLErrors, DocumentError
-from benten.editing.edit import Edit
+from benten.editing.cwlprocess import CwlProcess, ViewType, LockedDueToYAMLErrors
 
 current_path = pathlib.Path(__file__).parent
+
+
+test_dir = "cwlprocess-test-temp-cwl-dir"
+
+
+def setup():
+    if not os.path.exists(test_dir):
+        os.mkdir(test_dir)
+
+
+def teardown():
+    if os.path.exists(test_dir):
+        shutil.rmtree(test_dir)
 
 
 def test_create_from_file():
@@ -40,6 +53,57 @@ def test_create_from_file_with_yaml_errors():
 #     assert ch_p.view_type == ViewType.Process
 #     assert ch_p.parent_view == cwl_process
 #     assert ch_p.raw_cwl.startswith("class: CommandLineTool")
+
+
+def test_add_step_when_empty():
+    path = pathlib.Path(current_path, test_dir, "empty-step-dict.cwl")
+    with open(path, "w") as f:
+        f.write("""class: Workflow
+cwlVersion: v1.0
+doc: ''
+id: test
+label: test
+inputs: []
+outputs: []
+steps:
+  s1:
+    label: step1
+    doc:
+    in: []
+    out: []
+    run: {}
+    scatter: 
+    scatterMethod: 
+    hints: []
+    requirements: []""")
+
+    cwl_process = CwlProcess.create_from_file(path=path)
+    ch_p = cwl_process.create_child_view_from_path(("steps", "s1", "run"))
+
+    new_raw_cwl = """class: CommandLineTool
+inputs:
+  c: File
+  b: string
+  e: int
+outputs:
+  d: string
+  f: File
+"""
+
+    expected_inserted_text = """
+      class: CommandLineTool
+      inputs:
+        c: File
+        b: string
+        e: int
+      outputs:
+        d: string
+        f: File
+"""
+
+    edit = ch_p.get_edit_from_new_text(new_raw_cwl)
+
+    assert edit.text == expected_inserted_text
 
 
 def test_edit_step_when_list():
