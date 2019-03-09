@@ -197,7 +197,7 @@ class CwlProcess(CwlDoc):
     # I want to be conscious and in control of when this (semi)expensive computation is being done
     # But I'd don't want to accidentally do it twice
     def compute_cwl_dict(self):
-        if self.cwl_dict is not None:
+        if self.cwl_dict is not None and self.yaml_error is None:
             return
 
         if self.view_type is not ViewType.Process:
@@ -205,6 +205,7 @@ class CwlProcess(CwlDoc):
 
         try:
             self.cwl_dict = parse_yaml_with_line_info(self.raw_cwl, convert_to_lam=True) or Ydict.empty()
+            self.yaml_error = None
         except DocumentError as e:
             self.yaml_error = e
             return
