@@ -54,6 +54,19 @@ def load_yaml(raw_cwl: str):
     return yaml.load(raw_cwl, Loader)
 
 
+class YNone:
+    def __init__(self, node):
+        self.start = node.start_mark
+        self.end = node.end_mark
+
+    def __bool__(self):
+        return False
+
+    def items(self):  # We often test this against a dict
+        for n in []:
+            yield
+
+
 class Yint(int):  # pragma: no cover
     def __new__(cls, value, node):
         x = int.__new__(cls, value)
@@ -181,6 +194,10 @@ class YSafeLineLoader(Loader):
     def construct_scalar(self, node):
         return Ystr(super(YSafeLineLoader, self).construct_scalar(node), node)
 
+    def construct_yaml_null(self, node):
+        self.construct_scalar(node)
+        return YNone(node)
+
     def construct_mapping(self, node, deep=False):
         mapping = super().construct_mapping(node, deep=deep)
         mapping[meta_node_key] = node
@@ -190,6 +207,11 @@ class YSafeLineLoader(Loader):
         seq = super().construct_sequence(node, deep=deep)
         seq.append(node)
         return seq
+
+
+YSafeLineLoader.add_constructor(
+    'tag:yaml.org,2002:null',
+    YSafeLineLoader.construct_yaml_null)
 
 
 def _recurse_extract_meta(x, key=None, convert_to_lam=False):
