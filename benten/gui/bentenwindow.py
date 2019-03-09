@@ -18,6 +18,7 @@ from .workflowscene import WorkflowScene
 from ..sbg.sbgcwldoc import SBGCwlDoc
 from ..models.unk import Unk
 from ..models.tool import Tool
+from ..models.commandlinetool import CommandLineTool
 from ..models.workflow import Workflow, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
 
 import logging
@@ -203,7 +204,7 @@ class BentenWindow(QWidget):
         if modified_cwl == self.cwl_doc.raw_cwl:
             return
 
-        self.cwl_doc.apply_raw_text(modified_cwl, self.cwl_doc.inline_path)
+        self.cwl_doc.check_for_yaml_error_and_synchronize_new_cwl(modified_cwl)
         self.update_from_code()
         # self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
 
@@ -302,7 +303,9 @@ class BentenWindow(QWidget):
             self.process_model = Workflow(cwl_doc=self.cwl_doc)
             if self.process_model.cwl_errors:
                 logger.warning(self.process_model.cwl_errors)
-        elif pt in ["CommandLineTool", "ExpressionTool"]:
+        elif pt == "CommandLineTool":
+            self.process_model = CommandLineTool(cwl_doc=self.cwl_doc)
+        elif pt == "ExpressionTool":
             self.process_model = Tool(cwl_doc=self.cwl_doc)
         else:
             self.process_model = Unk(cwl_doc=self.cwl_doc)
@@ -467,3 +470,16 @@ class BentenWindow(QWidget):
         self.code_editor.insert_text(self.process_model.add_step(path, step_id))
         self.programmatic_edit()
         return "Added new step"
+
+    def scaffold_docker(self, args):
+        blk = QSignalBlocker(self.code_editor)
+
+        if self.cwl_doc.type() != "CommandLineTool":
+            return "Can only add DockerRequirement to CommandLineTool"
+
+        if len(args) != 1:
+            return "Arguments are <docker_image>"
+
+        self.code_editor.insert_text(self.process_model.add_docker(args[0]))
+        self.programmatic_edit()
+        return "Added DockerRequirement"
