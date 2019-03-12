@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 from ..implementationerror import ImplementationError
 from .edit import Edit, EditMark
-from .yamldoc import TextType, PlainText, YamlDoc, ContentsChanged
+from .yamldoc import TextType, PlainText, YamlDoc, Contents
 
 
 class EditorInterface(ABC):
@@ -36,15 +36,21 @@ class YamlView:
         self.parent: 'YamlView' = None
         self.children: Dict[Tuple[str], YamlView] = {}
 
+    def __contains__(self, path: Tuple[str]):
+        return path in self.children
+
+    def get(self, path: Tuple[str]):
+        return self.children.get(path, None)
+
     def get_originating_edit(self):
         """Called when manual or programmatic edit is signalled by attached editor"""
         raw_text = self.attached_editor.get_text()
-        if self.doc.set_raw_text_and_reparse(raw_text) == ContentsChanged.No:
-            return ContentsChanged.No
-        else:
+        parse_result = self.doc.set_raw_text_and_reparse(raw_text)
+        if parse_result & Contents.ParseSuccess:
             self.propagate_edit_to_ancestor()
             self.propagate_edits_to_children()
-            return ContentsChanged.Yes
+
+        return parse_result
 
     def propagate_edit_to_ancestor(self):
         if self.parent is None:
@@ -73,9 +79,6 @@ class YamlView:
 
         for path in deleted_child_paths:
             self.children.pop(path)
-
-    def child_view_exists(self, path: Tuple[str]):
-        return path in self.children
 
     def create_child_view(self, path: Tuple[str], editor: EditorInterface):
         if not isinstance(self.doc, YamlDoc):
