@@ -5,15 +5,7 @@ from enum import IntEnum, IntFlag, auto
 
 from ..implementationerror import ImplementationError
 from .edit import EditMark, Edit
-from .lineloader import parse_yaml_with_line_info, Ystr, Ydict, DocumentError
-
-
-class LockedDueToYAMLErrors(Exception):
-    pass
-
-
-class UnableToCreateView(Exception):
-    pass
+from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentError
 
 
 class Contents(IntEnum):
@@ -55,7 +47,7 @@ class BaseDoc(ABC):
 class PlainText(BaseDoc):
 
     def set_raw_text_and_reparse(self, raw_text: str) -> Contents:
-        return self.set_raw_text(raw_text)
+        return self.set_raw_text(raw_text) | Contents.ParseSkipped
 
 
 class YamlDoc(BaseDoc):
@@ -64,6 +56,12 @@ class YamlDoc(BaseDoc):
         self.yaml = None
         self.last_good_yaml = None
         self.yaml_error = None
+
+    def parsed(self):
+        return self.yaml is not None
+
+    def has_yaml_errors(self):
+        return self.yaml_error is not None
 
     def set_raw_text(self, raw_text: str):
         if super().set_raw_text(raw_text) == Contents.Unchanged:
@@ -75,9 +73,10 @@ class YamlDoc(BaseDoc):
 
     def set_raw_text_and_reparse(self, raw_text: str):
         if self.set_raw_text(raw_text) == Contents.Unchanged:
-            return Contents.Unchanged | Contents.ParseSkipped
-        else:
-            return self.parse_yaml() | Contents.Changed
+            if self.parsed():
+                return Contents.Unchanged | Contents.ParseSkipped
+
+        return self.parse_yaml() | Contents.Changed
 
     def parse_yaml(self):
         if self.yaml is not None and self.yaml_error is None:
@@ -92,9 +91,11 @@ class YamlDoc(BaseDoc):
             self.yaml_error = e
             return Contents.ParseFail
 
-    def __contains__(self, path: Tuple[str]):
+    def __contains__(self, path: Tuple[str, ...]):
         sub_doc = self.yaml
         for p in path or []:
+            if not isinstance(sub_doc, dict):
+                return False
             if p in sub_doc:
                 sub_doc = sub_doc[p]
             else:
@@ -102,14 +103,14 @@ class YamlDoc(BaseDoc):
         else:
             return True
 
-    def __getitem__(self, path: Tuple[str]):
+    def __getitem__(self, path: Tuple[str, ...]):
         sub_doc = self.yaml
         for p in path or []:
             sub_doc = sub_doc[p]
         return sub_doc
 
     @staticmethod
-    def infer_section_type(path: Tuple[str]):
+    def infer_section_type(path: Tuple[str, ...]):
         if len(path) > 0:
             if path[-1] == "run":
                 return TextType.process
@@ -118,8 +119,8 @@ class YamlDoc(BaseDoc):
         else:
             return TextType.documentation
 
-    def get_raw_text_for_section(self, path: Tuple[str]):
-        value = self.yaml[path]
+    def get_raw_text_for_section(self, path: Tuple[str, ...]):
+        value = self[path]
 
         start_line, end_line = value.start.line, value.end.line
         sl = start_line
@@ -145,39 +146,27 @@ class YamlDoc(BaseDoc):
         # Blank lines, however, can be zero length, hence the exception.
         return "".join(lines)
 
-    def set_section_from_raw_text(self, raw_text, path: Tuple[str]) -> Edit:
+    def set_section_from_raw_text(self, raw_text, path: Tuple[str, ...]) -> Edit:
         new_lines = self._apply_edit_to_lines(
             self._project_raw_text_to_section_as_edit(raw_text, path))
         diff_as_edit = YamlDoc.edit_from_quick_diff(self.raw_lines, new_lines)
         self.set_raw_text("".join(new_lines))
         return diff_as_edit
 
-    # # We add this to an anchor so that we know what to add to a non-empty value
-    # # This is required for when the original value was empty and expressed in flow
-    # # style as an empty dict (e.g. steps) or an empty string (e.g. docs, expressions)
-    # # and when they are substantial, we should pass the edit back with an appropriate
-    # # preamble to carry out this transition
-    # preamble = {
-    #     TextType.process: "\n",
-    #     TextType.documentation: "|-\n",
-    #     TextType.expression: "|-\n"
-    # }
-
-    def _project_raw_text_to_section_as_edit(self, raw_text, path: Tuple[str]):
-        original_value = self.yaml[path]
-        if not raw_text.endswith("\n"):
-            raw_text += "\n"
-            # We need a newline between this segment and the next
-            # Because we edit this as a block, the user can remove that last
-            # newline, and we need to add it back to maintain the YAML structure
+    def _project_raw_text_to_section_as_edit(self, raw_text, path: Tuple[str, ...]):
+        original_value = self[path]
         raw_text_lines = raw_text.splitlines(keepends=True)
         projected_text_lines = []
 
         start = EditMark(original_value.start.line, original_value.start.column)
         end = EditMark(original_value.end.line, original_value.end.column)
 
-        if raw_text == "\n":
-            return Edit(start, end, raw_text, raw_text_lines)
+        # Exception we make when going from block back to null style
+        if raw_text == "":
+            if (isinstance(original_value, Ydict) and not original_value.flow_style) or \
+                    (not isinstance(original_value, Ydict) and original_value.style != ""):
+                start.column = 0
+                return Edit(start, end, raw_text, raw_text_lines)
 
         sl = original_value.start.line
         if len(self.raw_lines):
@@ -192,10 +181,11 @@ class YamlDoc(BaseDoc):
                     projected_text_lines += ["\n" + " " * indent_level]
                 else:
                     raise ImplementationError("Should not be viewing flow style elements")
-        elif isinstance(original_value, Ystr):  # Expressions and documentation
-            if original_value.style == "" and "\n" in raw_text:
-                indent_level += 2
-                projected_text_lines += ["|-\n" + " " * indent_level]
+        else:  # isinstance(original_value, Ystr):  # Expressions and documentation
+            if "\n" in raw_text:
+                if isinstance(original_value, YNone) or original_value.style == "":
+                    indent_level += 2
+                    projected_text_lines += [" |-\n" + " " * indent_level]
             else:
                 return Edit(start, end, raw_text, raw_text_lines)
 
