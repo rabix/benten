@@ -1,7 +1,7 @@
 """These are functions to generate edit operations on a YAML (Ydict) document."""
 from typing import Tuple
 from abc import ABC, abstractmethod
-from enum import IntEnum
+from enum import IntEnum, IntFlag, auto
 
 from ..implementationerror import ImplementationError
 from .edit import EditMark, Edit
@@ -16,9 +16,12 @@ class UnableToCreateView(Exception):
     pass
 
 
-class ContentsChanged(IntEnum):
-    No = 0
-    Yes = 1
+class Contents(IntEnum):
+    Unchanged = auto()
+    Changed = auto()
+    ParseSkipped = auto()
+    ParseSuccess = auto()
+    ParseFail = auto()
 
 
 class TextType(IntEnum):
@@ -38,20 +41,20 @@ class BaseDoc(ABC):
 
     def set_raw_text(self, raw_text: str):
         if self.identical_to(raw_text):
-            return ContentsChanged.No
+            return Contents.Unchanged
         else:
             self.raw_text = raw_text
             self.raw_lines = raw_text.splitlines(keepends=True)
-            return ContentsChanged.Yes
+            return Contents.Changed
 
     @abstractmethod
-    def set_raw_text_and_reparse(self, raw_text: str) -> ContentsChanged:
+    def set_raw_text_and_reparse(self, raw_text: str) -> Contents:
         pass
 
 
 class PlainText(BaseDoc):
 
-    def set_raw_text_and_reparse(self, raw_text: str) -> ContentsChanged:
+    def set_raw_text_and_reparse(self, raw_text: str) -> Contents:
         return self.set_raw_text(raw_text)
 
 
@@ -63,30 +66,31 @@ class YamlDoc(BaseDoc):
         self.yaml_error = None
 
     def set_raw_text(self, raw_text: str):
-        if super().set_raw_text(raw_text) == ContentsChanged.No:
-            return ContentsChanged.No
+        if super().set_raw_text(raw_text) == Contents.Unchanged:
+            return Contents.Unchanged
         else:
             self.yaml = None
             self.yaml_error = None
-            return ContentsChanged.Yes
+            return Contents.Changed
 
     def set_raw_text_and_reparse(self, raw_text: str):
-        if self.set_raw_text(raw_text) == ContentsChanged.No:
-            return ContentsChanged.No
+        if self.set_raw_text(raw_text) == Contents.Unchanged:
+            return Contents.Unchanged | Contents.ParseSkipped
         else:
-            self.parse_yaml()
-            return ContentsChanged.yes
+            return self.parse_yaml() | Contents.Changed
 
     def parse_yaml(self):
         if self.yaml is not None and self.yaml_error is None:
-            return
+            return Contents.ParseSkipped
 
         try:
             self.yaml = parse_yaml_with_line_info(self.raw_text, convert_to_lam=True) or Ydict.empty()
             self.yaml_error = None
             self.last_good_yaml = self.yaml
+            return Contents.ParseSuccess
         except DocumentError as e:
             self.yaml_error = e
+            return Contents.ParseFail
 
     def __contains__(self, path: Tuple[str]):
         sub_doc = self.yaml
