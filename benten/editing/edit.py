@@ -1,4 +1,5 @@
 """A small class handling instructions on what kind of edits to do to a document"""
+from typing import List
 
 
 class EditMark:
@@ -10,8 +11,8 @@ class EditMark:
 
 
 class Edit:
-    def __init__(self, start, end, text):
-        self.start, self.end, self.text = start, end, text
+    def __init__(self, start: EditMark, end: EditMark, text: str, text_lines: List[str]):
+        self.start, self.end, self.text, self.text_lines = start, end, text, text_lines
 
     def __repr__(self):  # Helpful for debugging
-        return "{} - {}: {}".format(self.start, self.end, self.text[:10])
+        return "{}, {}: {}".format(self.start, self.end, self.text[:10])
