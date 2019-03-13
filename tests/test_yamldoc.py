@@ -98,6 +98,27 @@ def test_yaml_doc_replace_empty_dict():
 """
 
 
+def test_yaml_doc_missing_new_line():
+    yaml_doc = YamlDoc(raw_text=assorted_steps)
+    yaml_doc.parse_yaml()
+
+    new_text = "ln1: Thinkin' of you's workin' up my appetite"
+    yaml_doc.set_section_from_raw_text(new_text, ("steps", "step3", "run"))
+
+    expected = """steps:
+- id: step1
+  run:
+- id: step2
+  run: {}
+- id: step3
+  run:
+    ln1: Thinkin' of you's workin' up my appetite
+- id: step4
+  run: {}
+"""
+    assert yaml_doc.raw_text == expected
+
+
 def test_yaml_doc_insert_empty_dict():
     yaml_doc = YamlDoc(raw_text=assorted_steps)
     yaml_doc.parse_yaml()
@@ -116,3 +137,6 @@ def test_yaml_doc_insert_empty_dict():
   run: {}
 """
     assert yaml_doc.raw_text == expected
+
+
+test_yaml_doc_replace_null()

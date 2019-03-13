@@ -131,7 +131,7 @@ class YamlDoc(BaseDoc):
                 if value == {}:
                     return ""
                 else:
-                    raise UnableToCreateView("Flow style elements can not be edited in a view")
+                    raise ImplementationError("Flow style elements can not be edited in a view")
         elif isinstance(value, Ystr):  # Single line expressions and documentation
             # todo: check for expressions
             if value.style == "":
@@ -154,6 +154,12 @@ class YamlDoc(BaseDoc):
         return diff_as_edit
 
     def _project_raw_text_to_section_as_edit(self, raw_text, path: Tuple[str, ...]):
+        def _block_style(_ov):
+            if isinstance(_ov, YNone): return False
+            elif isinstance(_ov, Ydict): return not _ov.flow_style
+            elif _ov.style != "": return True
+            else: return False
+
         original_value = self[path]
         raw_text_lines = raw_text.splitlines(keepends=True)
         projected_text_lines = []
@@ -161,12 +167,18 @@ class YamlDoc(BaseDoc):
         start = EditMark(original_value.start.line, original_value.start.column)
         end = EditMark(original_value.end.line, original_value.end.column)
 
+        block_style = _block_style(original_value)
+
         # Exception we make when going from block back to null style
-        if raw_text == "":
-            if (isinstance(original_value, Ydict) and not original_value.flow_style) or \
-                    (not isinstance(original_value, Ydict) and original_value.style != ""):
-                start.column = 0
-                return Edit(start, end, raw_text, raw_text_lines)
+        if raw_text == "" and block_style:
+            start.column = 0
+            return Edit(start, end, raw_text, raw_text_lines)
+
+        if not raw_text.endswith("\n") and block_style:
+            raw_text += "\n"
+            raw_text_lines += ["\n"]
+        # A user can remove this last new line from the editor. We need to add it back
+        # otherwise we'll lose our block structure
 
         sl = original_value.start.line
         if len(self.raw_lines):
@@ -175,18 +187,18 @@ class YamlDoc(BaseDoc):
             indent_level = 0
 
         if isinstance(original_value, Ydict):  # Currently, sole use case is in steps
-            if original_value.flow_style:
+            if not block_style:
                 if original_value == {}:
                     indent_level += 2
                     projected_text_lines += ["\n" + " " * indent_level]
                 else:
                     raise ImplementationError("Should not be viewing flow style elements")
-        else:  # isinstance(original_value, Ystr):  # Expressions and documentation
-            if "\n" in raw_text:
-                if isinstance(original_value, YNone) or original_value.style == "":
+        else:  # Expressions and documentation
+            if "\n" in raw_text:  # Multi-line
+                if isinstance(original_value, YNone) or not block_style:
                     indent_level += 2
                     projected_text_lines += [" |-\n" + " " * indent_level]
-            else:
+            else:  # Single line, works regardless of block or flowstyle
                 return Edit(start, end, raw_text, raw_text_lines)
 
         projected_text_lines += [((' '*indent_level) if len(l) > 1 and n > 0 else "") + l
