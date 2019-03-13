@@ -45,6 +45,61 @@ def test_yaml_doc_basic():
     assert ("steps", "step1") not in yaml_doc
 
 
+def test_yaml_doc_delete_lines():
+    original_text = """
+verse1:
+  ln1: Bus stop, wet day
+  ln2: She's there, I say
+  ln3: Please share my umbrella"""
+
+    yaml_doc = YamlDoc(raw_text=original_text)
+    yaml_doc.parse_yaml()
+    raw_text = yaml_doc.get_raw_text_for_section(("verse1",))
+    assert raw_text == """ln1: Bus stop, wet day
+ln2: She's there, I say
+ln3: Please share my umbrella"""
+
+    new_text = "ln4: Bus stops, bus goes"
+    yaml_doc.set_section_from_raw_text(raw_text=new_text, path=("verse1",))
+    yaml_doc.parse_yaml()
+    raw_text = yaml_doc.get_raw_text_for_section(("verse1",))
+    assert raw_text == new_text + "\n"
+
+
+def test_yaml_doc_delete_all():
+    original_text = """
+verse1:
+  ln1: Bus stop, wet day
+  ln2: She's there, I say
+  ln3: Please share my umbrella"""
+
+    yaml_doc = YamlDoc(raw_text=original_text)
+    yaml_doc.parse_yaml()
+    raw_text = yaml_doc.get_raw_text_for_section(("verse1",))
+    assert raw_text == """ln1: Bus stop, wet day
+ln2: She's there, I say
+ln3: Please share my umbrella"""
+
+    new_text = ""
+    yaml_doc.set_section_from_raw_text(raw_text=new_text, path=("verse1",))
+    yaml_doc.parse_yaml()
+    raw_text = yaml_doc.get_raw_text_for_section(("verse1",))
+    assert raw_text == new_text
+
+
+def test_fast_differ():
+    original_lines = """Bus stops, bus goes
+She stays, love grows
+Under my umbrella""".splitlines(keepends=True)
+    new_lines = "".splitlines(keepends=True)
+    edit = YamlDoc.edit_from_quick_diff(original_lines, new_lines)
+    assert edit.start.line == 0
+    assert edit.start.column == 0
+    assert edit.end.line == 3
+    assert edit.end.column == 0
+    assert edit.text == ""
+
+
 def test_yaml_doc_replace_null():
     yaml_doc = YamlDoc(raw_text=assorted_steps)
     assert yaml_doc.parse_yaml() & Contents.ParseSuccess
@@ -137,6 +192,3 @@ def test_yaml_doc_insert_empty_dict():
   run: {}
 """
     assert yaml_doc.raw_text == expected
-
-
-test_yaml_doc_replace_null()

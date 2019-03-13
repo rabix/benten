@@ -9,11 +9,11 @@ from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentE
 
 
 class Contents(IntEnum):
-    Unchanged = auto()
-    Changed = auto()
-    ParseSkipped = auto()
-    ParseSuccess = auto()
-    ParseFail = auto()
+    Unchanged = 0b1
+    Changed = 0b10
+    ParseSkipped = 0b100
+    ParseSuccess = 0b1000
+    ParseFail = 0b10000
 
 
 class TextType(IntEnum):
@@ -153,6 +153,8 @@ class YamlDoc(BaseDoc):
         self.set_raw_text("".join(new_lines))
         return diff_as_edit
 
+    # todo: V1.0 this code does not handle block text properly. Will extend for V2.0
+    # Right now we worry mostly about "run" field of steps, which is a dict
     def _project_raw_text_to_section_as_edit(self, raw_text, path: Tuple[str, ...]):
         def _block_style(_ov):
             if isinstance(_ov, YNone): return False
@@ -229,22 +231,22 @@ class YamlDoc(BaseDoc):
 
     @staticmethod
     def edit_from_quick_diff(orig_lines, new_lines) -> Edit:
-        L0 = len(orig_lines) - 1
-        L1 = len(new_lines) - 1
+        L0 = len(orig_lines)
+        L1 = len(new_lines)
 
-        upper_n = L0
-        for n in range(len(orig_lines)):
+        upper_n = 0
+        for n in range(min(len(orig_lines), len(new_lines))):
+            upper_n = n
             if orig_lines[n] != new_lines[n]:
-                upper_n = n
                 break
 
         lower_n = 0
-        for n in range(len(orig_lines)):
-            if orig_lines[L0 - n] != new_lines[L1 - n]:
-                lower_n = n
+        for n in range(min(len(orig_lines), len(new_lines))):
+            lower_n = n
+            if orig_lines[L0 - 1 - n] != new_lines[L1 - 1 - n]:
                 break
 
         start = EditMark(upper_n, 0)
-        end = EditMark(L0 - lower_n + 1, 0)
+        end = EditMark(L0 - lower_n, 0)
 
-        return Edit(start, end, "".join(new_lines[upper_n:(L1 - lower_n + 1)]), [])
+        return Edit(start, end, "".join(new_lines[upper_n:(L1 - lower_n)]), [])
