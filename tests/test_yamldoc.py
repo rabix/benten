@@ -44,6 +44,10 @@ def test_yaml_doc_basic():
     assert ("steps",) in yaml_doc
     assert ("steps", "step1") not in yaml_doc
 
+    yaml_doc = YamlDoc(raw_text="Red balloon")
+    yaml_doc.set_raw_text_and_reparse(assorted_steps)
+    assert ("steps", "step1", "run") in yaml_doc
+
 
 def test_yaml_doc_delete_lines():
     original_text = """
