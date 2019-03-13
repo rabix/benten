@@ -14,6 +14,8 @@ class EditorInterface(ABC):
         self.locked = False
         self.delete_me = False
 
+    # This is meant to replace the whole text in one go
+    # Should not trigger any downstream edit events
     @abstractmethod
     def set_text(self, raw_text: str):
         pass
@@ -22,6 +24,8 @@ class EditorInterface(ABC):
     def get_text(self):
         pass
 
+    # This is meant to replace targeted text
+    # Should not trigger any downstream edit events
     @abstractmethod
     def apply_edit(self, edit: Edit):
         pass
