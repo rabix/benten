@@ -10,6 +10,10 @@ from .yamldoc import TextType, PlainText, YamlDoc, Contents
 
 class EditorInterface(ABC):
 
+    def __init__(self):
+        self.locked = False
+        self.delete_me = False
+
     @abstractmethod
     def set_text(self, raw_text: str):
         pass
@@ -28,28 +32,34 @@ class EditorInterface(ABC):
 
 
 class YamlView:
-    def __init__(self, raw_text: str, path: Tuple[str], text_type: TextType):
-        # self.anchor: Anchor = None
+    def __init__(self, raw_text: str, path: Tuple[str, ...],
+                 text_type: TextType, editor: EditorInterface,
+                 parent: 'YamlView'=None):
         self.path = path
         self.doc = YamlDoc(raw_text) if text_type == TextType.process else PlainText(raw_text)
-        self.attached_editor: EditorInterface = None
-        self.parent: 'YamlView' = None
-        self.children: Dict[Tuple[str], YamlView] = {}
+        self.attached_editor: EditorInterface = editor
+        self.attached_editor.set_text(raw_text)
+        self.parent: 'YamlView' = parent
+        self.children: Dict[Tuple[str, ...], YamlView] = {}
 
-    def __contains__(self, path: Tuple[str]):
+    def __contains__(self, path: Tuple[str, ...]):
         return path in self.children
 
-    def get(self, path: Tuple[str]):
+    def get(self, path: Tuple[str, ...]):
         return self.children.get(path, None)
 
-    def get_originating_edit(self):
+    def fetch_from_editor(self):
         """Called when manual or programmatic edit is signalled by attached editor"""
         raw_text = self.attached_editor.get_text()
         parse_result = self.doc.set_raw_text_and_reparse(raw_text)
         if parse_result & Contents.ParseSuccess:
+            self.attached_editor.locked = False
             self.propagate_edit_to_ancestor()
             self.propagate_edits_to_children()
-
+        elif parse_result & Contents.Unchanged:
+            return parse_result
+        else:
+            self.attached_editor.locked = True
         return parse_result
 
     def propagate_edit_to_ancestor(self):
@@ -63,6 +73,7 @@ class YamlView:
         if not isinstance(self.doc, YamlDoc):
             return
 
+        self.doc.parse_yaml()  # The propagate call is recursive, and the children need to be parsed
         deleted_child_paths = []
         for path, child_view in self.children.items():
             if path in self.doc:
@@ -80,7 +91,7 @@ class YamlView:
         for path in deleted_child_paths:
             self.children.pop(path)
 
-    def create_child_view(self, path: Tuple[str], editor: EditorInterface):
+    def create_child_view(self, path: Tuple[str, ...], editor: EditorInterface) -> 'YamlView':
         if not isinstance(self.doc, YamlDoc):
             raise ImplementationError("Only processes can have child views")
 
@@ -89,8 +100,8 @@ class YamlView:
 
         child_view = YamlView(
             raw_text=self.doc.get_raw_text_for_section(path),
-            path=path, text_type=YamlDoc.infer_section_type(path))
-        child_view.attached_editor = editor
-        editor.set_text(child_view.doc.raw_text)
+            path=path, text_type=YamlDoc.infer_section_type(path),
+            editor=editor, parent=self)
 
         self.children[path] = child_view
+        return child_view
