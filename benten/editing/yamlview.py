@@ -30,9 +30,8 @@ class EditorInterface(ABC):
     def apply_edit(self, edit: Edit):
         pass
 
-    @abstractmethod
     def mark_for_deletion(self):
-        pass
+        self.delete_me = True
 
 
 class YamlView:

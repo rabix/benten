@@ -105,9 +105,6 @@ class FakeEditor(EditorInterface):
 
         self.text = "".join(new_lines)
 
-    def mark_for_deletion(self):
-        self.delete_me = True
-
 
 def test_basic():
     yaml_view = YamlView(raw_text=nested_document, path=(), text_type=TextType.process, editor=FakeEditor())
