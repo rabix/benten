@@ -20,7 +20,7 @@ class Base:
         self.cwl_errors: List[CWLError] = []
 
     def code_is_same_as(self, new_text):
-        return self._original_raw_cwl != new_text
+        return self._original_raw_cwl == new_text
 
     @staticmethod
     def special_id(name):
