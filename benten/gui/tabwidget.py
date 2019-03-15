@@ -32,7 +32,7 @@ class TabWidget(QTabWidget):
         self.doc_directory: Dict[str, CwlDoc] = {}
 
         # self.tab_directory: Dict[str, Dict[Union[Tuple[str], None], BentenWindow]] = {}
-        # self.active_window: BentenWindow = None
+        self.active_window: ViewWidget = None
 
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.tab_about_to_close)
@@ -64,7 +64,10 @@ class TabWidget(QTabWidget):
 
     @Slot()
     def tab_selected(self):
-        pass
+        if self.active_window is not None:
+            self.active_window.set_inactive_window()
+        self.active_window = self.currentWidget()
+        self.active_window.set_active_window()
 
     def open_linked_file(self, file_path: pathlib.Path):
         fp_str = file_path.resolve().as_uri()
@@ -72,6 +75,7 @@ class TabWidget(QTabWidget):
             vw = ViewWidget()
             self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
             self.addTab(vw, "...")
+
             if self.count() == 1:
                 self._make_base_tab_unclosable()
 

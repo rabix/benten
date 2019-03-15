@@ -5,9 +5,10 @@ from ...editing.yamlview import EditorInterface, Edit
 
 from .viewwidgetbase import ViewWidgetBase
 from .viewwidgetcommands import ViewWidgetCommands
+from .viewwidgetmodels import ViewWidgetModels
 
 
-class ViewWidget(EditorInterface, ViewWidgetCommands, ViewWidgetBase):
+class ViewWidget(EditorInterface, ViewWidgetCommands, ViewWidgetModels, ViewWidgetBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
