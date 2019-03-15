@@ -50,20 +50,20 @@ from .extensions.calltip import Calltip
 # the first to receive paint events.
 class CodeEditor(
     HighlightCurrentLine,
-    HighlightMatchingOccurrences,
-    HighlightMatchingBracket,
+#    HighlightMatchingOccurrences,
+#    HighlightMatchingBracket,
     FullUnderlines,
     IndentationGuides,
-    CodeFolding,
+#    CodeFolding,
     LongLineIndicator,
-    ShowWhitespace,
-    ShowLineEndings,
-    Wrap,
+#    ShowWhitespace,
+#    ShowLineEndings,
+#    Wrap,
     # BreakPoints, -> todo: convert this to show error line by line
     LineNumbers,
 
-    AutoCompletion,  # Escape: first remove autocompletion,
-    Calltip,  # then calltip
+#    AutoCompletion,  # Escape: first remove autocompletion,
+#    Calltip,  # then calltip
 
     Indentation,
     MoveLinesUpDown,
@@ -73,9 +73,9 @@ class CodeEditor(
     NumpadPeriodKey,
 
     AutoIndent,
-    PythonAutoIndent,
-    AutoCloseQuotesAndBrackets,
-    SyntaxHighlighting,
+#    PythonAutoIndent,
+#    AutoCloseQuotesAndBrackets,
+#    SyntaxHighlighting,
 
     SmartCopyAndPaste,  # overrides cut(), copy(), paste()
 

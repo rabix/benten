@@ -31,9 +31,8 @@ import pathlib
 from collections import OrderedDict
 import logging
 
-from .base import Base, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
+from .base import Base, YamlDoc, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
 from ..editing.utils import dictify, iter_scalar_or_list
-from ..editing.cwldoc import CwlDoc
 from ..editing.lineloader import load_yaml
 from .editmixin import EditMixin
 from .workfloweditmixin import WorkflowEditMixin
@@ -70,7 +69,7 @@ class InvalidSub:
 
 
 class InlineSub:
-    def __init__(self, _id: str, path: pathlib.Path, inline_path: Tuple[str]):
+    def __init__(self, _id: str, path: pathlib.Path, inline_path: Tuple[str, ...]):
         self.id = _id
         self.path = path
         self.inline_path = inline_path
@@ -113,10 +112,10 @@ class Step:
         return str(self.available_sinks.keys()) + "->" + self.id + "->" + str(self.available_sources.keys())
 
     @classmethod
-    def from_doc(cls, step_id: str, line: (int, int), cwl_doc: CwlDoc, wf_error_list: List):
+    def from_doc(cls, step_id: str, line: (int, int), cwl_doc: YamlDoc, wf_error_list: List):
 
-        step_doc = cwl_doc.cwl_dict["steps"][step_id]
-        root = cwl_doc.path
+        step_doc = cwl_doc.yaml["steps"][step_id]
+        root = pathlib.Path("./")  # cwl_doc.path
         sub_workflow = InvalidSub()
 
         if step_doc is None or "run" not in step_doc:
@@ -141,7 +140,7 @@ class Step:
                 if isinstance(sub_process, dict):
                     sub_workflow = InlineSub(
                         _id=sub_process.get("id", None),
-                        path=root, inline_path=(cwl_doc.inline_path or ()) + ("steps", step_id, "run"))
+                        path=root, inline_path=("steps", step_id, "run"))
                 else:
                     sub_process = {}
                     wf_error_list += ["Sub workflow is empty"]
@@ -182,13 +181,13 @@ class WFConnectionError(Exception):
 class Workflow(WorkflowEditMixin, EditMixin, Base):
     """This object carries the raw YAML and some housekeeping datastructures"""
 
-    def __init__(self, cwl_doc: CwlDoc):
+    def __init__(self, cwl_doc: YamlDoc):
         super().__init__(cwl_doc=cwl_doc)
 
         required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]
         self.parse_sections(required_sections)
 
-        cwl_dict = self.cwl_doc.cwl_dict
+        cwl_dict = self.cwl_doc.yaml
         self.inputs = self._parse_ports(cwl_dict.get("inputs", {}))
         self.outputs = self._parse_ports(cwl_dict.get("outputs", {}))
 
@@ -248,7 +247,7 @@ class Workflow(WorkflowEditMixin, EditMixin, Base):
         # Some things are better to write with old fashioned loops rather than
         # list comprehensions ...
 
-        cwl_dict = self.cwl_doc.cwl_dict
+        cwl_dict = self.cwl_doc.yaml
 
         # Connections into steps
         for step_id, step_doc in cwl_dict.get("steps", {}).items():

@@ -5,8 +5,8 @@ from PySide2.QtGui import QBrush, QFont, QPen
 from PySide2.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsSimpleTextItem
 
 from .processscene import ProcessScene
-from ..models.workflow import Workflow, Step, special_id_for_inputs, special_id_for_outputs
-from ..sbg.versionmixin import get_app_info
+from ...models.workflow import Workflow, Step, special_id_for_inputs, special_id_for_outputs
+from ...sbg.versionmixin import get_app_info
 
 
 color_code = {

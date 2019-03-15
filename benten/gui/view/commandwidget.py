@@ -8,15 +8,19 @@ from PySide2.QtWidgets import QVBoxLayout, QLineEdit, QTextEdit, QTableWidgetIte
     QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QAction, QFontDialog, QCompleter
 from PySide2.QtGui import QTextCursor, QFont
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class CommandWidget(QWidget):
 
     def __init__(self, parent):
-        QWidget.__init__(self)
+        QWidget.__init__(self, parent=parent)
 
-        # This gives us the global context to access any functionality we need to
-        # get stuff done
-        self.bw: 'BentenWindow' = parent
+        # # This gives us the global context to access any functionality we need to
+        # # get stuff done
+        # self.bw: 'BentenWindow' = parent
 
         self.command_line = QLineEdit()
         self.command_line.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
@@ -36,56 +40,33 @@ class CommandWidget(QWidget):
         layout.setSpacing(0)
         self.setLayout(layout)
 
-        self.dispatch_table, self.help_table = self._set_up_dispatcher()
+        self.dispatch_table, self.help_table = None, None
 
-    def _set_up_dispatcher(self):
+    def set_up_dispatcher(self, _parent):
         table = {
             "help": {
                 "synonyms": ["?", "h"],
                 "help": "Print help",
                 "call": self.print_help
-            },
-            "create": {
-                "help": "create <clt|et|wf> : When in an empty document, create a scaffold for CommandLineTool, "
-                        "ExpressionTool or Workflow",
-                "call": self.bw.create_scaffold
-            },
-            "docker": {
-                "help": "docker <docker_image> : Add DockerRequirement to CLT",
-                "call": self.bw.scaffold_docker
-            },
-            "new": {
-                "help": "new <step_id> [path] : Create scaffold for new inline step, or, "
-                        "if path is given new linked step",
-                "call": self.bw.scaffold_new_step
-            },
-            "goto": {
-                "synonyms": ["g"],
-                "help": "goto <stepid> : Goto step",
-                "call": self.goto_step
-            },
-            "list": {
-                "synonyms": ["l"],
-                "help": "list : List all steps in workflow",
-                "call": self.list_steps
-            },
-            "open": {
-                "synonyms": ["o"],
-                "help": "open <step_id> [step_id, ...] : Open step(s) in new tab(s)",
-                "call": self.bw.step_ids_to_open
-            },
-            "revisions": {
-                "help": "Print list of available revisions",
-                "call": self.get_app_revisions
             }
         }
+
+        for fname in _parent.__dir__():
+            fn = getattr(_parent, fname)
+            if hasattr(fn, "is_command"):
+                logger.debug("Installed command  '{}'".format(fn.cmd))
+                table[fn.cmd] = {
+                    "synonyms": fn.syn,
+                    "help": fn.help,
+                    "call": fn
+                }
 
         expanded_table = {}
         for k, v in table.items():
             for _k in [k] + v.get("synonyms", []):
                 expanded_table[_k] = v
 
-        return expanded_table, table
+        self.dispatch_table, self.help_table = expanded_table, table
 
     @Slot()
     def command_entered(self):

@@ -3,7 +3,7 @@ from typing import List
 
 
 class EditMark:
-    def __init__(self, line, column):
+    def __init__(self, line=0, column=0):
         self.line, self.column = line, column
 
     def __repr__(self):  # Helpful for debugging

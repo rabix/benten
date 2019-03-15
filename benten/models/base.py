@@ -1,18 +1,26 @@
-from ..editing.cwlprocess import CwlProcess
+from typing import List
+
+from ..editing.yamldoc import YamlDoc, EditMark
+
+
+class CWLError:
+    def __init__(self, pos: EditMark, message: str):
+        self.pos = pos
+        self.message = message
 
 
 class Base:
     """We don't know what the user intends this to be"""
 
-    def __init__(self, cwl_doc: CwlProcess):
+    def __init__(self, cwl_doc: YamlDoc):
         self.cwl_doc = cwl_doc
-        self._original_raw_cwl = cwl_doc.raw_cwl
-        self.id = (self.cwl_doc.cwl_dict or {}).get("id", None)
+        self._original_raw_cwl = cwl_doc.raw_text
+        self.id = (self.cwl_doc.yaml or {}).get("id", None)
         self.section_lines = {}
-        self.cwl_errors = []
+        self.cwl_errors: List[CWLError] = []
 
-    def up_to_date(self):
-        return self._original_raw_cwl == self.cwl_doc.raw_cwl
+    def code_is_same_as(self, new_text):
+        return self._original_raw_cwl != new_text
 
     @staticmethod
     def special_id(name):
@@ -20,7 +28,7 @@ class Base:
         return "- {} -".format(name)
 
     def parse_sections(self, required_sections: list):
-        cwl_dict = self.cwl_doc.cwl_dict
+        cwl_dict = self.cwl_doc.yaml
 
         for section, doc in cwl_dict.items():
             if section in required_sections:
@@ -34,7 +42,8 @@ class Base:
 
         if len(required_sections):
             for missing_section in required_sections:
-                self.cwl_errors += ["'{}' missing".format(missing_section)]
+                self.cwl_errors += [
+                    CWLError(EditMark(), "'{}' missing".format(missing_section))]
 
 
 # Some patterns we use a lot

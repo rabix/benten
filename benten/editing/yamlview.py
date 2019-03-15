@@ -8,9 +8,10 @@ from .edit import Edit, EditMark
 from .yamldoc import TextType, PlainText, YamlDoc, Contents
 
 
-class EditorInterface(ABC):
+class EditorInterface:
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.locked = False
         self.delete_me = False
 

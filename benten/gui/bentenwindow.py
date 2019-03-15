@@ -8,18 +8,20 @@ from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QSplitter, QTableWidget,
     QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QComboBox, QLabel, QShortcut
 from PySide2.QtGui import QTextCursor, QPainter, QFont, QKeySequence
 
+from ..implementationerror import ImplementationError
 from ..editing.edit import Edit, EditMark
+from ..editing.yamlview import YamlView, EditorInterface, Contents
+
+from ..models.createmodel import create_model
+from ..models.unk import Unk
+from ..models.tool import Tool
+from ..models.commandlinetool import CommandLineTool
+from ..models.workflow import Workflow, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
 
 from .codeeditor.editor import CodeEditor
 from .processview import ProcessView
 from .command.commandwidget import CommandWidget
 from .workflowscene import WorkflowScene
-
-from ..sbg.sbgcwldoc import SBGCwlDoc
-from ..models.unk import Unk
-from ..models.tool import Tool
-from ..models.commandlinetool import CommandLineTool
-from ..models.workflow import Workflow, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
 
 import logging
 
@@ -47,21 +49,15 @@ class ManualEditThrottler:
             self.timer.timeout.emit()
 
 
-class PersistentEditorState:
-    """Each edit causes us to update everything. We need to remember some things."""
-
-    def __len__(self):
-        self.selected_items: list = None
-
-
-class BentenWindow(QWidget):
+class BentenWindow(EditorInterface, QWidget):
 
     steps_to_open = Signal(object)
     edit_registered = Signal(object)
 
-    def __init__(self, cwl_doc, benten_main_window):
+    def __init__(self, view: YamlView, benten_main_window):
         QWidget.__init__(self)
 
+        self.attached_view = view
         self.bmw = benten_main_window
 
         self.code_editor: CodeEditor = self._setup_code_editor()
@@ -162,11 +158,21 @@ class BentenWindow(QWidget):
 
         return [command_window_shortcut]
 
+    def set_text(self, raw_text: str):
+        blk = QSignalBlocker(self.code_editor)
+        self.code_editor.set_text(raw_text)
+
+    def get_text(self):
+        return self.code_editor.toPlainText()
+
+    def apply_edit(self, edit: Edit):
+        return self.code_editor.insert_text(edit)
+
     # def set_document(self, cwl_doc):
     #     # This registers as a manual edit but we wish to skip the throttler
     #     blk = QSignalBlocker(self.code_editor)
     #     self.cwl_doc = cwl_doc
-    #     self.code_editor.set_text(self.cwl_doc.raw_cwl)
+    #     self.code_editor.set_text(self.cwl_doc.raw_text)
 
     def set_active_window(self):
         """To be called whenever we switch tabs to this window. """
@@ -199,14 +205,8 @@ class BentenWindow(QWidget):
         self._register_edit()
 
     def _register_edit(self):
-        # self.cwl_doc.set_raw_cwl()
-        modified_cwl = self.code_editor.toPlainText()
-        if modified_cwl == self.cwl_doc.raw_cwl:
-            return
-
-        self.cwl_doc.check_for_yaml_error_and_synchronize_new_cwl(modified_cwl)
+        op_flag = self.attached_view.fetch_from_editor()
         self.update_from_code()
-        # self.edit_registered.emit(self.cwl_doc)  # Meant to tell document manager about the manual edit
 
     # This only happens when we are in focus and the code has changed
     # It is only here that we do the (semi)expensive parsing computation
@@ -217,15 +217,13 @@ class BentenWindow(QWidget):
             # Defer updating until we can be seen
             return
 
-        self.refresh_editor_with_changed_code()
         self.update_process_model_from_code()
 
-        pt = self.cwl_doc.type()
         t1 = time.time()
 
-        if pt == "Workflow":
+        if isinstance(self.process_model, Workflow):
             self.configure_as_workflow()
-        elif pt in ["CommandLineTool", "ExpressionTool"]:
+        elif isinstance(self.process_model, CommandLineTool):
             self.configure_as_tool()
         else:
             self.configure_as_unknown()
@@ -235,11 +233,6 @@ class BentenWindow(QWidget):
 
         t2 = time.time()
         logger.debug("Displayed workflow in {}s".format(t2 - t1))
-
-    def refresh_editor_with_changed_code(self):
-        if self.code_editor.toPlainText() != self.cwl_doc.raw_cwl:
-            blk = QSignalBlocker(self.code_editor)
-            self.code_editor.set_text(self.cwl_doc.raw_cwl)
 
     def configure_as_workflow(self):
         old_transform = None
@@ -277,40 +270,24 @@ class BentenWindow(QWidget):
     # but we don't want to waste time drawing each time - we can do that at the end
     def update_process_model_from_code(self):
         if self.process_model is not None:
-            if self.process_model.up_to_date():
+            if self.process_model.code_is_same_as(self.attached_view.doc.raw_text):
                 logger.debug("{}: Update asked for, but code hasn't changed.".format(self.step_id))
                 return
 
         t0 = time.time()
 
-        try:
-            last_known_good_dict = self.cwl_doc.cwl_dict or {}
-        except AttributeError:
-            last_known_good_dict = {}
-
-        # self.cwl_doc.set_raw_cwl(modified_cwl)
-        self.cwl_doc.compute_cwl_dict()
-
-        if self.cwl_doc.yaml_error is not None:
+        parse_result = self.attached_view.doc.parse_yaml()
+        if parse_result & Contents.ParseFail:
             # Ok, these are fatal errors, leaving us in an un-parsable state. The best we
             # can do is set the dict to the last known state
-            logger.error("YAML parsing error! Putting dict in last known good state")
-            self.cwl_doc.cwl_dict = last_known_good_dict
-            # This puts us in an invalid state, so we should be careful
+            logger.error("YAML parsing error! Leaving model in last known good state")
 
-        pt = self.cwl_doc.type()
-        if pt == "Workflow":
-            self.process_model = Workflow(cwl_doc=self.cwl_doc)
-            if self.process_model.cwl_errors:
-                logger.warning(self.process_model.cwl_errors)
-        elif pt == "CommandLineTool":
-            self.process_model = CommandLineTool(cwl_doc=self.cwl_doc)
-        elif pt == "ExpressionTool":
-            self.process_model = Tool(cwl_doc=self.cwl_doc)
-        else:
-            self.process_model = Unk(cwl_doc=self.cwl_doc)
+        self.process_model = create_model(self.attached_view.doc)
+        if self.process_model.cwl_errors:
+            logger.warning(self.process_model.cwl_errors)
 
-        logger.debug("Parsed workflow in {}s ({} bytes) ".format(time.time() - t0, len(self.cwl_doc.raw_cwl)))
+        logger.debug("Parsed workflow in {}s ({} bytes) ".
+                     format(time.time() - t0, len(self.attached_view.doc.raw_text)))
 
     def _update_navbar(self):
         self.navbar.clear()

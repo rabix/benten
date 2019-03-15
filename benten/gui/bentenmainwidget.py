@@ -6,9 +6,10 @@ import pathlib
 
 from PySide2.QtCore import Slot, Signal
 from PySide2.QtGui import QCloseEvent
-from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
+from PySide2.QtWidgets import QWidget, QTabWidget, QTabBar, QMessageBox
 
-from ..editing.cwlprocess import CwlProcess
+#from ..editing.cwlprocess import CwlProcess
+from ..editing.yamlview import YamlView
 from ..models.workflow import InvalidSub, InlineSub, ExternalSub
 from .bentenwindow import BentenWindow
 from ..sbg.profiles import Profiles
@@ -49,6 +50,21 @@ class BentenMainWidget(QTabWidget):
             tbl.hide()
         if tbr is not None:
             tbr.hide()
+
+    def request_for_new_tab_from_file(self, file_path: pathlib.Path):
+        fp_str = file_path.resolve().as_uri()
+        if fp_str in self.tab_directory:
+            self.setCurrentWidget(self.tab_directory[fp_str][None])
+        else:
+            pass
+
+        if self.count() == 1:
+            self._make_base_tab_unclosable()
+
+        self._refresh_tab_titles()
+
+    def request_for_new_tab_from_inline_view(self, parent: YamlView, path: Tuple[str, ...]):
+        pass
 
     def open_document(self, parent_path: pathlib.Path, inline_path: Tuple[str, ...], step_id=None):
         parent_path_str = parent_path.resolve().as_uri()

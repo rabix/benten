@@ -339,7 +339,9 @@ class CwlProcess(CwlDoc):
         # todo: keep an eye on, if this adds bugs
         # We need to separate this block, even if the naughty user refuses to add a blank line at
         # the end
-        if text_lines[-1][-1] != "\n":
+        if len(text_lines) == 0:
+            text_lines = ["\n"]
+        elif text_lines[-1][-1] != "\n":
             text_lines[-1] += "\n"
 
         return Edit(start, end, "".join(text_lines))
