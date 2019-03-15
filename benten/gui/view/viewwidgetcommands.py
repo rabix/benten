@@ -52,7 +52,7 @@ class ViewWidgetCommands:
     def create_scaffold(self, args):
         blk = QSignalBlocker(self.code_editor)
 
-        if self.cwl_doc.raw_cwl:
+        if self.get_text():
             return "Document not empty, will not create scaffold"
 
         arg = args[0] if isinstance(args, list) else args
@@ -68,7 +68,7 @@ class ViewWidgetCommands:
         if scaffold_path.exists():
             edit = Edit(start=EditMark(line=0, column=0), end=None,
                         text=scaffold_path.open("r").read(), text_lines=[])
-            self.code_editor.insert_text(edit)
+            self.apply_edit(edit)
             self.programmatic_edit()
             return "Added scaffold from file {}".format(scaffold_path)
         else:

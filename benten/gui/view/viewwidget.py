@@ -4,11 +4,12 @@ from PySide2.QtCore import QSignalBlocker
 from ...editing.yamlview import EditorInterface, Edit
 
 from .viewwidgetbase import ViewWidgetBase
+from .viewwidgetnavigation import ViewWidgetNavigation
 from .viewwidgetcommands import ViewWidgetCommands
 from .viewwidgetmodels import ViewWidgetModels
 
 
-class ViewWidget(EditorInterface, ViewWidgetCommands, ViewWidgetModels, ViewWidgetBase):
+class ViewWidget(EditorInterface, ViewWidgetCommands, ViewWidgetModels, ViewWidgetNavigation, ViewWidgetBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

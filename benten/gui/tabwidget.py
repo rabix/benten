@@ -13,7 +13,6 @@ from .cwldoc import CwlDoc
 from .view.viewwidget import ViewWidget
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -72,7 +71,8 @@ class TabWidget(QTabWidget):
     def open_linked_file(self, file_path: pathlib.Path):
         fp_str = file_path.resolve().as_uri()
         if fp_str not in self.doc_directory:
-            vw = ViewWidget()
+            vw = ViewWidget(config=self.config)
+            self._create_file_if_needed(file_path)
             self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
             self.addTab(vw, "...")
 
@@ -111,3 +111,10 @@ class TabWidget(QTabWidget):
                 doc.save()
             return True
 
+    @staticmethod
+    def _create_file_if_needed(file_path: pathlib.Path):
+        if file_path.exists():
+            return
+        else:
+            with open(file_path, "w") as f:
+                pass
