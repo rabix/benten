@@ -2,7 +2,7 @@ import pathlib
 import os
 import shutil
 
-from benten.editing.cwlprocess import CwlProcess
+from benten.editing.yamldoc import YamlDoc
 from benten.models.tool import Tool
 
 current_path = pathlib.Path(__file__).parent
@@ -26,8 +26,8 @@ def test_parsing_empty_tool():
     with open(path, "w") as f:
         f.write("")
 
-    cwl_doc = CwlProcess.create_from_file(path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = YamlDoc(raw_text=path.open("r").read())
+    cwl_doc.parse_yaml()
     t = Tool(cwl_doc=cwl_doc)
 
     assert t.cwl_doc == cwl_doc

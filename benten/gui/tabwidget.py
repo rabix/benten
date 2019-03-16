@@ -7,6 +7,8 @@ from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
 from PySide2.QtCore import Slot
 from PySide2.QtGui import QCloseEvent
 
+from ..sbg.jsonimport import if_json_convert_to_yaml_and_save
+
 from ..editing.yamlview import YamlView
 from ..sbg.profiles import Profiles, Configuration
 from ..models.workflow import Step, InvalidSub, InlineSub, ExternalSub
@@ -89,8 +91,11 @@ class TabWidget(QTabWidget):
     def open_linked_file(self, file_path: pathlib.Path):
         fp_str = file_path.resolve().as_uri()
         if fp_str not in self.doc_directory:
-            vw = self._prepare_view_widget()
             self._create_file_if_needed(file_path)
+            file_path = if_json_convert_to_yaml_and_save(file_path, strip_sbg_tags=True)
+            fp_str = file_path.resolve().as_uri()
+
+            vw = self._prepare_view_widget()
             self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
             self.addTab(vw, file_path.name)
 
@@ -153,3 +158,4 @@ class TabWidget(QTabWidget):
         vw.config = self.config
         vw.open_steps.connect(self.open_steps)
         return vw
+

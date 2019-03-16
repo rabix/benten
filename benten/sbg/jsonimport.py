@@ -14,7 +14,7 @@ def if_json_convert_to_yaml_and_save(path: pathlib.Path, strip_sbg_tags=True):
             f.write(yaml.safe_dump(import_json(text, strip_sbg_tags=strip_sbg_tags)))
         return new_path
     else:
-        return None
+        return path
 
 
 def text_format(text: str):

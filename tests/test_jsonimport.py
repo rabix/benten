@@ -3,7 +3,7 @@ import os
 import shutil
 
 from benten.sbg.jsonimport import text_format, if_json_convert_to_yaml_and_save
-from benten.editing.cwlprocess import CwlProcess
+from benten.editing.yamldoc import YamlDoc
 
 
 current_path = pathlib.Path(__file__).parent
@@ -60,11 +60,11 @@ def test_json_basic():
 
     # Existing behavior should not change
     wf_path = pathlib.Path(test_dir, "wf3.cwl")
-    c = CwlProcess.create_from_file(wf_path)
-    c.compute_cwl_dict()
+    c = YamlDoc(raw_text=wf_path.open("r").read())
+    c.parse_yaml()
 
-    assert c.cwl_dict["label"] == "wf3"
-    assert len(c.cwl_dict["steps"]) == 3
+    assert c.yaml["label"] == "wf3"
+    assert len(c.yaml["steps"]) == 3
 
     # Now test new behavior with json file
     wf_path = pathlib.Path(test_dir, "wf3.json")
@@ -72,20 +72,20 @@ def test_json_basic():
     new_wf_path = if_json_convert_to_yaml_and_save(wf_path)
     assert new_wf_path is not None
 
-    c = CwlProcess.create_from_file(new_wf_path)
-    c.compute_cwl_dict()
+    c = YamlDoc(raw_text=new_wf_path.open("r").read())
+    c.parse_yaml()
 
-    assert c.cwl_dict["label"] == "wf3"
-    assert len(c.cwl_dict["steps"]) == 3
+    assert c.yaml["label"] == "wf3"
+    assert len(c.yaml["steps"]) == 3
 
     # SBG tags should be stripped by default
-    assert not any(k for k, _ in c.cwl_dict.items() if k[:4] == "sbg:")
-    assert not any(k for k, _ in c.cwl_dict["steps"]["wf0"].items() if k[:4] == "sbg:")
+    assert not any(k for k, _ in c.yaml.items() if k[:4] == "sbg:")
+    assert not any(k for k, _ in c.yaml["steps"]["wf0"].items() if k[:4] == "sbg:")
 
     # SBG tags should be kept
     new_wf_path = if_json_convert_to_yaml_and_save(wf_path, strip_sbg_tags=False)
-    c = CwlProcess.create_from_file(new_wf_path)
-    c.compute_cwl_dict()
+    c = YamlDoc(raw_text=new_wf_path.open("r").read())
+    c.parse_yaml()
 
-    assert any(k for k, _ in c.cwl_dict.items() if k[:4] == "sbg:")
-    assert any(k for k, _ in c.cwl_dict["steps"]["wf0"].items() if k[:4] == "sbg:")
+    assert any(k for k, _ in c.yaml.items() if k[:4] == "sbg:")
+    assert any(k for k, _ in c.yaml["steps"]["wf0"].items() if k[:4] == "sbg:")
