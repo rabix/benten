@@ -153,9 +153,6 @@ class ViewWidgetBase(QWidget):
         self.manual_edit_throttler.flush()
         self.is_active_window = False
 
-    def update_from_code(self):
-        pass
-
     @Slot()
     def user_still_typing(self):
         """Called whenever the editor contents are changed. We restrict this to actual typing."""

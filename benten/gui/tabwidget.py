@@ -7,9 +7,11 @@ from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
 from PySide2.QtCore import Slot
 from PySide2.QtGui import QCloseEvent
 
+from ..editing.yamlview import YamlView
 from ..sbg.profiles import Profiles, Configuration
-from .cwldoc import CwlDoc
+from ..models.workflow import Step, InvalidSub, InlineSub, ExternalSub
 
+from .cwldoc import CwlDoc
 from .view.viewwidget import ViewWidget
 
 import logging
@@ -51,7 +53,9 @@ class TabWidget(QTabWidget):
 
     @Slot(int)
     def tab_about_to_close(self, index):
-        pass
+        # todo: logic to remove child views to save computation
+        # todo: currently we never actually delete a tab ...
+        self.removeTab(index)
 
     def ok_to_close_everything(self, event: QCloseEvent):
         logger.debug("Closing Benten")
@@ -68,13 +72,27 @@ class TabWidget(QTabWidget):
         self.active_window = self.currentWidget()
         self.active_window.set_active_window()
 
+    @Slot(object)
+    def open_steps(self, data: Tuple[YamlView, List[Step]]):
+        yaml_view, steps = data
+        for step in steps:
+            sub = step.sub_workflow
+            if isinstance(sub, InvalidSub):
+                continue
+            elif isinstance(sub, InlineSub):
+                self.open_inline_section(yaml_view, sub.inline_path)
+            elif isinstance(sub, ExternalSub):
+                self.open_linked_file(sub.path)
+            else:
+                raise RuntimeError("Code error: Unknown sub workflow type!")
+
     def open_linked_file(self, file_path: pathlib.Path):
         fp_str = file_path.resolve().as_uri()
         if fp_str not in self.doc_directory:
-            vw = ViewWidget(config=self.config)
+            vw = self._make_new_view_widget()
             self._create_file_if_needed(file_path)
             self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
-            self.addTab(vw, "...")
+            self.addTab(vw, file_path.name)
 
             if self.count() == 1:
                 self._make_base_tab_unclosable()
@@ -82,6 +100,14 @@ class TabWidget(QTabWidget):
         self.setCurrentWidget(self.doc_directory[fp_str].root_view.attached_editor)
         # self._refresh_tab_titles()
 
+    def open_inline_section(self, yaml_view: YamlView, inline_path: Tuple[str, ...]):
+        child_view = yaml_view.get(inline_path)
+        if child_view is None:
+            vw = self._make_new_view_widget()
+            child_view = yaml_view.create_child_view(inline_path, vw)
+            self.addTab(vw, inline_path[-2])
+        vw = child_view.attached_editor
+        self.setCurrentWidget(vw)
 
     #
     # Ugly helper functions
@@ -118,3 +144,8 @@ class TabWidget(QTabWidget):
         else:
             with open(file_path, "w") as f:
                 pass
+
+    def _make_new_view_widget(self):
+        vw = ViewWidget(config=self.config)
+        vw.open_steps.connect(self.open_steps)
+        return vw

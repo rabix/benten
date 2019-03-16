@@ -69,9 +69,8 @@ class InvalidSub:
 
 
 class InlineSub:
-    def __init__(self, _id: str, path: pathlib.Path, inline_path: Tuple[str, ...]):
+    def __init__(self, _id: str, inline_path: Tuple[str, ...]):
         self.id = _id
-        self.path = path
         self.inline_path = inline_path
 
     @staticmethod
@@ -139,8 +138,7 @@ class Step:
                 sub_process = step_doc["run"]
                 if isinstance(sub_process, dict):
                     sub_workflow = InlineSub(
-                        _id=sub_process.get("id", None),
-                        path=root, inline_path=("steps", step_id, "run"))
+                        _id=sub_process.get("id", None), inline_path=("steps", step_id, "run"))
                 else:
                     sub_process = {}
                     wf_error_list += ["Sub workflow is empty"]

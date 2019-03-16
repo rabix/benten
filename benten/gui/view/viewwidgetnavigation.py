@@ -7,13 +7,16 @@ from PySide2.QtWidgets import \
      QHBoxLayout, QVBoxLayout, QSplitter, QShortcut, QGraphicsSceneMouseEvent)
 from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
 
-from ...models.workflow import Workflow, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
+from ...models.workflow import (Workflow, Step,
+                                special_id_for_inputs, special_id_for_outputs, special_ids_for_io)
 
 import logging
 logger = logging.getLogger(__name__)
 
 
 class ViewWidgetNavigation:
+
+    open_steps = Signal(object)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -116,11 +119,11 @@ class ViewWidgetNavigation:
                  and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
-            self.steps_to_open.emit(steps)
+            self.open_steps.emit((self.parent_view, steps))
 
     def step_ids_to_open(self, step_ids):
         steps = [step for step in self.process_model.steps.values() if step.id in step_ids ]
-        self.steps_to_open.emit(steps)
+        self.open_steps.emit((self.parent_view, steps))
 
     @Slot(list)
     def nodes_added(self, cwl_path_list):
