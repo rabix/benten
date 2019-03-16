@@ -1,7 +1,53 @@
 """This abstracts out a framework for keeping track of views and computing the backward and
-forward edit projections from the view. For now we just handle block elements."""
+forward edit projections from the view. For now we just handle block elements.
+
+This represents a CWL document that we can take sub-views of. It itself can be a sub-view.
+
+It's main responsibility is to make sure edits are synchronized across different
+views of a document. As such we do not implement process type specific logic here, but make
+it somewhat general.
+
+There are two types of fragments
+    - those that can be sub-viewed further and
+    - those that can not.
+This base type represents a document that can not be sub-viewed further. The CwlProcess mixin
+represents a document that can be sub-viewed further and adds the ability to create new views
+from it.
+
+It has some special rules that are a compromise between maintaining hand edited text and
+ease of use
+
+1. We refuse to create and apply edits from a subview of a flow style dictionary unless the
+   dictionary is empty. In such a case an edit returning a non-empty dictionary results in
+   block style in the original. This allows us to insert empty steps in a workflow and then
+   open them in a subview for editing
+
+
+When using a view, here are some guidelines:
+
+Q. What happens if we have a YAML error in any one of the linked views?
+A. We should lock the user to that view until the error is fixed
+
+Q. What happens if we delete a child from a parent?
+A. The child view is set to none, which indicates to the editor to close that tab
+
+Q. What happens if we change the type of a field in the parent, say an expression goes to a literal
+A. The child tab for that expression (if there is one) will be deleted
+
+Q. What happens if we clear out all the text from a child?
+A. It is replaced with an empty dict, list or string depending on what type the child was
+
+Q. What happens if we have an expression view and in the parent we change that to a scalar (str, int)
+A. The child view is set to none, which indicates to the editor to close that tab
+
+Q. What happens if we are editing in one view, and an external edit (that is reloaded) has a YAML
+   error?
+A. We refuse to reload and warn the user that an external edit would result in a YAML error
+   and that error should be fixed, either by saving this working document, or fixing the document
+   in the original external editor.
+"""
 from typing import Tuple, Dict
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from ..implementationerror import ImplementationError
 from .edit import Edit, EditMark
