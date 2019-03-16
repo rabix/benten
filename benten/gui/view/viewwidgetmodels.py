@@ -26,7 +26,6 @@ class ViewWidgetModels:
 
     def _register_edit(self):
         op_flag = self.push_changes()
-        print(op_flag)
         self.update_from_code()
 
     # This only happens when we are in focus and the code has changed
