@@ -1,6 +1,6 @@
 """This manages the tabs that we open as part of inspecting workflow steps. Any state that is not
 isolated to one CWL object/sub-object is managed here"""
-from typing import Tuple, List, Dict, Union
+from typing import Tuple, List, Dict, Union, Callable
 import pathlib
 
 from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
@@ -49,7 +49,7 @@ class TabWidget(QTabWidget):
 
     @Slot()
     def save(self):
-        pass
+        self.currentWidget().save_func()
 
     @Slot(int)
     def tab_about_to_close(self, index):
@@ -89,9 +89,10 @@ class TabWidget(QTabWidget):
     def open_linked_file(self, file_path: pathlib.Path):
         fp_str = file_path.resolve().as_uri()
         if fp_str not in self.doc_directory:
-            vw = self._make_new_view_widget()
+            vw = ViewWidget()
             self._create_file_if_needed(file_path)
-            self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
+            rd = self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
+            self._prepare_view_widget(vw, rd.save)
             self.addTab(vw, file_path.name)
 
             if self.count() == 1:
@@ -103,9 +104,10 @@ class TabWidget(QTabWidget):
     def open_inline_section(self, yaml_view: YamlView, inline_path: Tuple[str, ...]):
         child_view = yaml_view.get(inline_path)
         if child_view is None:
-            vw = self._make_new_view_widget()
+            vw = ViewWidget()
             child_view = yaml_view.create_child_view(inline_path, vw)
-            self.addTab(vw, inline_path[-2])
+            self._prepare_view_widget(vw, yaml_view.attached_editor.save_func)
+            self.addTab(vw, ".".join(child_view.full_readable_path))
         vw = child_view.attached_editor
         self.setCurrentWidget(vw)
 
@@ -145,7 +147,7 @@ class TabWidget(QTabWidget):
             with open(file_path, "w") as f:
                 pass
 
-    def _make_new_view_widget(self):
-        vw = ViewWidget(config=self.config)
+    def _prepare_view_widget(self, vw, save_func: Callable):
+        vw.config = self.config
+        vw.save_func = save_func
         vw.open_steps.connect(self.open_steps)
-        return vw

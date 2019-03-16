@@ -1,5 +1,7 @@
+from typing import Callable
+
 from PySide2.QtWidgets import QWidget
-from PySide2.QtCore import QSignalBlocker
+from PySide2.QtCore import QSignalBlocker, Slot
 
 from ...editing.yamlview import EditorInterface, Edit
 
@@ -13,6 +15,8 @@ class ViewWidget(EditorInterface, ViewWidgetCommands, ViewWidgetModels, ViewWidg
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.config = None
+        self.save_func: Callable = None
 
     def set_text(self, raw_text: str):
         blk = QSignalBlocker(self.code_editor)

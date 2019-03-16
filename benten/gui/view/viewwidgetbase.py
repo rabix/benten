@@ -42,10 +42,8 @@ class ManualEditThrottler:
 
 class ViewWidgetBase(QWidget):
 
-    def __init__(self, config):
+    def __init__(self):
         QWidget.__init__(self)
-
-        self.config = config
 
         self.code_editor: CodeEditor = self._setup_code_editor()
         self.navbar = self._setup_navbar()

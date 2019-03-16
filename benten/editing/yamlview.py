@@ -56,8 +56,10 @@ class EditorInterface:
 class YamlView:
     def __init__(self, raw_text: str, path: Tuple[str, ...],
                  text_type: TextType, editor: EditorInterface,
+                 full_readable_path: Tuple[str, ...]=None,
                  parent: 'YamlView'=None):
         self.path = path
+        self.full_readable_path = full_readable_path
         self.doc = YamlDoc(raw_text) if text_type == TextType.process else PlainText(raw_text)
         self.attached_editor: EditorInterface = editor
         self.attached_editor.set_text(raw_text)
@@ -122,9 +124,12 @@ class YamlView:
         if self.doc.yaml_error is not None:
             raise ImplementationError("Processes with YAML errors can't spawn child views")
 
+        text_type = YamlDoc.infer_section_type(path)
         child_view = YamlView(
             raw_text=self.doc.get_raw_text_for_section(path),
-            path=path, text_type=YamlDoc.infer_section_type(path),
+            path=path, text_type=text_type,
+            full_readable_path=(self.full_readable_path or ()) +
+                               ((path[-2],) if text_type == TextType.process else (path,)),
             editor=editor, parent=self)
 
         self.children[path] = child_view
