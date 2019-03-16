@@ -31,9 +31,10 @@ import pathlib
 from collections import OrderedDict
 import logging
 
-from .base import Base, YamlDoc, special_id_for_inputs, special_id_for_outputs, special_ids_for_io
+from .base import (CWLError, EditMark, Base, YamlDoc,
+                   special_id_for_inputs, special_id_for_outputs, special_ids_for_io)
 from ..editing.utils import dictify, iter_scalar_or_list
-from ..editing.lineloader import load_yaml
+from ..editing.lineloader import load_yaml, YNone, Ydict, LAM
 from .editmixin import EditMixin
 from .workfloweditmixin import WorkflowEditMixin
 
@@ -117,7 +118,7 @@ class Step:
         root = pathlib.Path("./")  # cwl_doc.path
         sub_workflow = InvalidSub()
 
-        if step_doc is None or "run" not in step_doc:
+        if step_doc is YNone or "run" not in step_doc:
             sinks = {}
             sources = {}
             sub_process = {}
@@ -188,15 +189,23 @@ class Workflow(WorkflowEditMixin, EditMixin, Base):
         cwl_dict = self.cwl_doc.yaml
         self.inputs = self._parse_ports(cwl_dict.get("inputs", {}))
         self.outputs = self._parse_ports(cwl_dict.get("outputs", {}))
+        self.steps = {}
+        self.connections = []
 
-        self.steps = OrderedDict(
-            (k, Step.from_doc(
-                step_id=k, line=(v.start.line, v.end.line), cwl_doc=cwl_doc,
-                wf_error_list=self.cwl_errors))
-            for k, v in cwl_dict.get("steps", {}).items()
-        )
-
-        self.connections = self._list_connections()
+        if "steps" not in cwl_dict:
+            self.cwl_errors += [CWLError(pos=EditMark(0, 0),
+                                         message="Steps missing")]
+        elif not isinstance(cwl_dict["steps"], (Ydict, LAM)):
+            self.cwl_errors += [CWLError(pos=EditMark(0, 0),
+                                         message="Steps need to be dictionary or list")]
+        else:
+            self.steps = OrderedDict(
+                (k, Step.from_doc(
+                    step_id=k, line=(v.start.line, v.end.line), cwl_doc=cwl_doc,
+                    wf_error_list=self.cwl_errors))
+                for k, v in cwl_dict.get("steps", {}).items()
+            )
+            self.connections = self._list_connections()
 
     @staticmethod
     def _parse_ports(obj):
