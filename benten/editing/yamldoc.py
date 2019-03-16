@@ -147,6 +147,7 @@ class YamlDoc(BaseDoc):
         return "".join(lines)
 
     def set_section_from_raw_text(self, raw_text, path: Tuple[str, ...]) -> Edit:
+        self.parse_yaml()
         new_lines = self._apply_edit_to_lines(
             self._project_raw_text_to_section_as_edit(raw_text, path))
         diff_as_edit = YamlDoc.edit_from_quick_diff(self.raw_lines, new_lines)

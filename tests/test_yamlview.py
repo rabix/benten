@@ -434,3 +434,16 @@ def test_child_removed():
     assert step221_editor.delete_me
 
     assert not gen3.children["steps", "step222", "run"].attached_editor.delete_me
+
+
+def test_edit_twice():
+    gen1, gen2, gen3, gen4, gen5 = open_tree()
+    gen4.attached_editor.set_text("""steps:
+- id: step2211-new
+- id: step2212""")
+    gen4.fetch_from_editor()
+
+    gen4.attached_editor.set_text("""steps:
+- id: step2211-new
+- id: step2212-new""")
+    gen4.fetch_from_editor()
