@@ -1,6 +1,3 @@
-from typing import Callable
-
-from PySide2.QtWidgets import QWidget
 from PySide2.QtCore import QSignalBlocker, Slot
 
 from ...editing.yamlview import EditorInterface, Edit
@@ -16,7 +13,6 @@ class ViewWidget(EditorInterface, ViewWidgetCommands, ViewWidgetModels, ViewWidg
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = None
-        self.save_func: Callable = None
 
     def set_text(self, raw_text: str):
         blk = QSignalBlocker(self.code_editor)
@@ -28,3 +24,7 @@ class ViewWidget(EditorInterface, ViewWidgetCommands, ViewWidgetModels, ViewWidg
     def apply_edit(self, edit: Edit):
         blk = QSignalBlocker(self.code_editor)
         return self.code_editor.insert_text(edit)
+
+    def save(self):
+        self.attached_view.get_root().save()
+        # The attached root will be of type CwlDoc which does have a save function

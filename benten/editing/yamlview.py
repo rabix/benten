@@ -71,6 +71,12 @@ class YamlView:
     def __contains__(self, path: Tuple[str, ...]):
         return path in self.children
 
+    def get_root(self):
+        if self.parent is None:
+            return self
+        else:
+            return self.parent.get_root()
+
     def get(self, path: Tuple[str, ...]):
         return self.children.get(path, None)
 
