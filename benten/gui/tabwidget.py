@@ -49,7 +49,7 @@ class TabWidget(QTabWidget):
 
     @Slot()
     def save(self):
-        self.currentWidget().save_func()
+        self.currentWidget().save()
 
     @Slot(int)
     def tab_about_to_close(self, index):
@@ -89,24 +89,25 @@ class TabWidget(QTabWidget):
     def open_linked_file(self, file_path: pathlib.Path):
         fp_str = file_path.resolve().as_uri()
         if fp_str not in self.doc_directory:
-            vw = ViewWidget()
+            vw = self._prepare_view_widget()
             self._create_file_if_needed(file_path)
-            rd = self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
-            self._prepare_view_widget(vw, rd.save)
+            self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
             self.addTab(vw, file_path.name)
 
             if self.count() == 1:
                 self._make_base_tab_unclosable()
 
-        self.setCurrentWidget(self.doc_directory[fp_str].root_view.attached_editor)
-        # self._refresh_tab_titles()
+        self.setCurrentWidget(self.doc_directory[fp_str].attached_editor)
 
     def open_inline_section(self, yaml_view: YamlView, inline_path: Tuple[str, ...]):
+        if yaml_view.attached_editor.locked:
+            logger.warning("Editor is locked, can not navigate away")
+            return
+
         child_view = yaml_view.get(inline_path)
         if child_view is None:
-            vw = ViewWidget()
+            vw = self._prepare_view_widget()
             child_view = yaml_view.create_child_view(inline_path, vw)
-            self._prepare_view_widget(vw, yaml_view.attached_editor.save_func)
             self.addTab(vw, ".".join(child_view.full_readable_path))
         vw = child_view.attached_editor
         self.setCurrentWidget(vw)
@@ -147,7 +148,8 @@ class TabWidget(QTabWidget):
             with open(file_path, "w") as f:
                 pass
 
-    def _prepare_view_widget(self, vw, save_func: Callable):
+    def _prepare_view_widget(self):
+        vw = ViewWidget()
         vw.config = self.config
-        vw.save_func = save_func
         vw.open_steps.connect(self.open_steps)
+        return vw
