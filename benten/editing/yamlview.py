@@ -12,7 +12,7 @@ class EditorInterface:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.parent_view: 'YamlView' = None
+        self.attached_view: 'YamlView' = None
         # This is a function the Editor can call when it needs the view to know about
         # edits that happened in it (manually or programmatically)
         self.locked = False
@@ -38,19 +38,19 @@ class EditorInterface:
         self.delete_me = True
 
     def push_changes(self):
-        return self.parent_view.fetch_from_editor()
+        return self.attached_view.fetch_from_editor()
 
     def parse_yaml(self):
-        return self.parent_view.doc.parse_yaml()
+        return self.attached_view.doc.parse_yaml()
 
     def get_yaml(self):
-        return self.parent_view.doc.yaml
+        return self.attached_view.doc.yaml
 
     def yaml_error(self):
-        return self.parent_view.doc.yaml_error
+        return self.attached_view.doc.yaml_error
 
     def yaml_doc(self):
-        return self.parent_view.doc
+        return self.attached_view.doc
 
 
 class YamlView:
@@ -61,8 +61,8 @@ class YamlView:
         self.doc = YamlDoc(raw_text) if text_type == TextType.process else PlainText(raw_text)
         self.attached_editor: EditorInterface = editor
         self.attached_editor.set_text(raw_text)
-        self.attached_editor.parent_view = self
-        # The communication is bidirectional - the attached editor needs to know to call
+        self.attached_editor.attached_view = self
+        # The communication is bidirectional - the attached editor needs to know to call us
         self.parent: 'YamlView' = parent
         self.children: Dict[Tuple[str, ...], YamlView] = {}
 

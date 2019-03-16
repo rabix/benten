@@ -119,11 +119,11 @@ class ViewWidgetNavigation:
                  and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
-            self.open_steps.emit((self.parent_view, steps))
+            self.open_steps.emit((self.attached_view, steps))
 
     def step_ids_to_open(self, step_ids):
         steps = [step for step in self.process_model.steps.values() if step.id in step_ids ]
-        self.open_steps.emit((self.parent_view, steps))
+        self.open_steps.emit((self.attached_view, steps))
 
     @Slot(list)
     def nodes_added(self, cwl_path_list):
