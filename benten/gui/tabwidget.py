@@ -34,7 +34,6 @@ class TabWidget(QTabWidget):
         self.api = None
         self.doc_directory: Dict[str, CwlDoc] = {}
 
-        # self.tab_directory: Dict[str, Dict[Union[Tuple[str], None], BentenWindow]] = {}
         self.active_window: ViewWidget = None
 
         self.setTabsClosable(True)
@@ -109,12 +108,17 @@ class TabWidget(QTabWidget):
             logger.warning("Editor is locked, can not navigate away")
             return
 
+        # todo: change this when we refactor yaml_view
         child_view = yaml_view.get(inline_path)
         if child_view is None:
             vw = self._prepare_view_widget()
             child_view = yaml_view.create_child_view(inline_path, vw)
+        else:
+            vw = child_view.attached_editor
+
+        if vw not in self:
             self.addTab(vw, ".".join(child_view.full_readable_path))
-        vw = child_view.attached_editor
+
         self.setCurrentWidget(vw)
 
     #
@@ -159,3 +163,9 @@ class TabWidget(QTabWidget):
         vw.open_steps.connect(self.open_steps)
         return vw
 
+    def __contains__(self, item):
+        for idx in range(self.count()):
+            if item == self.widget(idx):
+                return True
+        else:
+            return False
