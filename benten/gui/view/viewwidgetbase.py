@@ -1,9 +1,9 @@
 """This contains the setup of all the widget components, just to keep things neat"""
 from PySide2.QtWidgets import \
-    (QWidget, QComboBox, QLabel, QTabWidget, QTableWidget, QTableWidgetItem, QAbstractItemView,
-     QHBoxLayout, QVBoxLayout, QSplitter, QShortcut, QGraphicsSceneMouseEvent)
-from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
-from PySide2.QtGui import QTextCursor, QPainter, QFont, QKeySequence
+    (QWidget, QComboBox, QLabel, QTabWidget, QTableWidget, QAbstractItemView, QHBoxLayout,
+     QVBoxLayout, QSplitter, QShortcut)
+from PySide2.QtCore import Qt, QTimer, Slot, Signal
+from PySide2.QtGui import QKeySequence, QFontDatabase
 
 from ...models.unk import Unk
 from ...models.commandlinetool import CommandLineTool
@@ -12,7 +12,6 @@ from ...models.workflow import Workflow
 from ..codeeditor.editor import CodeEditor
 from .processview import ProcessView
 from .commandwidget import CommandWidget
-from .workflowscene import WorkflowScene
 
 
 import logging
@@ -63,7 +62,7 @@ class ViewWidgetBase(QWidget):
 
     def _setup_code_editor(self):
         ce = CodeEditor(IndentUsingSpaces=True)
-        ce.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
+        ce.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         ce.textChanged.connect(self.user_still_typing)
         return ce
 

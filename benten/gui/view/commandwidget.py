@@ -3,10 +3,10 @@ It consists of a single-line text edit on top. You enter commands into this box.
 Below it is a read only multiline text box that shows the response to the commands.
 The command is echoed and the response printed below. The latest command is on top.
 """
-from PySide2.QtCore import Qt, QSignalBlocker, QTimer, Slot, Signal
-from PySide2.QtWidgets import QVBoxLayout, QLineEdit, QTextEdit, QTableWidgetItem, QWidget, \
-    QAbstractItemView, QGraphicsSceneMouseEvent, QTabWidget, QAction, QFontDialog, QCompleter
-from PySide2.QtGui import QTextCursor, QFont
+from PySide2.QtCore import Slot, Signal
+from PySide2.QtWidgets import QVBoxLayout, QLineEdit, QTextEdit, QWidget
+from PySide2.QtGui import QTextCursor
+from PySide2.QtGui import QFontDatabase
 
 import logging
 
@@ -18,18 +18,14 @@ class CommandWidget(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent=parent)
 
-        # # This gives us the global context to access any functionality we need to
-        # # get stuff done
-        # self.bw: 'BentenWindow' = parent
-
         self.command_line = QLineEdit()
-        self.command_line.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
+        self.command_line.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.command_line.setToolTip("Enter commands here")
         self.command_line.returnPressed.connect(self.command_entered)
 
         self.command_log = QTextEdit()
         self.command_log.setReadOnly(True)
-        self.command_log.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
+        self.command_line.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
 
         self.command_log.setToolTip("Command and response history")
 
