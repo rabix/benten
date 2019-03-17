@@ -33,6 +33,11 @@ class YamlDocEdit:
             column_to_insert = 0
             indent = 2 * " "
 
+            if as_list:
+                text_lines += [indent + "- {}: {}\n".format(key_field, key)]
+            else:
+                text_lines += [indent + "{}:\n".format(key)]
+
         elif isinstance(top_value[section_key], YNone) or len(top_value[section_key]) == 0:
             # Tricky, section is none or empty
             text_lines += ["{}:\n".format(section_key)]
@@ -47,6 +52,11 @@ class YamlDocEdit:
             select_end_column = top_value[section_key].end.column
             end = EditMark(select_end_line, select_end_column)
 
+            if as_list:
+                text_lines += [indent + "- {}: {}\n".format(key_field, key)]
+            else:
+                text_lines += [indent + "{}:\n".format(key)]
+
         elif key in top_value[section_key]:
 
             sub_sec = top_value[section_key][key]
@@ -60,6 +70,9 @@ class YamlDocEdit:
             select_end_column = sub_sec.end.column
             end = EditMark(select_end_line, select_end_column)
 
+            if as_list:
+                text_lines += [indent + "- {}: {}\n".format(key_field, key)]
+
         else:
             *_, last_step_id = top_value[section_key].keys()
 
@@ -68,10 +81,10 @@ class YamlDocEdit:
             step_line = self.raw_lines[top_value[section_key].start.line]
             indent = (len(step_line) - len(step_line.lstrip())) * " "
 
-        if as_list:
-            text_lines += [indent + "- {}: {}\n".format(key_field, key)]
-        else:
-            text_lines += [indent + "{}:\n".format(key)]
+            if as_list:
+                text_lines += [indent + "- {}: {}\n".format(key_field, key)]
+            else:
+                text_lines += [indent + "{}:\n".format(key)]
 
         indent += " " * 2
         text_lines += [indent + l for l in entry.splitlines(keepends=True)]
