@@ -20,16 +20,16 @@ def meta(cmd, cmd_help, syn=None):
 def only_clt(func):
     def cmd(self, args):
         if self.process_type() == "CommandLineTool":
-            return func
+            return func(self, args)
         else:
-            return "Can only do this on CommandLineTool"
+            return "Can only do this on CommandLineTool: This is {}".format(self.process_type())
     return cmd
 
 
 def only_wf(func):
     def cmd(self, args):
         if self.process_type() == "Workflow":
-            return func
+            return func(self, args)
         else:
             return "Can only do this on Workflow"
     return cmd
@@ -44,6 +44,9 @@ class ViewWidgetCommands:
         # Note that we should come before ViewWidgetBase whose constructor
         # is invoked before us, because of chained calls to super and whose
         # features we might be using
+
+    def process_type(self):
+        return self.attached_view.doc.yaml.get("class", "unknown")
 
     @meta(
         cmd="create",
@@ -74,10 +77,10 @@ class ViewWidgetCommands:
         else:
             return "No scaffold for process type {}. Valid arguments are {}".format(arg, list(choices.keys()))
 
-    #@only_clt
     @meta(
         cmd="docker",
         cmd_help="docker <docker_image> : Add DockerRequirement to CLT")
+    @only_clt
     def docker_scaffold(self, args):
         if len(args) != 1:
             return "Incorrect number of arguments"
