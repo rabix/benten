@@ -7,7 +7,7 @@ from ...editing.edit import Edit, EditMark
 
 
 # Decorator that we use to add in information for the command, like help etc.
-def cmeta(cmd, cmd_help, syn=None):
+def meta(cmd, cmd_help, syn=None):
     def wrap(func):
         func.is_command = True
         func.cmd = cmd
@@ -17,19 +17,19 @@ def cmeta(cmd, cmd_help, syn=None):
     return wrap
 
 
-def onlyclt(func):
+def only_clt(func):
     def cmd(self, args):
         if self.process_type() == "CommandLineTool":
-            return func(self, args)
+            return func
         else:
             return "Can only do this on CommandLineTool"
     return cmd
 
 
-def onlywf(func):
+def only_wf(func):
     def cmd(self, args):
         if self.process_type() == "Workflow":
-            return func(self, args)
+            return func
         else:
             return "Can only do this on Workflow"
     return cmd
@@ -45,7 +45,7 @@ class ViewWidgetCommands:
         # is invoked before us, because of chained calls to super and whose
         # features we might be using
 
-    @cmeta(
+    @meta(
         cmd="create",
         cmd_help="create <clt|et|wf> : When in an empty document, create a scaffold"
                  " for CommandLineTool, ExpressionTool or Workflow")
@@ -74,51 +74,26 @@ class ViewWidgetCommands:
         else:
             return "No scaffold for process type {}. Valid arguments are {}".format(arg, list(choices.keys()))
 
+    #@only_clt
+    @meta(
+        cmd="docker",
+        cmd_help="docker <docker_image> : Add DockerRequirement to CLT")
+    def docker_scaffold(self, args):
+        if len(args) != 1:
+            return "Incorrect number of arguments"
 
+        docker_image = args[0]
+        edit = self.attached_view.doc.insert_into_lom(
+            path=("requirements",),
+            key="DockerRequirement",
+            key_field="class",
+            entry="dockerPull: {}\n".format(docker_image)
+        )
+        self.apply_edit(edit)
+        self.programmatic_edit()
+        return "Added DockerRequirement"
 
 #
-#
-# class CommandWidget(QWidget):
-#
-#     def __init__(self, parent):
-#         QWidget.__init__(self)
-#
-#         # This gives us the global context to access any functionality we need to
-#         # get stuff done
-#         self.bw: 'BentenWindow' = parent
-#
-#         self.command_line = QLineEdit()
-#         self.command_line.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
-#         self.command_line.setToolTip("Enter commands here")
-#         self.command_line.returnPressed.connect(self.command_entered)
-#
-#         self.command_log = QTextEdit()
-#         self.command_log.setReadOnly(True)
-#         self.command_log.setFont(QFont("Menlo,11,-1,5,50,0,0,0,0,0,Regular"))
-#
-#         self.command_log.setToolTip("Command and response history")
-#
-#         layout = QVBoxLayout()
-#         layout.addWidget(self.command_line)
-#         layout.addWidget(self.command_log)
-#         layout.setMargin(0)
-#         layout.setSpacing(0)
-#         self.setLayout(layout)
-#
-#         self.dispatch_table, self.help_table = self._set_up_dispatcher()
-#
-#     def _set_up_dispatcher(self):
-#         table = {
-#             "help": {
-#                 "synonyms": ["?", "h"],
-#                 "help": "Print help",
-#                 "call": self.print_help
-#             },
-#             "create": {
-#                 "help": "create <clt|et|wf> : When in an empty document, create a scaffold for CommandLineTool, "
-#                         "ExpressionTool or Workflow",
-#                 "call": self.bw.create_scaffold
-#             },
 #             "docker": {
 #                 "help": "docker <docker_image> : Add DockerRequirement to CLT",
 #                 "call": self.bw.scaffold_docker
