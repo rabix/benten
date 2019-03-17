@@ -7,6 +7,7 @@ from ..implementationerror import ImplementationError
 from .edit import EditMark, Edit
 from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentError
 
+from .yamldocedit import YamlDocEdit
 
 class Contents(IntEnum):
     Unchanged = 0b1
@@ -50,7 +51,7 @@ class PlainText(BaseDoc):
         return self.set_raw_text(raw_text) | Contents.ParseSkipped
 
 
-class YamlDoc(BaseDoc):
+class YamlDoc(YamlDocEdit, BaseDoc):
     def __init__(self, raw_text):
         super().__init__(raw_text)
         self.yaml = None

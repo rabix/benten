@@ -59,8 +59,6 @@ class EditorInterface:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attached_view: 'YamlView' = None
-        # This is a function the Editor can call when it needs the view to know about
-        # edits that happened in it (manually or programmatically)
         self.locked = False
         self.delete_me = False
 
