@@ -53,7 +53,6 @@ class ViewWidgetCommands:
         cmd_help="create <clt|et|wf> : When in an empty document, create a scaffold"
                  " for CommandLineTool, ExpressionTool or Workflow")
     def create_scaffold(self, args):
-        blk = QSignalBlocker(self.code_editor)
 
         if self.get_text():
             return "Document not empty, will not create scaffold"
@@ -71,6 +70,7 @@ class ViewWidgetCommands:
         if scaffold_path.exists():
             edit = Edit(start=EditMark(line=0, column=0), end=None,
                         text=scaffold_path.open("r").read(), text_lines=[])
+            blk = QSignalBlocker(self.code_editor)
             self.apply_edit(edit)
             self.programmatic_edit()
             return "Added scaffold from file {}".format(scaffold_path)
@@ -92,15 +92,40 @@ class ViewWidgetCommands:
             key_field="class",
             entry="dockerPull: {}\n".format(docker_image)
         )
+
+        blk = QSignalBlocker(self.code_editor)
         self.apply_edit(edit)
         self.programmatic_edit()
         return "Added DockerRequirement"
 
-#
-#             "docker": {
-#                 "help": "docker <docker_image> : Add DockerRequirement to CLT",
-#                 "call": self.bw.scaffold_docker
-#             },
+    @meta(
+        cmd="add",
+        cmd_help="add <step_id> [path] : Create scaffold for new inline step, "
+                 "or, if path is given new linked step.")
+    @only_wf
+    def add_step_scaffold(self, args):
+        if not 0 < len(args) < 3:
+            return "Arguments are <step_id> [path]"
+
+        step_id = args[0]
+        path = pathlib.Path(args[1]) if len(args) > 1 else None
+
+        scaffold_path = pathlib.Path(
+            self.config.getpath("cwl", "template_dir"), "step-template.cwl")
+
+        if not scaffold_path.exists():
+            return "Couldn't find step scaffold file {}".format(scaffold_path)
+
+        scaffold = scaffold_path.open("r").read()
+        rel_path = self.attached_view.get_root().get_rel_path(path) if path else None
+
+        edit = self.process_model.add_step(
+            step_scaffold=scaffold, rel_path=rel_path, path=path, step_id=step_id)
+        blk = QSignalBlocker(self.code_editor)
+        self.apply_edit(edit)
+        self.programmatic_edit()
+        return "Added step"
+
 #             "new": {
 #                 "help": "new <step_id> [path] : Create scaffold for new inline step, or, "
 #                         "if path is given new linked step",
