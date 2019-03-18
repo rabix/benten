@@ -91,7 +91,10 @@ class ViewWidgetModels:
     def update_process_model_from_code(self):
         if self.process_model is not None:
             if self.process_model.code_is_same_as(self.yaml_doc().raw_text):
-                logger.debug("{}: Update asked for, but code hasn't changed.".format("Hi!"))
+                # Todo: improve the whole CwlDoc vs YamlView structure so we don't have to do
+                # awkward things like this
+                logger.debug("{}: Update asked for, but code hasn't changed.".
+                             format(self.attached_view.full_internal_path or self.attached_view.file_path))
                 return
 
         t0 = time.time()
