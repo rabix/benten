@@ -47,8 +47,8 @@ class CommandWidget(QWidget):
             }
         }
 
-        for fname in _parent.__dir__():
-            fn = getattr(_parent, fname)
+        for func_name in sorted(_parent.__dir__()):
+            fn = getattr(_parent, func_name)
             if hasattr(fn, "is_command"):
                 logger.debug("Installed command  '{}'".format(fn.cmd))
                 table[fn.cmd] = {
