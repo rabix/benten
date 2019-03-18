@@ -42,7 +42,7 @@ class CommandWidget(QWidget):
         table = {
             "help": {
                 "synonyms": ["?", "h"],
-                "help": "Print help",
+                "help": "help: Print help",
                 "call": self.print_help
             }
         }
@@ -89,22 +89,23 @@ class CommandWidget(QWidget):
         self.command_log.moveCursor(QTextCursor.End)
 
     def print_help(self, args):
-        return "\n".join("{}\t - {}".format(", ".join([k] + v.get("synonyms", [])), v["help"])
+        return "\n".join("{}\n{}".format(
+            v["help"], "Synonyms: {}\n".format(v.get("synonyms")) if v.get("synonyms") else "")
                          for k, v in self.help_table.items())
 
-    def list_steps(self, args):
-        if self.bw.cwl_doc.process_type() in ["CommandLineTool", "ExpressionTool"]:
-            return "This process type does not contain steps"
-
-        return "Steps:\n" + "\t\n".join(step for step in self.bw.cwl_doc.cwl_dict["steps"].keys())
-
-    def goto_step(self, args):
-        if self.bw.cwl_doc.process_type() in ["CommandLineTool", "ExpressionTool"]:
-            return "This process type does not contain steps"
-
-        return self.bw.highlight_step(args[0], focus_conn=False)
-
-    def get_app_revisions(self, args):
-        return "\n".join(
-            "v{}: {} - {}".format(rev["sbg:revision"], rev["sbg:revisionNotes"], rev["sbg:modifiedBy"])
-            for rev in self.bw.cwl_doc.get_app_revisions())
+    # def list_steps(self, args):
+    #     if self.bw.cwl_doc.process_type() in ["CommandLineTool", "ExpressionTool"]:
+    #         return "This process type does not contain steps"
+    #
+    #     return "Steps:\n" + "\t\n".join(step for step in self.bw.cwl_doc.cwl_dict["steps"].keys())
+    #
+    # def goto_step(self, args):
+    #     if self.bw.cwl_doc.process_type() in ["CommandLineTool", "ExpressionTool"]:
+    #         return "This process type does not contain steps"
+    #
+    #     return self.bw.highlight_step(args[0], focus_conn=False)
+    #
+    # def get_app_revisions(self, args):
+    #     return "\n".join(
+    #         "v{}: {} - {}".format(rev["sbg:revision"], rev["sbg:revisionNotes"], rev["sbg:modifiedBy"])
+    #         for rev in self.bw.cwl_doc.get_app_revisions())
