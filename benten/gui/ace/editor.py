@@ -127,8 +127,8 @@ class ManualEditThrottler:
     these calls so they don't overwhelm the system and yet not miss out on the final edit in
     a burst of edits. This manager handles that job effectively."""
 
-    def __init__(self):
-        self.burst_window = 1.0
+    def __init__(self, burst_window):
+        self.burst_window = burst_window
         # We allow upto a <burst_window> pause in typing before parsing the edit
         self.timer = QTimer()
         self.timer.setSingleShot(True)
@@ -159,7 +159,7 @@ class EditorIPC(QObject):
 
         self._setup_complete = False
 
-        self.manual_edit_throttler = ManualEditThrottler()
+        self.manual_edit_throttler = ManualEditThrottler(self.config.getfloat("editor", "type_burst_window"))
         self.manual_edit_throttler.timer.timeout.connect(lambda x=None: self.fetch_text.emit())
 
     def wait(self):
