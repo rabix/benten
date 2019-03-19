@@ -7,4 +7,4 @@ __pycache__
 sandbox
 tests/credentials
 benten.qrc
-benten/gui/ace/qtresources.py
+benten/gui/ace/resources.py

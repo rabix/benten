@@ -406,7 +406,16 @@ Also, tab spacing is fixed at 2 spaces, because that is the only correct answer.
 **QT**: I've been using QT for C++ projects since 2001. It is awesome to be still 
 using this tool-kit two decades later and via Python. Many thanks to the
 great [QT](https://www.qt.io/) team, and the [Pyside2](https://wiki.qt.io/Qt_for_Python) 
-(QT for Python) team.
+(QT for Python) team. Pyside2 is distributed under the LGPL.
+
+**QT dark theme**: From https://github.com/ColinDuquesnoy/QDarkStyleSheet
+
+**[ACE editor]**: It's still amazing to me that I can run a javascript app in my
+Python desktop app. ACE is distributed under the BSD license.
+
+[Ace editor]: https://ace.c9.io/
+
+
 
 **Pyzo**: The code editor is a trivially modified copy of the Pyzo code editor component 
 distributed with the [Pyzo IDE](https://pyzo.org/about_pyzo.html). The Pyzo

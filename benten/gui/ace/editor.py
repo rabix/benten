@@ -7,7 +7,7 @@ from PySide2.QtWebChannel import QWebChannel
 from PySide2.QtWebEngineWidgets import QWebEngineView
 
 from benten.configuration import Configuration
-import benten.gui.ace.qtresources
+import benten.gui.ace.resources
 
 html = """
 <!DOCTYPE html>
@@ -17,7 +17,7 @@ html = """
 
 <script src="qrc:/qtwebchannel/qwebchannel.js" type="text/javascript"></script>
 // This file comes bundled with Pyside2 and the resource bundler knows to include it ...
-<script src="qrc:/benten/gui/ace/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="qrc:/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 
 <style type="text/css" media="screen">
     #editor {
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
     editor.setOptions({
         useSoftTabs: true,
         navigateWithinSoftTabs: false,  // hmm, could cause confusion ...
-        tabSize: 8
+        tabSize: 2
     });           
     
     editor.setTheme("ace/theme/twilight");

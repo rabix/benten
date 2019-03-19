@@ -4,13 +4,16 @@
 # If only .qrc allowed directory includes ...
 
 QRC=./benten.qrc
-ACE_DIR=./benten/gui/ace/ace-builds/src-min-noconflict
+ACE_DIR=./benten/gui/ace/
+ACE_DIST=ace-builds/src-min-noconflict
+cd ${ACE_DIR}
+
 echo '<!DOCTYPE RCC>' > ${QRC}
 echo '<RCC version="1.0">' >> ${QRC}
 echo '  <qresource>' >> ${QRC}
 
 # Each file in the Ace source folder has to be added in individually
-for a in $(find ${ACE_DIR} -d)
+for a in $(find ${ACE_DIST} -d)
 do
     # if this is not a folder
     if [ ! -d "$a" ]; then
@@ -19,9 +22,6 @@ do
 done
 
 echo '  </qresource>' >> ${QRC}
-#echo '  <qresource>' >> ${QRC}
-#echo '      <file>benten/gui/benten-icon.png</file>' >> ${QRC}
-#echo '  </qresource>' >> ${QRC}
 echo '</RCC>' >> ${QRC}
 
-pyside2-rcc benten.qrc -o benten/gui/ace/qtresources.py
+pyside2-rcc benten.qrc -o resources.py
