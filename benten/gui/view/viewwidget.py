@@ -12,18 +12,18 @@ class ViewWidget(ViewWidgetCommands, ViewWidgetNavigation, ViewWidgetModels, Edi
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = None
 
     def set_text(self, raw_text: str):
         self.code_editor.set_text(raw_text)
 
     def get_text(self):
-        return self.code_editor.toPlainText()
+        # return self.code_editor.toPlainText()
+        return self.attached_view.doc.raw_text
+        # This is kind of our local cache
 
     def apply_edit(self, edit: Edit):
         # blk = QSignalBlocker(self.code_editor)
-        #return self.code_editor.insert_text(edit)
-        return self.code_editor.set_text(edit.text)
+        return self.code_editor.insert_text(edit)
 
     def save(self):
         self.attached_view.get_root().save()

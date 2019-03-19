@@ -72,7 +72,6 @@ class ViewWidgetCommands:
                         text=scaffold_path.open("r").read(), text_lines=[])
             blk = QSignalBlocker(self.code_editor)
             self.apply_edit(edit)
-            self.programmatic_edit()
             return "Added scaffold from file {}".format(scaffold_path)
         else:
             return "No scaffold for process type {}. Valid arguments are {}".format(arg, list(choices.keys()))
@@ -95,7 +94,6 @@ class ViewWidgetCommands:
 
         blk = QSignalBlocker(self.code_editor)
         self.apply_edit(edit)
-        self.programmatic_edit()
         return "Added DockerRequirement"
 
     @meta(
@@ -123,7 +121,6 @@ class ViewWidgetCommands:
             step_scaffold=scaffold, rel_path=rel_path, path=path, step_id=step_id)
         blk = QSignalBlocker(self.code_editor)
         self.apply_edit(edit)
-        self.programmatic_edit()
         return "Added step"
 
 #             "new": {

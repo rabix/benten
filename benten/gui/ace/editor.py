@@ -23,7 +23,8 @@ from PySide2.QtWidgets import QApplication
 from PySide2.QtWebChannel import QWebChannel
 from PySide2.QtWebEngineWidgets import QWebEngineView
 
-from benten.configuration import Configuration
+from ...configuration import Configuration
+from ...editing.edit import Edit
 import benten.gui.ace.resources
 
 html = """
@@ -90,6 +91,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         ipc.send_text_js_side.connect(function(text) {
             editor.session.setValue(text)
+        })
+
+        ipc.apply_edit.connect( function(l0, c0, l1, c1, text) {
+            var range = new Range(l0, c0, l1, c1)
+            editor.addSelectionMarker(range)
+            editor.insert(text)
         })
 
         editor.session.on('change', function(delta) {
@@ -215,5 +222,14 @@ class Editor(QWebEngineView):
         self.ipc.wait()
         self.ipc.send_text_js_side.emit(raw_text)
 
+    def insert_text(self, edit: Edit):
+        if edit.end is None:
+            edit.end = edit.start
+
+        self.ipc.apply_edit.emit(edit.start.line, edit.start.column,
+                                 edit.end.line, edit.end.column,
+                                 edit.text)
+
     def scroll_to(self, line):
         self.ipc.scroll_to.emit(line)
+
