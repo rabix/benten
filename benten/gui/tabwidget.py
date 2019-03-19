@@ -158,8 +158,7 @@ class TabWidget(QTabWidget):
                 pass
 
     def _prepare_view_widget(self):
-        vw = ViewWidget()
-        vw.config = self.config
+        vw = ViewWidget(config=self.config)
         vw.open_steps.connect(self.open_steps)
         return vw
 

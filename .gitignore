@@ -1,0 +1,10 @@
+benten.egg-info
+__pycache__
+.DS_Store
+.coverage
+.idea
+.tox
+sandbox
+tests/credentials
+benten.qrc
+benten/gui/ace/qtresources.py

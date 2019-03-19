@@ -5,11 +5,14 @@ from PySide2.QtWidgets import \
 from PySide2.QtCore import Qt, QTimer, Slot, Signal
 from PySide2.QtGui import QKeySequence, QFontDatabase
 
+from ...configuration import Configuration
+
 from ...models.unk import Unk
 from ...models.commandlinetool import CommandLineTool
 from ...models.workflow import Workflow
 
-from ..codeeditor.editor import CodeEditor
+#from ..codeeditor.editor import CodeEditor
+from ..ace.editor import Editor
 from .processview import ProcessView
 from .commandwidget import CommandWidget
 
@@ -41,10 +44,12 @@ class ManualEditThrottler:
 
 class ViewWidgetBase(QWidget):
 
-    def __init__(self):
+    def __init__(self, config: Configuration):
         QWidget.__init__(self)
 
-        self.code_editor: CodeEditor = self._setup_code_editor()
+        self.config = config
+
+        self.code_editor: Editor = self._setup_code_editor()
         self.navbar = self._setup_navbar()
         self.yaml_error_banner = self._setup_yaml_banner()
         self.process_view: ProcessView = ProcessView(None)
@@ -61,8 +66,8 @@ class ViewWidgetBase(QWidget):
         self.is_active_window = False
 
     def _setup_code_editor(self):
-        ce = CodeEditor(IndentUsingSpaces=True)
-        ce.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
+        ce = Editor(config=self.config)
+        # ce.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         ce.textChanged.connect(self.user_still_typing)
         return ce
 

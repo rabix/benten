@@ -389,7 +389,14 @@ likely you are doing this in YAML, not JSON, so the best flow is to just stay in
 auto-conversion is offered as a convenience when you just want to peek at a CWL in JSON format,
 not for doing regular work in hand written JSON (shudder).**
 
- 
+## Editor options
+The editor options (section `[editor]`) are passed verbatim to the Ace editor.
+So you can use [whatever is allowed](https://github.com/ajaxorg/ace/wiki/Configuring-Ace)
+There are a few options you can not mess with, and these are over ridden.
+For example tabs are disabled - YAML does not allow tabs, it uses spaces.
+Also, tab spacing is fixed at 2 spaces, because that is the only correct answer.
+
+
 # License
 [Apache 2.0](LICENSE)
 

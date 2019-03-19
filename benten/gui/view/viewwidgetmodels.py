@@ -94,7 +94,7 @@ class ViewWidgetModels:
                 # Todo: improve the whole CwlDoc vs YamlView structure so we don't have to do
                 # awkward things like this
                 logger.debug("{}: Update asked for, but code hasn't changed.".
-                             format(self.attached_view.full_internal_path or self.attached_view.file_path))
+                             format(self.attached_view.full_readable_path or self.attached_view.file_path))
                 return
 
         t0 = time.time()
