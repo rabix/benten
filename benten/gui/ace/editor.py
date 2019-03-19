@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });           
     
     editor.setTheme("ace/theme/twilight");
-    // editor.session.setMode("ace/mode/cwl");
+    editor.session.setMode("ace/mode/yaml");
 
 
     // https://stackoverflow.com/a/42122466/2512851
@@ -96,6 +96,10 @@ document.addEventListener("DOMContentLoaded", function () {
             ipc.user_typing()
         })
 
+        ipc.scroll_to.connect( function(line) {
+            editor.scrollToLine(line, true, false, function() {} )
+            editor.moveCursorTo(line, 0)
+        })
         ipc.send_error_annotation.connect(set_error_annotation);
 
         // An example of receiving information pushed from the Python side
@@ -149,6 +153,7 @@ class EditorIPC(QObject):
     fetch_text = Signal()
     send_text_js_side = Signal(str)
     apply_edit = Signal(int, int, int, int, str)
+    scroll_to = Signal(int)
     send_error_annotation = Signal(int, int, str, str)
 
     text_ready = Signal(str)
@@ -209,3 +214,6 @@ class Editor(QWebEngineView):
     def set_text(self, raw_text):
         self.ipc.wait()
         self.ipc.send_text_js_side.emit(raw_text)
+
+    def scroll_to(self, line):
+        self.ipc.scroll_to.emit(line)

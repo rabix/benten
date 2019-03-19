@@ -16,6 +16,7 @@ class CwlDoc(YamlView):
             text_type=TextType.process,
             editor=editor,
             path=())
+        self.attached_editor.set_text(self.doc.raw_text)
         self._last_saved_raw_text = self.doc.raw_text
 
     def get_rel_path(self, sub_path: pathlib.Path):

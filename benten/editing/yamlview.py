@@ -81,8 +81,8 @@ class EditorInterface:
     def mark_for_deletion(self):
         self.delete_me = True
 
-    def push_changes(self):
-        return self.attached_view.fetch_from_editor()
+    def push_changes(self, raw_text):
+        return self.attached_view.update_with_new_text(raw_text)
 
     def parse_yaml(self):
         return self.attached_view.doc.parse_yaml()
@@ -124,9 +124,8 @@ class YamlView:
     def get(self, path: Tuple[str, ...]):
         return self.children.get(path, None)
 
-    def fetch_from_editor(self):
+    def update_with_new_text(self, raw_text):
         """Called when manual or programmatic edit is signalled by attached editor"""
-        raw_text = self.attached_editor.get_text()
         parse_result = self.doc.set_raw_text_and_reparse(raw_text)
         if parse_result & Contents.ParseSuccess:
             self.attached_editor.locked = False

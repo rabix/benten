@@ -11,7 +11,6 @@ from ...models.unk import Unk
 from ...models.commandlinetool import CommandLineTool
 from ...models.workflow import Workflow
 
-#from ..codeeditor.editor import CodeEditor
 from ..ace.editor import Editor
 from .processview import ProcessView
 from .commandwidget import CommandWidget
@@ -19,27 +18,6 @@ from .commandwidget import CommandWidget
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-class ManualEditThrottler:
-    """Each manual edit we do (letter we type) triggers a manual edit. We need to manage
-    these calls so they don't overwhelm the system and yet not miss out on the final edit in
-    a burst of edits. This manager handles that job effectively."""
-
-    def __init__(self):
-        self.burst_window = 1.0
-        # We allow upto a <burst_window> pause in typing before parsing the edit
-        self.timer = QTimer()
-        self.timer.setSingleShot(True)
-        self.timer.setInterval(int(self.burst_window * 1000))
-
-    def restart_edit_clock(self):
-        self.timer.start()
-
-    def flush(self):
-        if self.timer.isActive():
-            self.timer.stop()
-            self.timer.timeout.emit()
 
 
 class ViewWidgetBase(QWidget):
@@ -58,9 +36,6 @@ class ViewWidgetBase(QWidget):
         self._setup_panes()
         self.shortcuts = self._setup_shortcuts()
 
-        self.manual_edit_throttler = ManualEditThrottler()
-        self.manual_edit_throttler.timer.timeout.connect(self.manual_edit)
-
         self.process_model: (Unk, CommandLineTool, Workflow) = None
 
         self.is_active_window = False
@@ -68,7 +43,7 @@ class ViewWidgetBase(QWidget):
     def _setup_code_editor(self):
         ce = Editor(config=self.config)
         # ce.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
-        ce.textChanged.connect(self.user_still_typing)
+        ce.new_text_available.connect(self.register_edit)
         return ce
 
     def _setup_navbar(self):
@@ -152,26 +127,27 @@ class ViewWidgetBase(QWidget):
 
     def set_inactive_window(self):
         """To be called whenever we switch away from this window"""
-        self.manual_edit_throttler.flush()
+        # self.manual_edit_throttler.flush()
         self.is_active_window = False
 
-    @Slot()
-    def user_still_typing(self):
-        """Called whenever the editor contents are changed. We restrict this to actual typing."""
-        logger.debug("User typing ...")
-        self.manual_edit_throttler.restart_edit_clock()
+    # @Slot()
+    # def user_still_typing(self):
+    #     """Called whenever the editor contents are changed. We restrict this to actual typing."""
+    #     logger.debug("User typing ...")
+    #     self.manual_edit_throttler.restart_edit_clock()
+    #
+    # @Slot()
+    # def manual_edit(self):
+    #     """Called when the user is done with their burst of typing, or we switch away from this tab"""
+    #     logger.debug("Registering manual edit ...")
+    #     self._register_edit()
+    #
+    # @Slot()
+    # def programmatic_edit(self):
+    #     """Called when we have executed a programmatic edit"""
+    #     logger.debug("Registering programmatic edit ...")
+    #     self._register_edit()
 
-    @Slot()
-    def manual_edit(self):
-        """Called when the user is done with their burst of typing, or we switch away from this tab"""
-        logger.debug("Registering manual edit ...")
-        self._register_edit()
-
-    @Slot()
-    def programmatic_edit(self):
-        """Called when we have executed a programmatic edit"""
-        logger.debug("Registering programmatic edit ...")
-        self._register_edit()
-
-    def _register_edit(self):
+    @Slot(str)
+    def register_edit(self, new_text):
         pass

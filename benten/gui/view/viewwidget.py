@@ -8,22 +8,22 @@ from .viewwidgetcommands import ViewWidgetCommands
 from .viewwidgetmodels import ViewWidgetModels
 
 
-class ViewWidget(EditorInterface, ViewWidgetCommands, ViewWidgetModels, ViewWidgetNavigation, ViewWidgetBase):
+class ViewWidget(ViewWidgetCommands, ViewWidgetNavigation, ViewWidgetModels, EditorInterface, ViewWidgetBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = None
 
     def set_text(self, raw_text: str):
-        blk = QSignalBlocker(self.code_editor)
         self.code_editor.set_text(raw_text)
 
     def get_text(self):
         return self.code_editor.toPlainText()
 
     def apply_edit(self, edit: Edit):
-        blk = QSignalBlocker(self.code_editor)
-        return self.code_editor.insert_text(edit)
+        # blk = QSignalBlocker(self.code_editor)
+        #return self.code_editor.insert_text(edit)
+        return self.code_editor.set_text(edit.text)
 
     def save(self):
         self.attached_view.get_root().save()
