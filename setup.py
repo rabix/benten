@@ -20,6 +20,7 @@ setup(
     install_requires=[
         "pyyaml",
         "PySide2",
+        "qdarkstyle",
         "pygraphviz",  # For the "dot" layout algorithm
         "sevenbridges-python"
     ],

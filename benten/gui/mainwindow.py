@@ -5,6 +5,8 @@ from PySide2.QtWidgets import QAction, QActionGroup, QApplication, QMainWindow, 
 from PySide2.QtCore import QSettings, Slot
 from PySide2.QtGui import QCloseEvent, QIcon
 
+import qdarkstyle
+
 from ..version import __version__
 from ..configuration import Configuration
 from ..sbg.profiles import Profiles
@@ -18,6 +20,9 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
 
         self.config = Configuration()
+
+        if self.config.getboolean("qt", "dark_theme"):
+            QApplication.instance().setStyleSheet(qdarkstyle.load_stylesheet())
 
         # todo: figure out how to write to specific file
         self.settings = QSettings("sbg", "benten-dev")
