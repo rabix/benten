@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
     editor.setTheme("ace/theme/twilight");
     editor.session.setMode("ace/mode/yaml");
-
+    editor.setAnimatedScroll(true)
 
     // https://stackoverflow.com/a/42122466/2512851
     var set_error_annotation = function(row, column, err_msg, type) {
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
 
         ipc.scroll_to.connect( function(line) {
-            editor.scrollToLine(line, true, false, function() {} )
+            editor.scrollToLine(line, true)
             editor.moveCursorTo(line, 0)
         })
         ipc.send_error_annotation.connect(set_error_annotation);
