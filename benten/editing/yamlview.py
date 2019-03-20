@@ -1,8 +1,6 @@
 """This abstracts out a framework for keeping track of views and computing the backward and
 forward edit projections from the view. For now we just handle block elements.
 
-This represents a CWL document that we can take sub-views of. It itself can be a sub-view.
-
 It's main responsibility is to make sure edits are synchronized across different
 views of a document. As such we do not implement process type specific logic here, but make
 it somewhat general.
@@ -10,9 +8,6 @@ it somewhat general.
 There are two types of fragments
     - those that can be sub-viewed further and
     - those that can not.
-This base type represents a document that can not be sub-viewed further. The CwlProcess mixin
-represents a document that can be sub-viewed further and adds the ability to create new views
-from it.
 
 It has some special rules that are a compromise between maintaining hand edited text and
 ease of use
@@ -46,140 +41,220 @@ A. We refuse to reload and warn the user that an external edit would result in a
    and that error should be fixed, either by saving this working document, or fixing the document
    in the original external editor.
 """
-from typing import Tuple, Dict
-from abc import abstractmethod
+from typing import Tuple, Dict, Callable
+from enum import IntEnum
 
 from ..implementationerror import ImplementationError
+from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentError
 from .edit import Edit, EditMark
-from .yamldoc import TextType, PlainText, YamlDoc, Contents
+from .textview import TextView
 
 
-class EditorInterface:
+class Contents(IntEnum):
+    Unchanged = 0b1
+    Changed = 0b10
+    ParseSkipped = 0b100
+    ParseSuccess = 0b1000
+    ParseFail = 0b10000
+
+
+class YamlView(TextView):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.attached_view: 'YamlView' = None
-        self.locked = False
-        self.delete_me = False
+        self._yaml = None
+        self._last_good_yaml = None
+        self.yaml_error = None
+        self.children: Dict[Tuple[str, ...], TextView] = {}
 
-    # This is meant to replace the whole text in one go
-    # Should not trigger any downstream edit events
-    @abstractmethod
-    def set_text(self, raw_text: str):
-        pass
-
-    @abstractmethod
-    def get_text(self):
-        pass
-
-    # This is meant to replace targeted text
-    # Should not trigger any downstream edit events
-    @abstractmethod
-    def apply_edit(self, edit: Edit):
-        pass
-
-    def mark_for_deletion(self):
-        self.delete_me = True
-
-    def push_changes(self, raw_text):
-        return self.attached_view.update_with_new_text(raw_text)
-
-    def parse_yaml(self):
-        return self.attached_view.doc.parse_yaml()
-
-    def get_yaml(self):
-        return self.attached_view.doc.yaml
-
-    def yaml_error(self):
-        return self.attached_view.doc.yaml_error
-
-    def yaml_doc(self):
-        return self.attached_view.doc
-
-
-class YamlView:
-    def __init__(self, raw_text: str, path: Tuple[str, ...],
-                 text_type: TextType, editor: EditorInterface,
-                 full_readable_path: Tuple[str, ...]=None,
-                 parent: 'YamlView'=None):
-        self.path = path
-        self.full_readable_path = full_readable_path
-        self.doc = YamlDoc(raw_text) if text_type == TextType.process else PlainText(raw_text)
-        self.attached_editor: EditorInterface = editor
-        self.attached_editor.set_text(raw_text)
-        self.attached_editor.attached_view = self
-        # The communication is bidirectional - the attached editor needs to know to call us
-        self.parent: 'YamlView' = parent
-        self.children: Dict[Tuple[str, ...], YamlView] = {}
+    @property
+    def yaml(self):
+        if self._yaml is None:
+            try:
+                self._yaml = parse_yaml_with_line_info(self.raw_text, convert_to_lam=True) or Ydict.empty()
+                self.yaml_error = None
+                self._last_good_yaml = self._yaml
+            except DocumentError as e:
+                self._yaml = None
+                self.yaml_error = e
+        return self._yaml
 
     def __contains__(self, path: Tuple[str, ...]):
-        return path in self.children
-
-    def get_root(self):
-        if self.parent is None:
-            return self
-        else:
-            return self.parent.get_root()
-
-    def get(self, path: Tuple[str, ...]):
-        return self.children.get(path, None)
-
-    def update_with_new_text(self, raw_text):
-        """Called when manual or programmatic edit is signalled by attached editor"""
-        parse_result = self.doc.set_raw_text_and_reparse(raw_text)
-        if parse_result & Contents.ParseSuccess:
-            self.attached_editor.locked = False
-            self.propagate_edit_to_ancestor()
-            self.propagate_edits_to_children()
-        elif parse_result & Contents.Unchanged:
-            return parse_result
-        else:
-            self.attached_editor.locked = True
-        return parse_result
-
-    def propagate_edit_to_ancestor(self):
-        if self.parent is None:
-            return
-        self.parent.attached_editor.apply_edit(
-            self.parent.doc.set_section_from_raw_text(self.doc.raw_text, self.path))
-        self.parent.propagate_edit_to_ancestor()
-
-    def propagate_edits_to_children(self):
-        if not isinstance(self.doc, YamlDoc):
-            return
-
-        self.doc.parse_yaml()  # The propagate call is recursive, and the children need to be parsed
-        deleted_child_paths = []
-        for path, child_view in self.children.items():
-            if path in self.doc:
-                new_child_text = self.doc.get_raw_text_for_section(path)
-                edit = YamlDoc.edit_from_quick_diff(
-                    child_view.doc.raw_lines,
-                    new_child_text.splitlines(keepends=True))
-                child_view.attached_editor.apply_edit(edit)
-                child_view.doc.set_raw_text(new_child_text)
-                child_view.propagate_edits_to_children()
+        sub_doc = self.yaml
+        for p in path or []:
+            if not isinstance(sub_doc, dict):
+                return False
+            if p in sub_doc:
+                sub_doc = sub_doc[p]
             else:
-                child_view.attached_editor.mark_for_deletion()
-                deleted_child_paths += [path]
+                return False
+        else:
+            return True
 
-        for path in deleted_child_paths:
-            self.children.pop(path)
+    def __getitem__(self, path: Tuple[str, ...]):
+        sub_doc = self.yaml
+        for p in path or []:
+            if sub_doc is None:
+                raise ImplementationError("Component can not be None.")
+            if not isinstance(sub_doc, dict):
+                raise ImplementationError("We've got a bad path into a document.")
+            sub_doc = sub_doc[p]
+        return sub_doc
 
-    def create_child_view(self, path: Tuple[str, ...], editor: EditorInterface) -> 'YamlView':
-        if not isinstance(self.doc, YamlDoc):
-            raise ImplementationError("Only processes can have child views")
+    def set_raw_text(self, raw_text):
+        super().set_raw_text(raw_text)
+        self._yaml = None
 
-        if self.doc.yaml_error is not None:
-            raise ImplementationError("Processes with YAML errors can't spawn child views")
+    def create_child_view(
+            self, child_path: Tuple[str, ...],
+            can_have_children=False,
+            callback: Callable=None):
+        # We will punt this to the root view
+        if self.parent is not None:
+            return self.root().create_child_view(
+                child_path=self.inline_path + child_path,
+                can_have_children=can_have_children,
+                callback=callback)
 
-        text_type = YamlDoc.infer_section_type(path)
-        child_view = YamlView(
-            raw_text=self.doc.get_raw_text_for_section(path),
-            path=path, text_type=text_type,
-            full_readable_path=(self.full_readable_path or ()) +
-                               ((path[-2],) if text_type == TextType.process else (path,)),
-            editor=editor, parent=self)
+        raw_text = self.get_raw_text_for_section(path=child_path)
+        if can_have_children:
+            child = YamlView(raw_text=raw_text,
+                             file_path=self.file_path,
+                             inline_path=child_path,
+                             parent=self)
+        else:
+            child = TextView(raw_text=raw_text,
+                             file_path=self.file_path,
+                             inline_path=child_path,
+                             parent=self)
 
-        self.children[path] = child_view
-        return child_view
+        self.children[child_path] = child
+        if callback is not None:
+            callback(child)
+        return child
+
+    def get_raw_text_for_section(self, path: Tuple[str, ...]):
+        value = self[path]
+
+        start_line, end_line = value.start.line, value.end.line
+        sl = start_line
+        indent_level = len(self.raw_lines[sl]) - len(self.raw_lines[sl].lstrip())
+
+        if isinstance(value, Ydict):  # Currently, sole use case is in steps
+            if value.flow_style:
+                if value == {}:
+                    return ""
+                else:
+                    raise ImplementationError("Flow style elements can not be edited in a view.")
+        elif isinstance(value, Ystr):  # Single line expressions and documentation
+            # todo: check for expressions
+            if value.style == "":
+                return value
+
+        lines_we_need = self.raw_lines[start_line:end_line]
+        lines = [
+            l[indent_level:] if len(l) > indent_level else "\n"
+            for l in lines_we_need
+        ]
+        # All lines with text have the given indent level or more, so they are not an issue
+        # Blank lines, however, can be zero length, hence the exception.
+        return "".join(lines)
+
+    def apply_from_child(self, raw_text: str, inline_path: Tuple[str, ...]):
+        self.set_raw_text(
+            raw_text="".join(
+                self._apply_edit_to_lines(
+                    self._project_raw_text_to_section_as_edit(raw_text=raw_text, path=inline_path)
+                )))
+
+        self._mark_children_for_deletion()
+        self._remove_children_marked_for_deletion()
+
+        for inline_path, child in self.children.items():
+            child.set_raw_text(raw_text=self.get_raw_text_for_section(inline_path))
+
+    # todo: V1.0 this code does not handle block text properly. Will extend for V2.0
+    # Right now we worry mostly about "run" field of steps, which is a dict
+    def _project_raw_text_to_section_as_edit(self, raw_text, path: Tuple[str, ...]):
+        def _block_style(_ov):
+            if isinstance(_ov, YNone): return False
+            elif isinstance(_ov, Ydict): return not _ov.flow_style
+            elif _ov.style != "": return True
+            else: return False
+
+        original_value = self[path]
+        raw_text_lines = raw_text.splitlines(keepends=True)
+        projected_text_lines = []
+
+        start = EditMark(original_value.start.line, original_value.start.column)
+        end = EditMark(original_value.end.line, original_value.end.column)
+
+        block_style = _block_style(original_value)
+
+        # Exception we make when going from block back to null style
+        if raw_text == "" and block_style:
+            start.column = 0
+            return Edit(start, end, raw_text, raw_text_lines)
+
+        if not raw_text.endswith("\n") and block_style:
+            raw_text += "\n"
+            raw_text_lines += ["\n"]
+        # A user can remove this last new line from the editor. We need to add it back
+        # otherwise we'll lose our block structure
+
+        sl = original_value.start.line
+        if len(self.raw_lines):
+            indent_level = len(self.raw_lines[sl]) - len(self.raw_lines[sl].lstrip())
+        else:
+            indent_level = 0
+
+        if isinstance(original_value, Ydict):  # Currently, sole use case is in steps
+            if not block_style:
+                if original_value == {}:
+                    indent_level += 2
+                    projected_text_lines += ["\n" + " " * indent_level]
+                else:
+                    raise ImplementationError("Should not be viewing flow style elements")
+        else:  # Expressions and documentation
+            if "\n" in raw_text:  # Multi-line
+                if isinstance(original_value, YNone) or not block_style:
+                    indent_level += 2
+                    projected_text_lines += [" |-\n" + " " * indent_level]
+            else:  # Single line, works regardless of block or flowstyle
+                return Edit(start, end, raw_text, raw_text_lines)
+
+        projected_text_lines += [((' '*indent_level) if len(l) > 1 and n > 0 else "") + l
+                                 for n, l in enumerate(raw_text_lines)]
+        # 1. First line should have no indent - the cursor position takes care of that
+        # 2. All lines with text have the given indent level or more, so they are not an issue
+        #    Blank lines, however, can be zero length, hence the exception.
+        return Edit(start, end, None, projected_text_lines)
+
+    def _apply_edit_to_lines(self, edit: Edit):
+        existing_lines = self.raw_lines
+        lines_to_insert = edit.text_lines
+
+        if edit.end is None:
+            edit.end = edit.start
+
+        if edit.end.line != edit.start.line:
+            edit.end.column = 0
+
+        new_lines = \
+            existing_lines[:edit.start.line] + \
+            ([existing_lines[edit.start.line][:edit.start.column]]
+             if edit.start.line < len(existing_lines) else []) + \
+            lines_to_insert + \
+            (([existing_lines[edit.end.line][edit.end.column:]] +
+              (existing_lines[edit.end.line + 1:] if edit.end.line + 1 < len(existing_lines) else []))
+             if edit.end.line < len(existing_lines) else [])
+
+        return new_lines
+
+    def _mark_children_for_deletion(self):
+        for k, v in self.children.items():
+            if k not in self:
+                v.marked_for_deletion = True
+
+    def _remove_children_marked_for_deletion(self):
+        self.children = {k: v for k, v in self.children if not v.marked_for_deletion}
