@@ -136,24 +136,25 @@ class RootYamlView(YamlView):
         return "".join(lines)
 
     def apply_from_child(self, raw_text: str, inline_path: Tuple[str, ...]):
-        self.set_raw_text(
-            raw_text="".join(
-                self._apply_edit_to_lines(
-                    self._project_raw_text_to_section_as_edit(raw_text=raw_text, path=inline_path)
-                )))
+        self._propagate_changes_forward(
+            self._project_raw_text_to_section_as_edit(raw_text=raw_text, path=inline_path))
+
+    def add_or_replace_lom(self, path: Tuple[str, ...], key: str, key_field: str, entry: str):
+        self._propagate_changes_forward(
+            self._insert_into_lom(path=path, key=key, key_field=key_field, entry=entry))
+
+    #
+    # Some internal methods
+    #
+
+    def _propagate_changes_forward(self, edit: Edit):
+        self.set_raw_text(raw_text="".join(self._apply_edit_to_lines(edit)))
 
         self._mark_children_for_deletion()
         self._remove_children_marked_for_deletion()
 
         for inline_path, child in self.children.items():
             child.set_raw_text(raw_text=self.get_raw_text_for_section(inline_path))
-
-    def add_or_replace_lom(self, path: Tuple[str, ...], key: str, key_field: str, entry: str):
-        self.set_raw_text(
-            raw_text="".join(
-                self._apply_edit_to_lines(
-                    self._insert_into_lom(path=path, key=key, key_field=key_field, entry=entry)
-                )))
 
     # todo: V1.0 this code does not handle block text properly. Will extend for V2.0
     # Right now we worry mostly about "run" field of steps, which is a dict
