@@ -1,7 +1,7 @@
 import pathlib
 
 import benten.sbg.versionmixin as sam
-from benten.editing.cwlprocess import CwlProcess
+from benten.editing.yamldoc import YamlDoc
 
 
 current_path = pathlib.Path(__file__).parent
