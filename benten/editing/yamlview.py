@@ -2,6 +2,7 @@ from typing import Tuple, Dict, Callable
 from enum import IntEnum
 
 from ..implementationerror import ImplementationError
+from .documentproblem import DocumentProblem, ProblemType, ProblemClass
 from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentError, LAM
 from .edit import Edit, EditMark
 from .textview import TextView
@@ -24,7 +25,8 @@ class YamlView(TextView):
                 self._last_good_yaml = self._yaml
             except DocumentError as e:
                 self._yaml = None
-                self.yaml_error = e
+                self.yaml_error = \
+                    DocumentProblem(e.line, e.column, e.message, ProblemType.error, ProblemClass.yaml)
         return self._yaml
 
     def __contains__(self, path: Tuple[str, ...]):
