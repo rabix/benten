@@ -519,6 +519,19 @@ def test_edit_twice():
 """
 
 
+def test_yaml_errors():
+    views, editors = open_tree()
+
+    orig_text = views["root/step2/step22"].raw_text
+    views["root/step2/step22/step221"].set_raw_text("""steps
+- id: step2211-new
+- id: step2212""")
+    views["root/step2/step22/step221"].synchronize_text()
+
+    assert views["root/step2/step22/step221"].yaml_error is not None
+    assert views["root/step2/step22"].raw_text == orig_text
+
+
 def test_io():
     views, editors = open_tree()
 

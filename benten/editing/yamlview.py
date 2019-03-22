@@ -51,6 +51,12 @@ class YamlView(TextView):
             sub_doc = sub_doc[p]
         return sub_doc
 
+    def synchronize_text(self):
+        # For YAML docs we need to watch out for parsing errors
+        if self.yaml is not None:
+            return self.root().apply_from_child(self.raw_text, self.inline_path)
+        # We don't do anything overtly, but basically no synchronization goes on
+
     def set_raw_text(self, raw_text):
         super().set_raw_text(raw_text)
         self._yaml = None
