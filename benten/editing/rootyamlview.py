@@ -91,21 +91,18 @@ class RootYamlView(YamlView):
     def create_child_view(
             self, child_path: Tuple[str, ...],
             can_have_children=False,
-            callback: Callable=None):
+            edit_callback: Callable=None,
+            delete_callback: Callable=None):
 
         raw_text = self.get_raw_text_for_section(path=child_path)
-        if can_have_children:
-            child = YamlView(raw_text=raw_text,
-                             inline_path=child_path,
-                             parent=self)
-        else:
-            child = TextView(raw_text=raw_text,
-                             inline_path=child_path,
-                             parent=self)
+        T = YamlView if can_have_children else TextView
+        child = T(raw_text=raw_text,
+                  inline_path=child_path,
+                  parent=self,
+                  edit_callback=edit_callback,
+                  delete_callback=delete_callback)
 
         self.children[child_path] = child
-        if callback is not None:
-            callback(child)
         return child
 
     def get_raw_text_for_section(self, path: Tuple[str, ...]):
@@ -237,7 +234,7 @@ class RootYamlView(YamlView):
     def _mark_children_for_deletion(self):
         for k, v in self.children.items():
             if k not in self:
-                v.marked_for_deletion = True
+                v.mark_for_deletion()
 
     def _remove_children_marked_for_deletion(self):
         self.children = {k: v for k, v in self.children.items() if not v.marked_for_deletion}

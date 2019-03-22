@@ -56,11 +56,13 @@ class YamlView(TextView):
     def create_child_view(
             self, child_path: Tuple[str, ...],
             can_have_children=False,
-            callback: Callable=None):
+            edit_callback: Callable=None,
+            delete_callback: Callable=None):
         return self.root().create_child_view(
             child_path=self.inline_path + child_path,
             can_have_children=can_have_children,
-            callback=callback)
+            edit_callback=edit_callback,
+            delete_callback=delete_callback)
 
     def add_or_replace_lom(self, path: Tuple[str, ...], key: str, key_field: str, entry: str):
         self.root().add_or_replace_lom(

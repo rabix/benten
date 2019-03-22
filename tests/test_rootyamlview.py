@@ -93,23 +93,34 @@ steps:
 
 class FakeEditor:
     def __init__(self):
-        self.attached_child = None
+        self.text = None
+        self.closed = False
 
-    def attach_child(self, child):
-        self.attached_child = child
+    def new_text_available(self, text):
+        self.text = text
+
+    def close(self):
+        self.closed = True
 
 
 def test_basic():
-    yaml_view = RootYamlView(
-        raw_text=nested_document, file_path=pathlib.Path("./test.cwl"))
 
-    assert yaml_view.raw_text == nested_document
+    ed1 = FakeEditor()
+    view1 = RootYamlView(
+        raw_text=nested_document,
+        file_path=pathlib.Path("./test.cwl"),
+        edit_callback=ed1.new_text_available,
+        delete_callback=ed1.close)
 
-    ed = FakeEditor()
+    assert view1.raw_text == nested_document
+    assert ed1.text == nested_document
 
-    ch1 = yaml_view.create_child_view(
-        child_path=("steps", "step2", "run"), can_have_children=True,
-        callback=ed.attach_child)
+    ed2 = FakeEditor()
+    view2 = view1.create_child_view(
+        child_path=("steps", "step2", "run"),
+        can_have_children=True,
+        edit_callback=ed2.new_text_available,
+        delete_callback=ed2.close)
 
     expected = """steps:
 - id: step21
@@ -146,62 +157,79 @@ def test_basic():
           - id: step2311
           - id: step2312
 """
-    assert ch1.raw_text == expected
-    assert ch1.readable_path() == "step2"
+    assert view2.raw_text == expected
+    assert view2.readable_path() == "step2"
+    assert ed2.text == expected
 
 
-class MockBenten:
-    def __init__(self):
-        self.editor_tabs = {}
+def open_tree() -> Tuple[Dict[str, Union[RootYamlView, YamlView, TextView]], Dict[str, FakeEditor]]:
 
-    def add_tab(self, child: TextView):
-        self.editor_tabs[child.inline_path] = child
+    def new_child(parent_p, child_p, chc):
+        k1 = "{}/{}".format(parent_p, child_p)
+        editors[k1] = FakeEditor()
+        views[k1] = views[parent_p].create_child_view(
+            child_path=("steps", child_p) + (("run",) if chc else ()),
+            can_have_children=chc,
+            edit_callback=editors[k1].new_text_available,
+            delete_callback=editors[k1].close)
 
-    def prune_tabs(self):
-        self.editor_tabs = {
-            k: v for k, v in self.editor_tabs.items()
-            if not v.marked_for_deletion
-        }
-
-
-def open_tree() -> Tuple[Dict[str, Union[RootYamlView, YamlView, TextView]], MockBenten]:
-    mb = MockBenten()
     views = dict()
+    editors = dict()
 
-    views["root"] = RootYamlView(raw_text=nested_document, file_path=pathlib.Path("./test.cwl"))
+    editors["root"] = FakeEditor()
+    views["root"] = RootYamlView(
+        raw_text=nested_document,
+        file_path=pathlib.Path("./test.cwl"),
+        edit_callback=editors["root"].new_text_available,
+        delete_callback=editors["root"].close)
 
-    views["root/step2"] = views["root"].create_child_view(
-        child_path=("steps", "step2", "run"), can_have_children=True, callback=mb.add_tab)
+    new_child("root", "step2", True)
+    new_child("root/step2", "step22", True)
+    new_child("root/step2/step22", "step221", True)
+    new_child("root/step2/step22", "step222", True)
+    new_child("root/step2/step22/step222", "step2221", False)
 
-    views["root/step2/step22"] = views["root/step2"].create_child_view(
-        child_path=("steps", "step22", "run"), can_have_children=True, callback=mb.add_tab)
+    # editors["root/step2"] = FakeEditor()
+    # views["root/step2"] = views["root"].create_child_view(
+    #     child_path=("steps", "step2", "run"),
+    #     can_have_children=True,
+    #     edit_callback=editors["root/step2"].new_text_available,
+    #     delete_callback=editors["root/step2"].close)
+    #
+    # views["root/step2/step22"] = views["root/step2"].create_child_view(
+    #     child_path=("steps", "step22", "run"), can_have_children=True, callback=mb.add_tab)
+    #
+    # views["root/step2/step22/step221"] = views["root/step2/step22"].create_child_view(
+    #     child_path=("steps", "step221", "run"), can_have_children=True, callback=mb.add_tab)
+    #
+    # views["root/step2/step22/step222"] = views["root/step2/step22"].create_child_view(
+    #     child_path=("steps", "step222", "run"), can_have_children=True, callback=mb.add_tab)
+    #
+    # views["root/step2/step22/step222/step2221"] = views["root/step2/step22/step222"].create_child_view(
+    #     child_path=("steps", "step2221"), can_have_children=False, callback=mb.add_tab)
 
-    views["root/step2/step22/step221"] = views["root/step2/step22"].create_child_view(
-        child_path=("steps", "step221", "run"), can_have_children=True, callback=mb.add_tab)
-
-    views["root/step2/step22/step222"] = views["root/step2/step22"].create_child_view(
-        child_path=("steps", "step222", "run"), can_have_children=True, callback=mb.add_tab)
-
-    views["root/step2/step22/step222/step2221"] = views["root/step2/step22/step222"].create_child_view(
-        child_path=("steps", "step2221"), can_have_children=False, callback=mb.add_tab)
-
-    return views, mb
+    return views, editors
 
 
 def test_null_synchronization():
-    views, mb = open_tree()
+    views, editors = open_tree()
 
     assert views["root/step2/step22/step221"].raw_text == """steps:
 - id: step2211
 - id: step2212
 """
     assert views["root/step2/step22/step221"].readable_path() == "step2.step22.step221"
+    assert editors["root/step2/step22/step221"].text == """steps:
+- id: step2211
+- id: step2212
+"""
 
     views["root/step2/step22/step221"].set_raw_text("""steps:
 - id: step2211
 - id: step2212""")
     views["root/step2/step22/step221"].synchronize_text()
     assert views["root"].raw_text == nested_document
+    assert editors["root"].text == nested_document
 
     views["root/step2/step22/step221"].set_raw_text("""steps:
 - id: step2211
@@ -212,7 +240,7 @@ def test_null_synchronization():
 
 
 def test_parse_error_synchronization():
-    views, mb = open_tree()
+    views, editors = open_tree()
 
     new_text = """steps:
   step221:
@@ -227,7 +255,7 @@ def test_parse_error_synchronization():
 
 
 def test_ancestor_synchronization():
-    views, mb = open_tree()
+    views, editors = open_tree()
 
     assert views["root/step2/step22/step221"].raw_text == """steps:
 - id: step2211
@@ -309,7 +337,7 @@ steps:
 
 
 def test_child_synchronization():
-    views, mb = open_tree()
+    views, editors = open_tree()
 
     edited_document = """
 steps:
@@ -425,7 +453,7 @@ steps:
 
 
 def test_child_removed():
-    views, mb = open_tree()
+    views, editors = open_tree()
 
     assert views["root/step2/step22"].raw_text == """steps:
   step221:
@@ -440,8 +468,6 @@ def test_child_removed():
       - id: step2222
 """
     assert ("steps", "step2", "run", "steps", "step22", "run", "steps", "step221", "run") in views["root"]
-    # assert ("steps", "step221", "run") in views["root/step2/step22"].children
-    # step221_editor = gen3.children[("steps", "step221", "run")].attached_editor
 
     new_text = """steps:
   step222:
@@ -455,12 +481,14 @@ def test_child_removed():
 
     assert ("steps", "step2", "run", "steps", "step22", "run", "steps", "step221", "run") not in views["root"]
     assert views["root/step2/step22/step221"].marked_for_deletion
+    assert editors["root/step2/step22/step221"].closed
 
     assert not views["root/step2/step22/step222"].marked_for_deletion
+    assert not editors["root/step2/step22/step222"].closed
 
 
 def test_edit_twice():
-    views, mb = open_tree()
+    views, editors = open_tree()
     views["root/step2/step22/step221"].set_raw_text("""steps:
 - id: step2211-new
 - id: step2212""")
@@ -492,7 +520,7 @@ def test_edit_twice():
 
 
 def test_io():
-    views, mb = open_tree()
+    views, editors = open_tree()
 
     assert not views["root/step2/step22/step221"].saved()
     assert views["root/step2/step22/step221"].changed_externally()
