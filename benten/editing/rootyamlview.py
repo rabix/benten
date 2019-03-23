@@ -65,9 +65,10 @@ class RootYamlView(YamlView):
         super().__init__(*args, **kwargs)
 
         self.file_path = file_path
-        self._last_saved_raw_text = None
-        if not self.changed_externally():
-            self._last_saved_raw_text = self.raw_text
+        if not self.file_path.exists():
+            self._last_saved_raw_text = None
+        else:
+            self._last_saved_raw_text = self.file_path.open().read()
 
         self.children: Dict[Tuple[str, ...], TextView] = {}
 
@@ -80,7 +81,7 @@ class RootYamlView(YamlView):
 
     def changed_externally(self):
         if not self.file_path.exists():
-            return True
+            return False
         else:
             return self._last_saved_raw_text != self.file_path.open().read()
 

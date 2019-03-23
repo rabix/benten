@@ -162,7 +162,7 @@ def test_basic():
     assert ed2.text == expected
 
 
-def open_tree() -> Tuple[Dict[str, Union[RootYamlView, YamlView, TextView]], Dict[str, FakeEditor]]:
+def open_tree(fn="./test.cwl") -> Tuple[Dict[str, Union[RootYamlView, YamlView, TextView]], Dict[str, FakeEditor]]:
 
     def new_child(parent_p, child_p, chc):
         k1 = "{}/{}".format(parent_p, child_p)
@@ -179,7 +179,7 @@ def open_tree() -> Tuple[Dict[str, Union[RootYamlView, YamlView, TextView]], Dic
     editors["root"] = FakeEditor()
     views["root"] = RootYamlView(
         raw_text=nested_document,
-        file_path=pathlib.Path("./test.cwl"),
+        file_path=pathlib.Path(fn),
         edit_callback=editors["root"].new_text_available,
         delete_callback=editors["root"].close)
 
@@ -188,25 +188,6 @@ def open_tree() -> Tuple[Dict[str, Union[RootYamlView, YamlView, TextView]], Dic
     new_child("root/step2/step22", "step221", True)
     new_child("root/step2/step22", "step222", True)
     new_child("root/step2/step22/step222", "step2221", False)
-
-    # editors["root/step2"] = FakeEditor()
-    # views["root/step2"] = views["root"].create_child_view(
-    #     child_path=("steps", "step2", "run"),
-    #     can_have_children=True,
-    #     edit_callback=editors["root/step2"].new_text_available,
-    #     delete_callback=editors["root/step2"].close)
-    #
-    # views["root/step2/step22"] = views["root/step2"].create_child_view(
-    #     child_path=("steps", "step22", "run"), can_have_children=True, callback=mb.add_tab)
-    #
-    # views["root/step2/step22/step221"] = views["root/step2/step22"].create_child_view(
-    #     child_path=("steps", "step221", "run"), can_have_children=True, callback=mb.add_tab)
-    #
-    # views["root/step2/step22/step222"] = views["root/step2/step22"].create_child_view(
-    #     child_path=("steps", "step222", "run"), can_have_children=True, callback=mb.add_tab)
-    #
-    # views["root/step2/step22/step222/step2221"] = views["root/step2/step22/step222"].create_child_view(
-    #     child_path=("steps", "step2221"), can_have_children=False, callback=mb.add_tab)
 
     return views, editors
 
@@ -533,10 +514,10 @@ def test_yaml_errors():
 
 
 def test_io():
-    views, editors = open_tree()
+    views, editors = open_tree("io-test.cwl")
 
     assert not views["root/step2/step22/step221"].saved()
-    assert views["root/step2/step22/step221"].changed_externally()
+    assert not views["root/step2/step22/step221"].changed_externally()
 
     views["root/step2/step22/step221"].save()
 
