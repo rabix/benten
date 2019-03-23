@@ -42,6 +42,10 @@ class Configuration(configparser.ConfigParser):
 
         self.copy_missing_templates()
 
+    # https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
+    def optionxform(self, optionstr):
+        return optionstr
+
     def getpath(self, section, option):
         return self._resolve_path(P(self.get(section, option)))
 
