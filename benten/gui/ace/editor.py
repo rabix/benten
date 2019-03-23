@@ -17,7 +17,8 @@ into this class.
 If we ever want to move back from the Ace editor to a built in QT component, like a QPlainTextEdit,
 we should wrap it in this kind of interface for ease of use - but I doubt we'll go back.
 """
-import sys
+from typing import List
+
 from PySide2.QtCore import QObject, QUrl, QTimer, Signal, Slot
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWebChannel import QWebChannel
@@ -25,6 +26,8 @@ from PySide2.QtWebEngineWidgets import QWebEngineView
 
 from ...configuration import Configuration
 from ...editing.edit import Edit
+from ...editing.documentproblem import DocumentProblem
+
 import benten.gui.ace.resources
 
 html = """
@@ -209,7 +212,8 @@ class Editor(QWebEngineView):
 
         self.ipc = EditorIPC(config)
 
-        self.ipc.text_ready.connect(lambda text: self.new_text_available.emit(text))
+        self.cached_text = None
+        self.ipc.text_ready.connect(self.text_ready)
 
         # The channel object has to persist. Doing registerObject does not keep a reference apparently
         page = self.page()
@@ -219,8 +223,12 @@ class Editor(QWebEngineView):
         page.setHtml(html, QUrl("qrc:/index.html"))
 
     def set_text(self, raw_text):
+        if self.cached_text == raw_text:
+            return
+
         self.ipc.wait()
         self.ipc.send_text_js_side.emit(raw_text)
+        self.cached_text = raw_text
 
     def insert_text(self, edit: Edit):
         if edit.end is None:
@@ -230,6 +238,15 @@ class Editor(QWebEngineView):
                                  edit.end.line, edit.end.column,
                                  edit.text)
 
+    @Slot(str)
+    def text_ready(self, text):
+        self.cached_text = text
+        self.new_text_available.emit(text)
+
     def scroll_to(self, line):
         self.ipc.scroll_to.emit(line)
 
+    def mark_errors(self, problems: List[DocumentProblem]):
+        for problem in problems:
+            self.ipc.send_error_annotation(
+                problem.line, problem.column, problem.message, problem.problem_type.name)

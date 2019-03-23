@@ -4,11 +4,13 @@ from PySide2.QtCore import Qt
 
 
 class ProcessView(QGraphicsView):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptDrops(True)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.custom_zoom = False
+
+        self.process_model = None
 
     def resizeEvent(self, event:QResizeEvent):
         super().resizeEvent(event)

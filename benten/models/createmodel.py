@@ -1,5 +1,5 @@
 """<shudder> factory </shudder> for creating a model based on inferring the process type"""
-from ..editing.yamldoc import YamlDoc
+from ..editing.yamlview import YamlView
 from .unk import Unk
 from .commandlinetool import CommandLineTool
 from .workflow import Workflow
@@ -8,11 +8,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def infer_type(yaml_doc: YamlDoc):
+def infer_type(yaml_doc: YamlView):
     return (yaml_doc.yaml or {}).get("class", "unknown")
 
 
-def create_model(yaml_doc: YamlDoc):
+# will extend to include expressions and docs
+def create_model(yaml_doc: YamlView):
     try:
         return {
             "unknown": Unk,

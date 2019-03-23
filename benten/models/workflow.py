@@ -31,7 +31,7 @@ import pathlib
 from collections import OrderedDict
 import logging
 
-from .base import (CWLError, EditMark, Base, YamlDoc,
+from .base import (CWLError, EditMark, Base, YamlView,
                    special_id_for_inputs, special_id_for_outputs, special_ids_for_io)
 from ..editing.utils import dictify, iter_scalar_or_list
 from ..editing.lineloader import load_yaml, YNone, Ydict, LAM
@@ -112,7 +112,7 @@ class Step:
         return str(self.available_sinks.keys()) + "->" + self.id + "->" + str(self.available_sources.keys())
 
     @classmethod
-    def from_doc(cls, step_id: str, line: (int, int), cwl_doc: YamlDoc, wf_error_list: List):
+    def from_doc(cls, step_id: str, line: (int, int), cwl_doc: YamlView, wf_error_list: List):
 
         step_doc = cwl_doc.yaml["steps"][step_id]
         root = pathlib.Path("./")  # cwl_doc.path
@@ -180,7 +180,7 @@ class WFConnectionError(Exception):
 class Workflow(WorkflowEditMixin, EditMixin, Base):
     """This object carries the raw YAML and some housekeeping datastructures"""
 
-    def __init__(self, cwl_doc: YamlDoc):
+    def __init__(self, cwl_doc: YamlView):
         super().__init__(cwl_doc=cwl_doc)
 
         required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]

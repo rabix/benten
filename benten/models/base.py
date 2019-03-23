@@ -1,6 +1,7 @@
 from typing import List
 
-from ..editing.yamldoc import YamlDoc, EditMark
+from ..editing.edit import EditMark
+from ..editing.yamlview import YamlView
 
 
 class CWLError:
@@ -12,7 +13,7 @@ class CWLError:
 class Base:
     """We don't know what the user intends this to be"""
 
-    def __init__(self, cwl_doc: YamlDoc):
+    def __init__(self, cwl_doc: YamlView):
         self.cwl_doc = cwl_doc
         self._original_raw_cwl = cwl_doc.raw_text
         self.id = (self.cwl_doc.yaml or {}).get("id", None)

@@ -1,7 +1,7 @@
 import pathlib
 
 from PySide2.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent, QGraphicsSceneMouseEvent
-from PySide2.QtCore import Qt, Signal
+from PySide2.QtCore import Qt, Signal, Slot
 
 
 def is_cwl_document(fname: pathlib.Path):
@@ -47,7 +47,27 @@ class ProcessScene(QGraphicsScene):
                 wf_list += [p]
                 event.accept()
 
-        self.nodes_added.emit(wf_list)
+        self.nodes_added(wf_list)
 
     def mouseDoubleClickEvent(self, event:QGraphicsSceneMouseEvent):
         self.double_click.emit(event)
+
+    #
+    # @Slot(int, int)
+    # def connection_clicked(self, row, col):
+    #     conn = self.conn_table.item(row, col).data(Qt.UserRole)
+    #     logger.debug("Scroll to line {}".format(conn.line[0]))
+    #     self.code_editor.scroll_to(conn.line[0])
+    #
+    #
+    # def step_ids_to_open(self, step_ids):
+    #     steps = [step for step in self.process_model.steps.values() if step.id in step_ids ]
+    #     self.open_steps.emit((self.attached_view, steps))
+    #
+    # @Slot(list)
+    # def nodes_added(self, cwl_path_list):
+    #     blk = QSignalBlocker(self.code_editor)
+    #     for p in cwl_path_list:
+    #         self.update_process_model_from_code()
+    #         self.code_editor.insert_text(self.process_model.add_step(p))
+    #     self.programmatic_edit()

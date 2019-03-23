@@ -9,11 +9,10 @@ from PySide2.QtGui import QCloseEvent
 
 from ..sbg.jsonimport import if_json_convert_to_yaml_and_save
 
-from ..editing.yamlview import YamlView
+from ..editing.rootyamlview import RootYamlView, YamlView, TextView
 from ..sbg.profiles import Profiles, Configuration
 from ..models.workflow import Step, InvalidSub, InlineSub, ExternalSub
 
-from .cwldoc import CwlDoc
 from .view.viewwidget import ViewWidget
 
 import logging
@@ -32,7 +31,8 @@ class TabWidget(QTabWidget):
         self.sbg_profiles = Profiles(config=config)
 
         self.api = None
-        self.doc_directory: Dict[str, CwlDoc] = {}
+        self.view_directory: Dict[str, ViewWidget] = {}
+        # Because we often need to find a ViewWidget by path
 
         self.active_window: ViewWidget = None
 
@@ -89,35 +89,49 @@ class TabWidget(QTabWidget):
 
     def open_linked_file(self, file_path: pathlib.Path):
         fp_str = file_path.resolve().as_uri()
-        if fp_str not in self.doc_directory:
-            self._create_file_if_needed(file_path)
+        if fp_str not in self.view_directory:
             file_path = if_json_convert_to_yaml_and_save(file_path, strip_sbg_tags=True)
             fp_str = file_path.resolve().as_uri()
 
             vw = self._prepare_view_widget()
-            self.doc_directory[fp_str] = CwlDoc(file_path=file_path, editor=vw)
+
+            if file_path.exists():
+                raw_text = file_path.open("r").read()
+            else:
+                raw_text = ""
+
+            vw.view = RootYamlView(
+                raw_text=raw_text,
+                file_path=file_path)
+            self.view_directory[fp_str] = vw
+
             self.addTab(vw, file_path.name)
 
             if self.count() == 1:
                 self._make_base_tab_unclosable()
 
-        self.setCurrentWidget(self.doc_directory[fp_str].attached_editor)
+        vw = self.view_directory[fp_str]
+
+        self.setCurrentWidget(vw)
 
     def open_inline_section(self, yaml_view: YamlView, inline_path: Tuple[str, ...]):
-        if yaml_view.attached_editor.locked:
+        if yaml_view.yaml_error is not None:
             logger.warning("Editor is locked, can not navigate away")
             return
 
-        # todo: change this when we refactor yaml_view
-        child_view = yaml_view.get(inline_path)
-        if child_view is None:
+        fp_str = ":".join(yaml_view.root().file_path.resolve().as_uri() + yaml_view.inline_path + inline_path)
+        if fp_str not in self.view_directory:
             vw = self._prepare_view_widget()
-            child_view = yaml_view.create_child_view(inline_path, vw)
-        else:
-            vw = child_view.attached_editor
+            vw.view = yaml_view.create_child_view(
+                child_path=inline_path,
+                can_have_children=True)  # todo: figure out logic around this
+
+            self.view_directory[fp_str] = vw
+
+        vw = self.view_directory[fp_str]
 
         if vw not in self:
-            self.addTab(vw, ".".join(child_view.full_readable_path))
+            self.addTab(vw, vw.view.readable_path())
 
         self.setCurrentWidget(vw)
 
@@ -133,7 +147,7 @@ class TabWidget(QTabWidget):
         if tbr is not None:
             tbr.hide()
 
-    def _unsaved_changes_dialog(self, doc_l: List[CwlDoc]):
+    def _unsaved_changes_dialog(self, doc_l: List[TextView]):
         plural = "documents" if len(doc_l) > 1 else "document"
         button = QMessageBox.warning(
             self, "Unsaved changes!",
@@ -148,14 +162,6 @@ class TabWidget(QTabWidget):
             for doc in doc_l:
                 doc.save()
             return True
-
-    @staticmethod
-    def _create_file_if_needed(file_path: pathlib.Path):
-        if file_path.exists():
-            return
-        else:
-            with open(file_path, "w") as f:
-                pass
 
     def _prepare_view_widget(self):
         vw = ViewWidget(config=self.config)
