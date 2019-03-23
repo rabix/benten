@@ -60,7 +60,7 @@ class TabWidget(QTabWidget):
 
     def ok_to_close_everything(self, event: QCloseEvent):
         logger.debug("Closing Benten")
-        unsaved_root_docs = [doc for doc in self.doc_directory.values() if not doc.saved()]
+        unsaved_root_docs = [tab.view for tab in self.view_directory.values() if not tab.view.saved()]
         if len(unsaved_root_docs):
             return self._unsaved_changes_dialog(unsaved_root_docs)
         else:
@@ -100,11 +100,11 @@ class TabWidget(QTabWidget):
             else:
                 raw_text = ""
 
-            vw.view = RootYamlView(
+            vw.set_view(RootYamlView(
                 raw_text=raw_text,
-                file_path=file_path)
-            self.view_directory[fp_str] = vw
+                file_path=file_path))
 
+            self.view_directory[fp_str] = vw
             self.addTab(vw, file_path.name)
 
             if self.count() == 1:
@@ -122,9 +122,9 @@ class TabWidget(QTabWidget):
         fp_str = ":".join(yaml_view.root().file_path.resolve().as_uri() + yaml_view.inline_path + inline_path)
         if fp_str not in self.view_directory:
             vw = self._prepare_view_widget()
-            vw.view = yaml_view.create_child_view(
+            vw.set_view(yaml_view.create_child_view(
                 child_path=inline_path,
-                can_have_children=True)  # todo: figure out logic around this
+                can_have_children=True))  # todo: figure out logic around this
 
             self.view_directory[fp_str] = vw
 

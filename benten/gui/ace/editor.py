@@ -30,6 +30,11 @@ from ...editing.documentproblem import DocumentProblem
 
 import benten.gui.ace.resources
 
+
+import logging
+logger = logging.getLogger(__name__)
+
+
 html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -59,15 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var placeholder = document.getElementById('editor');
 
     var editor = ace.edit("editor");
-
-    // This stuff we insist upon
-    editor.setOptions({
-        useSoftTabs: true,
-        navigateWithinSoftTabs: false,  // hmm, could cause confusion ...
-        tabSize: 2
-    });           
     
-    editor.setTheme("ace/theme/twilight");
     editor.session.setMode("ace/mode/yaml");
     editor.setAnimatedScroll(true)
 
@@ -119,6 +116,13 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         ipc.fetch_options()
 
+        // This stuff we insist upon regardless of what the user sets
+        editor.setOptions({
+            useSoftTabs: true,
+            navigateWithinSoftTabs: false,  // hmm, could cause confusion ...
+            tabSize: 2
+        });           
+
         ipc.editor_ready()
 
     });
@@ -147,8 +151,10 @@ class ManualEditThrottler:
         self.timer = QTimer()
         self.timer.setSingleShot(True)
         self.timer.setInterval(int(self.burst_window * 1000))
+        logger.debug("Burst window set to {}s".format(self.burst_window))
 
     def restart_edit_clock(self):
+        logger.debug("User still typing ...")
         self.timer.start()
 
     def flush(self):
@@ -184,12 +190,14 @@ class EditorIPC(QObject):
     @Slot()
     def editor_ready(self):
         self._setup_complete = True
+        logger.debug("ACE editor ready")
 
     # Any function that should be callable from JS, has to be declared a slot
 
     @Slot()
     def fetch_options(self):
         for k, v in self.config.items("ace-options"):
+            logger.debug("ACE editor: Set {} to {}".format(k, v))
             self.set_option.emit(k, v)
 
     @Slot()
@@ -224,11 +232,13 @@ class Editor(QWebEngineView):
 
     def set_text(self, raw_text):
         if self.cached_text == raw_text:
+            logger.debug("New text unchanged. Ignoring")
             return
 
         self.ipc.wait()
         self.ipc.send_text_js_side.emit(raw_text)
         self.cached_text = raw_text
+        logger.debug("New text sent to editor")
 
     def insert_text(self, edit: Edit):
         if edit.end is None:

@@ -10,6 +10,9 @@ from ...editing.documentproblem import DocumentProblem
 from ...models.workflow import Workflow
 from ..ace.editor import Editor
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class EditorPane(QWidget):
 
@@ -35,6 +38,7 @@ class EditorPane(QWidget):
 
     @Slot(str)
     def set_text(self, text):
+        logger.debug("Sending text to editor")
         self.code_editor.set_text(text)
 
     @Slot()

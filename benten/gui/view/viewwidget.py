@@ -53,6 +53,7 @@ class ViewWidget(QWidget):
         self.view = view
         self.view.edit_callback = self.set_text
         self.view.delete_callback = self.close
+        self.set_text(self.view.raw_text)
 
     def _setup_panes(self):
         left_pane = QSplitter()
