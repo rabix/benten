@@ -24,8 +24,8 @@ class WFNodeItem(QGraphicsEllipseItem):
     def __init__(self, *args, node_size=30, **kwargs):
         super().__init__(*args, **kwargs)
         self.node_size = node_size
-        self.normal_brush = QBrush(kwargs.get("brush"))
-        self.selected_brush = QBrush(self.normal_brush.color(), Qt.NoBrush)
+        self.normal_brush = None
+        self.selected_brush = None
 
     def set_normal_brush(self, normal: QBrush):
         self.normal_brush = normal
