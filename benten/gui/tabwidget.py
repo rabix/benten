@@ -90,7 +90,6 @@ class TabWidget(QTabWidget):
     def open_linked_file(self, file_path: pathlib.Path):
         fp_str = file_path.resolve().as_uri()
         if fp_str not in self.view_directory:
-            file_path = if_json_convert_to_yaml_and_save(file_path, strip_sbg_tags=True)
             fp_str = file_path.resolve().as_uri()
 
             vw = self._prepare_view_widget()

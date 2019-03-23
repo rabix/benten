@@ -5,6 +5,7 @@ import pathlib
 from PySide2.QtGui import QCloseEvent, QIcon
 from PySide2.QtWidgets import QAction, QActionGroup, QApplication, QMainWindow, QMessageBox
 
+from .sbg.jsonimport import if_json_convert_to_yaml_and_save
 from .gui.mainwindow import MainWindow
 
 import logging
@@ -30,7 +31,11 @@ def main():
     app.setApplicationDisplayName("Benten")
     app.setWindowIcon(QIcon(str(pathlib.Path(pathlib.Path(__file__).parent, "benten-icon.png"))))
 
-    window = MainWindow(pathlib.Path(args.cwl))
+    f_path = pathlib.Path(args.cwl)
+    if f_path.exists():
+        f_path = if_json_convert_to_yaml_and_save(f_path, strip_sbg_tags=True)
+
+    window = MainWindow(file_path=f_path)
     window.show()
 
     # Window dimensions
