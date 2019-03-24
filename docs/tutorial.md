@@ -21,6 +21,7 @@
     - [Re-run a test](#re-run-a-test)
     - [Upgrade/downgrade apps](#upgradedowngrade-apps)
         - [Inlined apps: Upgrade/downgrade inlined apps in workflows](#inlined-apps-upgradedowngrade-inlined-apps-in-workflows)
+    - [Update all](#update-all)
         - [Note on the raw code in the SBG repository](#note-on-the-raw-code-in-the-sbg-repository)
     - ["Forking" an inlined app](#forking-an-inlined-app)
 - [Appendix](#appendix)
@@ -253,8 +254,17 @@ the SBG repository and replace it.
 ### Inlined apps: Upgrade/downgrade inlined apps in workflows
 The `revisions` and `pull-revision` commands operate on the App you are 
 currently viewing. **If you are viewing an inline App in a workflow you will
-be able to upgrade or downgrade just that App**. Note that this will create
-an edited verison of the main app.
+be able to upgrade or downgrade just that App**. Note that this will cause all
+parent apps to be marked as edited, because they are now changed.
+
+## Update all
+The `update-all` command will cause all inlined apps to be recursively updated
+to their latest version. This operation has some subtle points: if an inlined
+app has a newer revision it will be updated to that new revision and 
+*the operation will not recurse further for that app*. If an inlined app is
+already at the latest version, the operation will recurse further until it
+finds a child app that has updates, and will update that.
+**This operation can take a while, depending on how many nested workflows there are**
 
 ### Note on the raw code in the SBG repository
 Currently (Q2 2019) the SBG repository stores the CWL code in JSON format.
