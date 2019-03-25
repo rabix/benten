@@ -1,6 +1,6 @@
 var cwl_snippets = [
 {
-name: "CLT",
+name: "CommandLineTool",
 tabTrigger: "clt",
 content:
 `class: CommandLineTool
@@ -16,7 +16,7 @@ requirements: []
 `
 },
 {
-name: "ET",
+name: "ExpressionTool",
 tabTrigger: "et",
 content:
 `class: ExpressionTool
@@ -35,7 +35,7 @@ requirements:
 `
 },
 {
-name: "WF",
+name: "Workflow",
 tabTrigger: "wf",
 content:
 `class: Workflow
