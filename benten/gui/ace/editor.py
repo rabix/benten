@@ -143,9 +143,9 @@ document.addEventListener("DOMContentLoaded", function () {
             useSoftTabs: true,
             navigateWithinSoftTabs: false,  // hmm, could cause confusion ...
             tabSize: 2,
-            //enableBasicAutocompletion: true,
+            enableBasicAutocompletion: true,
             enableSnippets: true,
-            //enableLiveAutocompletion: true            
+            enableLiveAutocompletion: true            
         });        
 
         ipc.editor_ready()
