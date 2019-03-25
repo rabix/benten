@@ -19,7 +19,7 @@ we should wrap it in this kind of interface for ease of use - but I doubt we'll 
 """
 from typing import List
 
-from PySide2.QtCore import QObject, QUrl, QTimer, Signal, Slot
+from PySide2.QtCore import QObject, QUrl, QTimer, QJsonValue, QJsonArray, Signal, Slot
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWebChannel import QWebChannel
 from PySide2.QtWebEngineWidgets import QWebEngineView
@@ -114,26 +114,20 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         ipc.send_error_annotation.connect(set_error_annotation);
 
-        // An example of receiving information pushed from the Python side
-        // It's really neat how this looks just like the Python code
+        // I do wish there was a way to retrieve a value from the 
         ipc.set_option.connect(function (option, value) {
             editor.setOption(option, value) 
         })
         ipc.fetch_options()
 
-
+        // Python based, context/syntax aware completer
         let langTools = ace.require('ace/ext/language_tools');
         var customCompleter = {
             getCompletions: function(editor, session, pos, prefix, callback) {
-               // your code
-               /* for example
-                * let TODO = ...;
-                * callback(null, [{name: TODO, value: TODO, score: 1, meta: TODO}]);
-                */
-                //ipc.get_auto_complete_options(editor.getValue(), function(val) {} );
-
-                
-                callback(null, [{name: 'CLT', value: 'HAHA', score: 1, meta: '?'}])
+                ipc.send_auto_completions.connect(function(compl) {
+                    callback(null, compl)
+                })                
+                ipc.get_auto_complete_options(pos, prefix)
             }
         }
         langTools.addCompleter(customCompleter);        
@@ -195,6 +189,7 @@ class EditorIPC(QObject):
     apply_edit = Signal(int, int, int, int, str)
     scroll_to = Signal(int)
     send_error_annotation = Signal(int, int, str, str)
+    send_auto_completions = Signal('QVariantList')
 
     text_ready = Signal(str)
 
@@ -232,9 +227,19 @@ class EditorIPC(QObject):
     def send_text_python_side(self, raw_text):
         self.text_ready.emit(raw_text)
 
-    @Slot(int, str)
+    @Slot(QJsonValue, str)
     def get_auto_complete_options(self, pos, prefix):
-        return
+        print(pos.toVariant(), prefix)
+        self.send_auto_completions.emit([
+            {
+                "caption": "example",
+                "name": "Example",
+                "value": "value" + prefix,
+                "snippet": "My my\nwhat a beautiful sky",
+                "score": 10,
+                "meta": "Metadata"
+            }
+        ])
 
 
 class Editor(QWebEngineView):
