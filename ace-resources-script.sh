@@ -20,6 +20,7 @@ do
     fi
 done
 
+echo '    <file>cwl_snippets.js</file>' >> ${QRC}
 echo '  </qresource>' >> ${QRC}
 echo '</RCC>' >> ${QRC}
 

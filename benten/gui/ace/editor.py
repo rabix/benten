@@ -45,6 +45,7 @@ html = """
 // This file comes bundled with Pyside2 and the resource bundler knows to include it ...
 <script src="qrc:/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="qrc:/ace-builds/src-min-noconflict/ext-language_tools.js" type="text/javascript"></script>
+<script src="qrc:/cwl_snippets.js" type="text/javascript"></script>
 
 <style type="text/css" media="screen">
     #editor {
@@ -65,8 +66,10 @@ document.addEventListener("DOMContentLoaded", function () {
     var placeholder = document.getElementById('editor');
 
     var editor = ace.edit("editor");
-    ace.require("ace/ext/language_tools");
-    
+
+    var snippetManager = ace.require("ace/snippets").snippetManager
+    snippetManager.register(cwl_snippets, "yaml");
+        
     editor.session.setMode("ace/mode/yaml");
     editor.setAnimatedScroll(true)
 
@@ -140,9 +143,9 @@ document.addEventListener("DOMContentLoaded", function () {
             useSoftTabs: true,
             navigateWithinSoftTabs: false,  // hmm, could cause confusion ...
             tabSize: 2,
-            enableBasicAutocompletion: true,
+            //enableBasicAutocompletion: true,
             enableSnippets: true,
-            enableLiveAutocompletion: true            
+            //enableLiveAutocompletion: true            
         });        
 
         ipc.editor_ready()
