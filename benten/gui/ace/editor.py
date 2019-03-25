@@ -19,13 +19,11 @@ we should wrap it in this kind of interface for ease of use - but I doubt we'll 
 """
 from typing import List
 
-from PySide2.QtCore import QObject, QUrl, QTimer, QJsonValue, QJsonArray, Signal, Slot
-from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QUrl, Signal, Slot
 from PySide2.QtWebChannel import QWebChannel
 from PySide2.QtWebEngineWidgets import QWebEngineView
 
 from ...configuration import Configuration
-from ...editing.edit import Edit
 from ...editing.documentproblem import DocumentProblem
 
 from .editoripc import EditorIPC
@@ -45,11 +43,9 @@ class Editor(QWebEngineView):
         super().__init__(*args, **kwargs)
 
         self.config = config
-
-        self.ipc = EditorIPC(config)
-
         self.cached_text = None
-        self.ipc.text_ready.connect(self.text_ready)
+        self.document_model = None
+        self.ipc = EditorIPC(self)
 
         # The channel object has to persist. Doing registerObject does not keep a reference apparently
         page = self.page()
@@ -68,13 +64,8 @@ class Editor(QWebEngineView):
         self.cached_text = raw_text
         logger.debug("New text sent to editor")
 
-    def insert_text(self, edit: Edit):
-        if edit.end is None:
-            edit.end = edit.start
-
-        self.ipc.apply_edit.emit(edit.start.line, edit.start.column,
-                                 edit.end.line, edit.end.column,
-                                 edit.text)
+    def set_document_model(self, document_model):
+        self.document_model = document_model
 
     @Slot(str)
     def text_ready(self, text):
