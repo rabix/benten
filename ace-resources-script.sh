@@ -2,18 +2,17 @@
 # This script is here to help create the .qrc file we need for bundling
 # the Ace editor javascript libraries for use with QWebEngineView
 # If only .qrc allowed directory includes ...
+pushd ./ace-editor/
 
-QRC=./benten.qrc
-ACE_DIR=./benten/gui/ace/
-ACE_DIST=ace-builds/src-min-noconflict
-cd ${ACE_DIR}
+QRC=ace.qrc
+ACE_DIR=./ace-builds/src-min-noconflict
 
 echo '<!DOCTYPE RCC>' > ${QRC}
 echo '<RCC version="1.0">' >> ${QRC}
 echo '  <qresource>' >> ${QRC}
 
 # Each file in the Ace source folder has to be added in individually
-for a in $(find ${ACE_DIST} -d)
+for a in $(find ${ACE_DIR} -d)
 do
     # if this is not a folder
     if [ ! -d "$a" ]; then
@@ -24,4 +23,5 @@ done
 echo '  </qresource>' >> ${QRC}
 echo '</RCC>' >> ${QRC}
 
-pyside2-rcc benten.qrc -o resources.py
+popd
+pyside2-rcc ./ace-editor/${QRC} -o ./benten/gui/ace/resources.py

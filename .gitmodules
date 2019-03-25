@@ -1,3 +1,3 @@
 [submodule "benten/gui/ace/ace-builds"]
-	path = benten/gui/ace/ace-builds
+	path = ace-editor/ace-builds
 	url = https://github.com/ajaxorg/ace-builds.git
