@@ -3,7 +3,7 @@ import os
 import shutil
 
 from benten.sbg.jsonimport import text_format, if_json_convert_to_yaml_and_save
-from benten.editing.yamldoc import YamlDoc
+from benten.editing.yamlview import YamlView
 
 
 current_path = pathlib.Path(__file__).parent
@@ -60,8 +60,7 @@ def test_json_basic():
 
     # Existing behavior should not change
     wf_path = pathlib.Path(test_dir, "wf3.cwl")
-    c = YamlDoc(raw_text=wf_path.open("r").read())
-    c.parse_yaml()
+    c = YamlView(raw_text=wf_path.open("r").read())
 
     assert c.yaml["label"] == "wf3"
     assert len(c.yaml["steps"]) == 3
@@ -72,8 +71,7 @@ def test_json_basic():
     new_wf_path = if_json_convert_to_yaml_and_save(wf_path)
     assert new_wf_path is not None
 
-    c = YamlDoc(raw_text=new_wf_path.open("r").read())
-    c.parse_yaml()
+    c = YamlView(raw_text=new_wf_path.open("r").read())
 
     assert c.yaml["label"] == "wf3"
     assert len(c.yaml["steps"]) == 3
@@ -84,8 +82,7 @@ def test_json_basic():
 
     # SBG tags should be kept
     new_wf_path = if_json_convert_to_yaml_and_save(wf_path, strip_sbg_tags=False)
-    c = YamlDoc(raw_text=new_wf_path.open("r").read())
-    c.parse_yaml()
+    c = YamlView(raw_text=new_wf_path.open("r").read())
 
     assert any(k for k, _ in c.yaml.items() if k[:4] == "sbg:")
     assert any(k for k, _ in c.yaml["steps"]["wf0"].items() if k[:4] == "sbg:")

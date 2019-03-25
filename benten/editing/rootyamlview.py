@@ -46,7 +46,7 @@ from typing import Tuple, Dict, Callable
 from enum import IntEnum
 
 from ..implementationerror import ImplementationError
-from .lineloader import YNone, Ystr, Ydict
+from .lineloader import YNone, Ystr, Ydict, LAM
 from .edit import Edit, EditMark
 from .yamlview import YamlView, TextView
 

@@ -35,7 +35,6 @@ from .base import (CWLError, EditMark, Base, YamlView,
                    special_id_for_inputs, special_id_for_outputs, special_ids_for_io)
 from ..editing.utils import dictify, iter_scalar_or_list
 from ..editing.lineloader import load_yaml, YNone, Ydict, LAM
-from .editmixin import EditMixin
 from .workfloweditmixin import WorkflowEditMixin
 
 
@@ -115,7 +114,7 @@ class Step:
     def from_doc(cls, step_id: str, line: (int, int), cwl_doc: YamlView, wf_error_list: List):
 
         step_doc = cwl_doc.yaml["steps"][step_id]
-        root = pathlib.Path("./")  # cwl_doc.path
+        root = pathlib.Path(cwl_doc.root().file_path)
         sub_workflow = InvalidSub()
 
         if step_doc is YNone or "run" not in step_doc:
@@ -177,7 +176,7 @@ class WFConnectionError(Exception):
     pass
 
 
-class Workflow(WorkflowEditMixin, EditMixin, Base):
+class Workflow(WorkflowEditMixin, Base):
     """This object carries the raw YAML and some housekeeping datastructures"""
 
     def __init__(self, cwl_doc: YamlView):

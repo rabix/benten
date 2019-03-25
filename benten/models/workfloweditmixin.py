@@ -37,7 +37,7 @@ class WorkflowEditMixin:
             "run": "{}" if rel_path is None else rel_path
         }
 
-        edit = self.cwl_doc.insert_into_lom(
+        edit = self.cwl_doc.add_or_replace_lom(
             path=("steps",),
             key=step_id,
             key_field="id",

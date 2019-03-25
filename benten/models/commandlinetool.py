@@ -1,9 +1,8 @@
 from .base import Base
-from .editmixin import EditMixin
 from .clteditmixin import CltEditMixin
 
 
-class CommandLineTool(CltEditMixin, EditMixin, Base):
+class CommandLineTool(CltEditMixin, Base):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

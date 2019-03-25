@@ -3,7 +3,7 @@ import os
 import shutil
 import pytest
 
-from benten.editing.cwlprocess import CwlProcess
+from benten.editing.rootyamlview import RootYamlView
 import benten.models.workflow as WF
 
 current_path = pathlib.Path(__file__).parent
@@ -31,8 +31,9 @@ def create_cwl(cwl, fname):
 
 def test_add_to_doc_missing_step_field():
     wf_with_no_step = """class: Workflow"""
-    cwl_doc = CwlProcess.create_from_file(create_cwl(wf_with_no_step, "no-step.cwl"))
-    cwl_doc.compute_cwl_dict()
+    wf_path = pathlib.Path(test_dir, "no-step.cwl")
+    cwl_doc = RootYamlView(raw_text=wf_with_no_step,
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/arguments.cwl"))
@@ -48,8 +49,9 @@ def test_add_to_doc_missing_step_field():
 
 def test_add_to_doc_empty_step_field():
     wf_with_empty_step = """class: Workflow\nsteps: []"""
-    cwl_doc = CwlProcess.create_from_file(create_cwl(wf_with_empty_step, "empty-step.cwl"))
-    cwl_doc.compute_cwl_dict()
+    wf_path = pathlib.Path(test_dir, "empty-step.cwl")
+    cwl_doc = RootYamlView(raw_text=wf_with_empty_step,
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/arguments.cwl"))
@@ -67,8 +69,8 @@ def test_add_to_doc_empty_step_field():
 def test_add_local_step_list():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
-    cwl_doc = CwlProcess.create_from_file(wf_path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_path.open("r").read(),
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/arguments.cwl"))
@@ -85,8 +87,8 @@ def test_add_local_step_list():
 def test_add_local_step_dict():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
-    cwl_doc = CwlProcess.create_from_file(wf_path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_path.open("r").read(),
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/arguments.cwl"))
@@ -103,8 +105,8 @@ def test_add_local_step_dict():
 def test_add_local_step_with_id():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
-    cwl_doc = CwlProcess.create_from_file(wf_path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_path.open("r").read(),
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))
@@ -117,13 +119,12 @@ def test_add_local_step_with_id():
 def test_add_duplicate_step():
 
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl").resolve()
-    cwl_doc = CwlProcess.create_from_file(wf_path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_path.open("r").read(),
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))
-    cwl_doc.apply_edit(edit)
+    cwl_doc._apply_edit_to_lines(edit)
 
-    cwl_doc.compute_cwl_dict()
     wf = WF.Workflow(cwl_doc=cwl_doc)
     edit = wf.add_step(pathlib.Path(current_path, "cwl/001.basic/withid.cwl"))
 

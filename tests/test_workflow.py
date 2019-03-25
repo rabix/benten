@@ -3,7 +3,7 @@ import os
 import shutil
 import pytest
 
-from benten.editing.cwlprocess import CwlProcess
+from benten.editing.rootyamlview import RootYamlView, YamlView
 import benten.models.workflow as WF
 
 current_path = pathlib.Path(__file__).parent
@@ -31,17 +31,7 @@ def create_cwl(cwl, fname):
 
 def test_parsing_empty_workflow():
 
-    path = create_cwl("", "nothing.cwl")
-    # path = pathlib.Path(test_dir, "nothing.cwl")
-    # with open(path, "w") as f:
-    #     f.write("")
-
-    cwl_doc = CwlProcess.create_from_file(path)
-
-    with pytest.raises(AttributeError):
-        _ = WF.Workflow(cwl_doc=cwl_doc)
-
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = YamlView(raw_text="")
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert wf.id is None
@@ -65,12 +55,8 @@ steps:
   run: ../cwl/sbg/salmon.cwl
 - id: empty
 """
-    path = create_cwl(wf_with_empty_step, "empty_step.cwl")
-    # path = pathlib.Path(test_dir, "empty_step.cwl")
-    # with open(path, "w") as f:
-    #     f.write(wf_with_empty_step)
-    cwl_doc = CwlProcess.create_from_file(path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_with_empty_step,
+                           file_path=pathlib.Path(test_dir, "empty.cwl"))
     wf = WF.Workflow(cwl_doc=cwl_doc)
     # Basically we shouldn't choke because there is nothing in that step
 
@@ -94,12 +80,8 @@ steps:
   out: []
   run: On/the/rock/and/roll/radio.cwl
 """
-    path = create_cwl(wf_with_invalid_step, "invalid_step.cwl")
-    # path = pathlib.Path(test_dir, "empty_step.cwl")
-    # with open(path, "w") as f:
-    #     f.write(wf_with_invalid_step)
-    cwl_doc = CwlProcess.create_from_file(path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_with_invalid_step,
+                           file_path=pathlib.Path(test_dir, "invalid.cwl"))
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert wf.steps["in_the_songs_you_hear"].process_type == "invalid"
@@ -119,9 +101,8 @@ steps:
   out:
   run: 
 """
-    path = create_cwl(wf_with_malformed_step, "malformed_step.cwl")
-    cwl_doc = CwlProcess.create_from_file(path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_with_malformed_step,
+                           file_path=pathlib.Path(test_dir, "malformed.cwl"))
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert wf.steps["That's a really nice place to go"].process_type == "invalid"
@@ -132,8 +113,8 @@ steps:
 
 def test_parsing_ports_with_plain_source():
     wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-list.cwl").resolve()
-    cwl_doc = CwlProcess.create_from_file(wf_path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_path.open("r").read(),
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     conn = next(c for c in wf.connections if c.dst == WF.Port("compile", "src"))
@@ -145,8 +126,8 @@ def test_interface_parsing():
 
     # This is a public SBG workflow
     wf_path = pathlib.Path(current_path, "cwl/sbg/salmon.cwl").resolve()
-    cwl_doc = CwlProcess.create_from_file(wf_path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_path.open("r").read(),
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert wf.id == "admin/sbg-public-data/salmon-workflow-0-9-1-cwl-1-0/18"
@@ -178,8 +159,8 @@ def test_connection_parsing():
     # correctly. This workflow also has a small number of components so we can count things by
     # hand to put in the tests
     wf_path = pathlib.Path(current_path, "cwl/003.diff.dir.levels/lib/workflows/outer-wf.cwl").resolve()
-    cwl_doc = CwlProcess.create_from_file(wf_path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_path.open("r").read(),
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     assert wf.inputs["wf_in2"].line == (11, 15)
@@ -235,8 +216,8 @@ def test_connection_equivalence():
 def test_connection_search():
     """Check connection finding"""
     wf_path = pathlib.Path(current_path, "cwl/003.diff.dir.levels/lib/workflows/outer-wf.cwl").resolve()
-    cwl_doc = CwlProcess.create_from_file(wf_path)
-    cwl_doc.compute_cwl_dict()
+    cwl_doc = RootYamlView(raw_text=wf_path.open("r").read(),
+                           file_path=wf_path)
     wf = WF.Workflow(cwl_doc=cwl_doc)
 
     c1 = WF.Connection(src=WF.Port(node_id=None, port_id="wf_in2"),

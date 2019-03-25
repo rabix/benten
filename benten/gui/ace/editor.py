@@ -44,6 +44,7 @@ html = """
 <script src="qrc:/qtwebchannel/qwebchannel.js" type="text/javascript"></script>
 // This file comes bundled with Pyside2 and the resource bundler knows to include it ...
 <script src="qrc:/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="qrc:/ace-builds/src-min-noconflict/ext-language_tools.js" type="text/javascript"></script>
 
 <style type="text/css" media="screen">
     #editor {
@@ -64,6 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var placeholder = document.getElementById('editor');
 
     var editor = ace.edit("editor");
+    ace.require("ace/ext/language_tools");
     
     editor.session.setMode("ace/mode/yaml");
     editor.setAnimatedScroll(true)
@@ -116,15 +118,34 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         ipc.fetch_options()
 
+
+        let langTools = ace.require('ace/ext/language_tools');
+        var customCompleter = {
+            getCompletions: function(editor, session, pos, prefix, callback) {
+               // your code
+               /* for example
+                * let TODO = ...;
+                * callback(null, [{name: TODO, value: TODO, score: 1, meta: TODO}]);
+                */
+                //ipc.get_auto_complete_options(editor.getValue(), function(val) {} );
+
+                
+                callback(null, [{name: 'CLT', value: 'HAHA', score: 1, meta: '?'}])
+            }
+        }
+        langTools.addCompleter(customCompleter);        
+        
         // This stuff we insist upon regardless of what the user sets
         editor.setOptions({
             useSoftTabs: true,
             navigateWithinSoftTabs: false,  // hmm, could cause confusion ...
-            tabSize: 2
-        });           
+            tabSize: 2,
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true            
+        });        
 
         ipc.editor_ready()
-
     });
 
 });
@@ -207,6 +228,10 @@ class EditorIPC(QObject):
     @Slot(str)
     def send_text_python_side(self, raw_text):
         self.text_ready.emit(raw_text)
+
+    @Slot(int, str)
+    def get_auto_complete_options(self, pos, prefix):
+        return
 
 
 class Editor(QWebEngineView):

@@ -108,7 +108,7 @@ def test_basic():
     ed1 = FakeEditor()
     view1 = RootYamlView(
         raw_text=nested_document,
-        file_path=pathlib.Path("./test.cwl"),
+        file_path=pathlib.Path(test_dir, "./test.cwl"),
         edit_callback=ed1.new_text_available,
         delete_callback=ed1.close)
 
@@ -179,7 +179,7 @@ def open_tree(fn="./test.cwl") -> Tuple[Dict[str, Union[RootYamlView, YamlView, 
     editors["root"] = FakeEditor()
     views["root"] = RootYamlView(
         raw_text=nested_document,
-        file_path=pathlib.Path(fn),
+        file_path=pathlib.Path(test_dir, fn),
         edit_callback=editors["root"].new_text_available,
         delete_callback=editors["root"].close)
 
