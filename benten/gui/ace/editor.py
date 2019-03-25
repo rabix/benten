@@ -37,129 +37,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-html = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<title>Benten</title>
-
-<script src="qrc:/qtwebchannel/qwebchannel.js" type="text/javascript"></script>
-// This file comes bundled with Pyside2 and the resource bundler knows to include it ...
-<script src="qrc:/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-<script src="qrc:/ace-builds/src-min-noconflict/ext-language_tools.js" type="text/javascript"></script>
-<script src="qrc:/cwl_snippets.js" type="text/javascript"></script>
-
-<style type="text/css" media="screen">
-    #editor {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-    }
-</style>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    // It is safest to set up this apparatus after the page has finished loading
-
-    'use strict';
-
-    var placeholder = document.getElementById('editor');
-
-    var editor = ace.edit("editor");
-
-    var snippetManager = ace.require("ace/snippets").snippetManager
-    snippetManager.register(cwl_snippets, "yaml");
-        
-    editor.session.setMode("ace/mode/yaml");
-    editor.setAnimatedScroll(true)
-
-    // https://stackoverflow.com/a/42122466/2512851
-    var set_error_annotation = function(row, column, err_msg, type) {
-        editor.getSession().setAnnotations([{
-            row: row,
-            column: column,
-            text: err_msg, // Or the Json reply from the parser
-            type: type // error, warning, and information
-        }]);
-    }
-
-    new QWebChannel(qt.webChannelTransport, function(channel) {
-        // All the functions we use to communicate with the Python code are here
-       
-        var ipc = channel.objects.ipc
-        
-        ipc.fetch_text.connect( function() {
-            ipc.send_text_python_side(editor.getValue(), function(val) {} );
-            // Python functions return a value, even if it is None. So we need to pass a
-            // dummy callback function to handle the return
-        })
-
-        ipc.send_text_js_side.connect(function(text) {
-            editor.session.setValue(text)
-        })
-
-        ipc.apply_edit.connect( function(l0, c0, l1, c1, text) {
-            var range = new Range(l0, c0, l1, c1)
-            editor.addSelectionMarker(range)
-            editor.insert(text)
-        })
-
-        editor.session.on('change', function(delta) {
-            ipc.user_typing()
-        })
-
-        ipc.scroll_to.connect( function(line) {
-            editor.scrollToLine(line, true)
-            editor.moveCursorTo(line, 0)
-        })
-        ipc.send_error_annotation.connect(set_error_annotation);
-
-        // I do wish there was a way to retrieve a value from the 
-        ipc.set_option.connect(function (option, value) {
-            editor.setOption(option, value) 
-        })
-        ipc.fetch_options()
-
-        // Python based, context/syntax aware completer
-        let langTools = ace.require('ace/ext/language_tools');
-        var customCompleter = {
-            getCompletions: function(editor, session, pos, prefix, callback) {
-                ipc.send_auto_completions.connect(function(compl) {
-                    callback(null, compl)
-                })                
-                ipc.get_auto_complete_options(pos, prefix)
-            }
-        }
-        langTools.addCompleter(customCompleter);        
-        
-        // This stuff we insist upon regardless of what the user sets
-        editor.setOptions({
-            useSoftTabs: true,
-            navigateWithinSoftTabs: false,  // hmm, could cause confusion ...
-            tabSize: 2,
-            enableBasicAutocompletion: true,
-            enableSnippets: true,
-            enableLiveAutocompletion: true            
-        });        
-
-        ipc.editor_ready()
-    });
-
-});
-</script>
-
-</head>
-<body>
-
-<div id="editor">Seven Bridges Rabix Benten</div>
-
-</body>
-</html>
-"""
-
-
 class EditorIPC(QObject):
 
     set_option = Signal(str, str)
@@ -240,7 +117,7 @@ class Editor(QWebEngineView):
         channel = QWebChannel(page)
         channel.registerObject("ipc", self.ipc)
         page.setWebChannel(channel)
-        page.setHtml(html, QUrl("qrc:/index.html"))
+        page.load(QUrl("qrc:/index.html"))
 
     def set_text(self, raw_text):
         if self.cached_text == raw_text:
