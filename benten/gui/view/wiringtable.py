@@ -37,7 +37,7 @@ class WiringTable(QTableWidget):
         if info in special_ids_for_io:
             self.highlight_workflow_io(info)
         elif info in self.process_model.section_lines:
-            self.code_editor.scroll_to(self.process_model.section_lines[info][0].line)
+            self.goto.emit(self.process_model.section_lines[info][0].line, info)
         else:
             self.highlight_step(info)
 

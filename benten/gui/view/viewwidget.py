@@ -81,6 +81,8 @@ class ViewWidget(QWidget):
 
     def _connect_widgets(self):
         self.wiring_table.goto.connect(self.editor_pane.goto)
+        self.editor_pane.text_available.connect(self._retrieve_new_text_from_editor)
+        self.editor_pane.step_selected.connect(self.wiring_table.step_selected)
 
     def set_active_window(self):
         """To be called whenever we switch tabs to this window. """
@@ -96,6 +98,11 @@ class ViewWidget(QWidget):
 
     def set_text(self, raw_text: str):
         self.editor_pane.set_text(raw_text)
+        self.update_from_code()
+
+    @Slot()
+    def _retrieve_new_text_from_editor(self, raw_text: str):
+        self.view.set_raw_text(raw_text=raw_text)
         self.update_from_code()
 
     # def get_text(self):
@@ -138,6 +145,8 @@ class ViewWidget(QWidget):
         logger.debug("Displayed workflow in {}s".format(t2 - t1))
 
     def configure_as_workflow(self):
+        self.process_view.setVisible(True)
+        self.wiring_table.setVisible(True)
         old_transform = None
         if self.process_view.scene():  # There was a previous view which we should restore
             old_transform = self.process_view.transform()
@@ -153,8 +162,6 @@ class ViewWidget(QWidget):
             self.process_view.setTransform(old_transform)
         else:
             self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
-        self.process_view.setVisible(True)
-        self.wiring_table.setVisible(True)
         # if self.utility_tab_widget.count() == 1:
         #     self.utility_tab_widget.addTab(self.wiring_table, "Connections")
 
@@ -175,11 +182,11 @@ class ViewWidget(QWidget):
     # but we don't want to waste time drawing each time - we can do that at the end
     def update_process_model_from_code(self):
         if self.process_model is not None:
-            if self.process_model.code_is_same_as(self.yaml_doc().raw_text):
+            if self.process_model.code_is_same_as(self.view.raw_text):
                 # Todo: improve the whole CwlDoc vs YamlView structure so we don't have to do
                 # awkward things like this
                 logger.debug("{}: Update asked for, but code hasn't changed.".
-                             format(self.attached_view.full_readable_path or self.attached_view.file_path))
+                             format(self.view.readable_path() or self.view.file_path))
                 return
 
         t0 = time.time()
