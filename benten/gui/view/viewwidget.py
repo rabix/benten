@@ -36,15 +36,16 @@ class ViewWidget(QWidget):
         self.config = config
 
         self.process_view = ProcessView()
-
-        self.utility_tab_widget = QTabWidget()
         self.wiring_table = WiringTable()
+
+        # self.utility_tab_widget = QTabWidget()
         # self.command_window = CommandWidget()
         # self.utility_tab_widget.addTab(self.command_window, "CMD")
 
         self.editor_pane = EditorPane(config=self.config)
 
         self._setup_panes()
+        self._connect_widgets()
 
         self.is_active_window = False
 
@@ -78,6 +79,9 @@ class ViewWidget(QWidget):
         layout.addWidget(main_pane)
         self.setLayout(layout)
 
+    def _connect_widgets(self):
+        self.wiring_table.goto.connect(self.editor_pane.goto)
+
     def set_active_window(self):
         """To be called whenever we switch tabs to this window. """
         self.is_active_window = True
@@ -92,6 +96,7 @@ class ViewWidget(QWidget):
 
     def set_text(self, raw_text: str):
         self.editor_pane.set_text(raw_text)
+        self.update_from_code()
 
     # def get_text(self):
     #     # return self.code_editor.toPlainText()
@@ -112,7 +117,7 @@ class ViewWidget(QWidget):
     def update_from_code(self):
 
         if not self.is_active_window:
-            # Defer updating until we can be seen
+            logger.debug("Not redrawing process model as this window is not visible")
             return
 
         self.update_process_model_from_code()
@@ -185,6 +190,8 @@ class ViewWidget(QWidget):
             logger.error("YAML parsing error! Leaving model in last known good state")
 
         self.process_model = create_model(self.view)
+        self.wiring_table.process_model = self.process_model
+
         if self.process_model.cwl_errors:
             logger.warning(self.process_model.cwl_errors)
 
@@ -207,10 +214,11 @@ class ViewWidget(QWidget):
         items = self.process_view.scene().selectedItems()
         if len(items) == 1:
             info = items[0].data(0)
-            if isinstance(info, str):
-                self.highlight(info)
-            elif isinstance(info, tuple):
-                self.highlight_connection_between_nodes(info)
+            self.wiring_table.step_selected(info)
+            # if isinstance(info, str):
+            #     self.highlight(info)
+            # elif isinstance(info, tuple):
+            #     self.highlight_connection_between_nodes(info)
 
     @Slot(list)
     def nodes_added(self, cwl_path_list):

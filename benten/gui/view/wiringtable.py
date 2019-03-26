@@ -44,7 +44,7 @@ class WiringTable(QTableWidget):
     def highlight_workflow_io(self, info: str):
         sec = self.process_model.section_lines.get(info)
         if sec is not None:
-            # self.code_editor.scroll_to(sec[0].line)
+            self.goto.emit(sec[0].line, info)
             if info == special_id_for_inputs:
                 conn = [c for c in self.process_model.connections if c.src.node_id is None]
                 color = Qt.green
@@ -58,8 +58,8 @@ class WiringTable(QTableWidget):
             return "No step with id: {}".format(info)
 
         step = self.process_model.steps[info]
+        self.goto.emit(step.line[0], step.id)
         logger.debug("Scroll to line {}".format(step.line[0]))
-        # self.code_editor.scroll_to(step.line[0])
 
         inbound_conn = [c for c in self.process_model.connections if c.dst.node_id == info]
         outbound_conn = [c for c in self.process_model.connections if c.src.node_id == info]
@@ -88,16 +88,16 @@ class WiringTable(QTableWidget):
 
     def populate_connection_table(self, title, conns: [dict], focus_conn=True):
         row, col = 0, 0
-        self.conn_table.clear()
-        self.conn_table.setColumnCount(1)
-        self.conn_table.setRowCount(sum(len(c) for _, c in conns))
-        self.conn_table.setHorizontalHeaderLabels([title])
+        self.clear()
+        self.setColumnCount(1)
+        self.setRowCount(sum(len(c) for _, c in conns))
+        self.setHorizontalHeaderLabels([title])
         for color, conn_grp in conns:
             for conn in conn_grp:
                 item = QTableWidgetItem(str(conn))
                 item.setData(Qt.UserRole, conn)  # All other roles try to replace as display text
                 item.setBackgroundColor(color)
-                self.conn_table.setItem(row, col, item)
+                self.setItem(row, col, item)
                 row += 1
 
         # if focus_conn:
@@ -105,7 +105,7 @@ class WiringTable(QTableWidget):
 
     @Slot(int, int)
     def connection_clicked(self, row, col):
-        conn = self.conn_table.item(row, col).data(Qt.UserRole)
+        conn = self.item(row, col).data(Qt.UserRole)
         logger.debug("Scroll to line {}".format(conn.line[0]))
         self.goto.emit(conn.line[0], None)
         # self.code_editor.scroll_to(conn.line[0])
