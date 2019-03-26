@@ -60,7 +60,6 @@ class ViewWidget(QWidget):
         left_pane.setHandleWidth(1)
         left_pane.setOrientation(Qt.Vertical)
         left_pane.addWidget(self.process_view)
-        #left_pane.addWidget(self.utility_tab_widget)
         left_pane.addWidget(self.wiring_table)
         left_pane.setStretchFactor(0, 3)
         left_pane.setStretchFactor(1, 1)
@@ -75,7 +74,7 @@ class ViewWidget(QWidget):
         # If we don't put all this in a layout and set zero margin QT puts us in a tiny box within
         # the window
         layout = QHBoxLayout()
-        layout.setMargin(0)
+        layout.setMargin(5)
         layout.addWidget(main_pane)
         self.setLayout(layout)
 
