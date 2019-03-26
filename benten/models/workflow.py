@@ -181,6 +181,7 @@ class Workflow(WorkflowEditMixin, Base):
 
     def __init__(self, cwl_doc: YamlView):
         super().__init__(cwl_doc=cwl_doc)
+        self.id = (self.cwl_doc.yaml or {}).get("id", None)
 
         required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]
         self.parse_sections(required_sections)

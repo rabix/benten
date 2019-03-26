@@ -9,7 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 def infer_type(yaml_doc: YamlView):
-    return (yaml_doc.yaml or {}).get("class", "unknown")
+    if isinstance(yaml_doc.yaml, dict):
+        return (yaml_doc.yaml or {}).get("class", "unknown")
+    else:
+        return "unknown"
 
 
 # will extend to include expressions and docs

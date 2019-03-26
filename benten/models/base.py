@@ -13,10 +13,11 @@ class CWLError:
 class Base:
     """We don't know what the user intends this to be"""
 
+    autocomplete_dict = {}
+
     def __init__(self, cwl_doc: YamlView):
         self.cwl_doc = cwl_doc
         self._original_raw_cwl = cwl_doc.raw_text
-        self.id = (self.cwl_doc.yaml or {}).get("id", None)
         self.section_lines = {}
         self.cwl_errors: List[CWLError] = []
 
@@ -46,6 +47,18 @@ class Base:
                 self.cwl_errors += [
                     CWLError(EditMark(), "'{}' missing".format(missing_section))]
 
+    def get_auto_completions(self, line, column, prefix):
+        return []
+        # return [
+        #     {
+        #         "caption": "example",
+        #         "name": "Example",
+        #         "value": "value" + prefix,
+        #         "snippet": "My my\nwhat a beautiful sky",
+        #         "score": 10,
+        #         "meta": "Metadata"
+        #     }
+        # ]
 
 # Some patterns we use a lot
 special_id_for_inputs = Base.special_id("inputs")
