@@ -17,7 +17,6 @@ from ...models.workflow import Workflow
 
 from .editorpane import EditorPane
 from .processview import ProcessView
-from .commandwidget import CommandWidget
 from .wiringtable import WiringTable
 from .workflowscene import WorkflowScene
 
@@ -40,8 +39,8 @@ class ViewWidget(QWidget):
 
         self.utility_tab_widget = QTabWidget()
         self.wiring_table = WiringTable()
-        self.command_window = CommandWidget()
-        self.utility_tab_widget.addTab(self.command_window, "CMD")
+        # self.command_window = CommandWidget()
+        # self.utility_tab_widget.addTab(self.command_window, "CMD")
 
         self.editor_pane = EditorPane(config=self.config)
 
@@ -60,7 +59,8 @@ class ViewWidget(QWidget):
         left_pane.setHandleWidth(1)
         left_pane.setOrientation(Qt.Vertical)
         left_pane.addWidget(self.process_view)
-        left_pane.addWidget(self.utility_tab_widget)
+        #left_pane.addWidget(self.utility_tab_widget)
+        left_pane.addWidget(self.wiring_table)
         left_pane.setStretchFactor(0, 3)
         left_pane.setStretchFactor(1, 1)
 
@@ -150,18 +150,20 @@ class ViewWidget(QWidget):
             self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
         self.process_view.setVisible(True)
         self.wiring_table.setVisible(True)
-        if self.utility_tab_widget.count() == 1:
-            self.utility_tab_widget.addTab(self.wiring_table, "Connections")
+        # if self.utility_tab_widget.count() == 1:
+        #     self.utility_tab_widget.addTab(self.wiring_table, "Connections")
 
     def configure_as_tool(self):
         self.process_view.setVisible(False)
-        if self.utility_tab_widget.count() == 2:
-            self.utility_tab_widget.removeTab(1)
+        self.wiring_table.setVisible(False)
+        # if self.utility_tab_widget.count() == 2:
+        #     self.utility_tab_widget.removeTab(1)
 
     def configure_as_unknown(self):
         self.process_view.setVisible(False)
-        if self.utility_tab_widget.count() == 2:
-            self.utility_tab_widget.removeTab(1)
+        self.wiring_table.setVisible(False)
+        # if self.utility_tab_widget.count() == 2:
+        #     self.utility_tab_widget.removeTab(1)
 
     # We refactored this out of update_from_code() because some chain edits
     # need us to recompute the process model (for proper formatting of subsequent edits)

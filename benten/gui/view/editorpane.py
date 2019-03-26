@@ -9,6 +9,7 @@ from PySide2.QtGui import QKeySequence, QFontDatabase
 from ...editing.documentproblem import DocumentProblem
 from ...models.workflow import Workflow
 from ..ace.editor import Editor
+from .commandwidget import CommandWidget
 
 import logging
 logger = logging.getLogger(__name__)
@@ -27,14 +28,39 @@ class EditorPane(QWidget):
         self.code_editor: Editor = self._setup_code_editor()
         self.navbar = self._setup_navbar()
         self.yaml_error_banner = self._setup_yaml_banner()
+        self.command_widget = CommandWidget()
+        self.command_widget.setVisible(False)
 
-        pane = QVBoxLayout()
-        pane.addWidget(self.navbar)
-        pane.addWidget(self.code_editor)
-        pane.addWidget(self.yaml_error_banner)
-        pane.setMargin(0)
-        pane.setSpacing(0)
-        self.setLayout(pane)
+        self.cmd_toggle = QShortcut(QKeySequence("Ctrl+P"), self)
+        self.cmd_toggle.activated.connect(self.toggle_command_widget)
+
+        ed_layout = QVBoxLayout()
+        ed_layout.addWidget(self.navbar)
+        ed_layout.addWidget(self.code_editor)
+        ed_layout.addWidget(self.yaml_error_banner)
+        ed_layout.setMargin(0)
+        ed_layout.setSpacing(0)
+        ed_widget = QWidget()
+        ed_widget.setLayout(ed_layout)
+
+        main_pane = QSplitter(self)
+        main_pane.setHandleWidth(1)
+        main_pane.setOrientation(Qt.Vertical)
+        main_pane.addWidget(ed_widget)
+        main_pane.addWidget(self.command_widget)
+        main_pane.setStretchFactor(0, 5)
+        main_pane.setStretchFactor(1, 3)
+
+        # If we don't put all this in a layout and set zero margin QT puts us in a tiny box within
+        # the window
+        main_layout = QHBoxLayout()
+        main_layout.setMargin(0)
+        main_layout.addWidget(main_pane)
+        self.setLayout(main_layout)
+
+    @Slot()
+    def toggle_command_widget(self):
+        self.command_widget.setVisible(not self.command_widget.isVisible())
 
     @Slot(str)
     def set_text(self, text):
