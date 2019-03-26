@@ -2,7 +2,7 @@ from typing import Tuple, Dict, Callable
 from enum import IntEnum
 
 from ..implementationerror import ImplementationError
-from .documentproblem import DocumentProblem, ProblemType, ProblemClass
+from .documentproblem import DocumentProblem
 from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentError, LAM
 from .edit import Edit, EditMark
 from .textview import TextView
@@ -26,7 +26,9 @@ class YamlView(TextView):
             except DocumentError as e:
                 self._yaml = None
                 self.yaml_error = \
-                    DocumentProblem(e.line, e.column, e.message, ProblemType.error, ProblemClass.yaml)
+                    DocumentProblem(line=e.line, column=e.column, message=e.message,
+                                    problem_type=DocumentProblem.Type.error,
+                                    problem_class=DocumentProblem.Class.yaml)
         return self._yaml
 
     def __contains__(self, path: Tuple[str, ...]):
@@ -75,3 +77,7 @@ class YamlView(TextView):
     def add_or_replace_lom(self, path: Tuple[str, ...], key: str, key_field: str, entry: str):
         self.root().add_or_replace_lom(
             path=self.inline_path + path, key=key, key_field=key_field, entry=entry)
+
+    def get_parent_section(self, line, column):
+        if self.yaml is not None:
+            return

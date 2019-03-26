@@ -51,12 +51,34 @@ class EditorIPC(QObject):
 
     @Slot(str)
     def send_text_python_side(self, raw_text):
-        self.editor.new_text_available.emit(raw_text)
-        # self.text_ready.emit(raw_text)
+        if self.editor.cached_text != raw_text:
+            self.editor.cached_text = raw_text
+            self.editor.new_text_available.emit(raw_text)
+            logger.debug("Received changed text from ACE")
+        else:
+            logger.debug("Received text from ACE is unchanged")
 
     @Slot(QJsonValue, str)
     def get_auto_complete_options(self, pos, prefix):
-        print(pos.toVariant(), prefix)
-        if self.editor.document_model is not None:
-            self.send_auto_completions.emit(
-                self.editor.document_model.get_auto_completions(pos, prefix))
+        # TODO: a cheap autocompleter with heuristics that doesn't need to parse the whole document to make suggestions
+        return [
+            {
+                "caption": "example",
+                "name": "Example",
+                "value": "value" + prefix,
+                "snippet": "My my\nwhat a beautiful sky",
+                "score": 10,
+                "meta": "Metadata"
+            }
+        ]
+        # _pos = pos.toVariant()
+        # print(_pos, prefix)
+        #
+        # # XXXXX
+        # from ...editing.yamlview import YamlView
+        # from ...models.commandlinetool import CommandLineTool
+        # self.editor.document_model = CommandLineTool(YamlView(raw_text=self.editor.cached_text))
+        # if self.editor.document_model is not None:
+        #     self.send_auto_completions.emit(
+        #         self.editor.document_model.get_auto_completions(
+        #             line=int(_pos["row"]), column=int(_pos["column"]), prefix=prefix))

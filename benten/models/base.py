@@ -1,13 +1,14 @@
 from typing import List
 
+from ..editing.documentproblem import DocumentProblem
 from ..editing.edit import EditMark
 from ..editing.yamlview import YamlView
 
 
-class CWLError:
-    def __init__(self, pos: EditMark, message: str):
-        self.pos = pos
-        self.message = message
+# class CWLError:
+#     def __init__(self, pos: EditMark, message: str):
+#         self.pos = pos
+#         self.message = message
 
 
 class Base:
@@ -19,7 +20,7 @@ class Base:
         self.cwl_doc = cwl_doc
         self._original_raw_cwl = cwl_doc.raw_text
         self.section_lines = {}
-        self.cwl_errors: List[CWLError] = []
+        self.cwl_errors: List[DocumentProblem] = []
 
     def code_is_same_as(self, new_text):
         return self._original_raw_cwl == new_text
@@ -45,7 +46,9 @@ class Base:
         if len(required_sections):
             for missing_section in required_sections:
                 self.cwl_errors += [
-                    CWLError(EditMark(), "'{}' missing".format(missing_section))]
+                    DocumentProblem(line=0, column=0, message="'{}' missing".format(missing_section),
+                                    problem_type=DocumentProblem.Type.warning,
+                                    problem_class=DocumentProblem.Class.cwl)]
 
     def get_auto_completions(self, line, column, prefix):
         return []

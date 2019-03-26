@@ -31,7 +31,7 @@ import pathlib
 from collections import OrderedDict
 import logging
 
-from .base import (CWLError, EditMark, Base, YamlView,
+from .base import (DocumentProblem, EditMark, Base, YamlView,
                    special_id_for_inputs, special_id_for_outputs, special_ids_for_io)
 from ..editing.utils import dictify, iter_scalar_or_list
 from ..editing.lineloader import load_yaml, YNone, Ydict, LAM
@@ -117,11 +117,15 @@ class Step:
         root = pathlib.Path(cwl_doc.root().file_path)
         sub_workflow = InvalidSub()
 
-        if step_doc is YNone or "run" not in step_doc:
+        if isinstance(step_doc, YNone) or "run" not in step_doc:
             sinks = {}
             sources = {}
             sub_process = {}
-            wf_error_list += ["step {} has no run field".format(step_id)]
+            wf_error_list += [
+                DocumentProblem(line=step_doc.start.line, column=step_doc.start.column,
+                                message="step {} has no run field".format(step_id),
+                                problem_type=DocumentProblem.Type.error,
+                                problem_class=DocumentProblem.Class.cwl)]
         else:
             if isinstance(step_doc["run"], str):
                 sub_p_path = pathlib.Path(root.parent, step_doc["run"]).resolve()
@@ -131,8 +135,12 @@ class Step:
                 except FileNotFoundError:
                     sub_process = {}
                     wf_error_list += [
-                        "Could not find sub workflow: {} (resolved to {})".format(
-                            step_doc["run"], sub_p_path.as_uri())]
+                        DocumentProblem(
+                            line=step_doc.start.line, column=step_doc.start.column,
+                            message="Could not find sub workflow: {} (resolved to {})".format(
+                                step_doc["run"], sub_p_path.as_uri()),
+                            problem_type=DocumentProblem.Type.error,
+                            problem_class=DocumentProblem.Class.cwl)]
                     sub_workflow = InvalidSub()
             else:
                 sub_process = step_doc["run"]
@@ -141,7 +149,12 @@ class Step:
                         _id=sub_process.get("id", None), inline_path=("steps", step_id, "run"))
                 else:
                     sub_process = {}
-                    wf_error_list += ["Sub workflow is empty"]
+                    wf_error_list += [
+                        DocumentProblem(
+                            line=sub_process.start.line, column=sub_process.start.column,
+                            message="Sub workflow is empty",
+                            problem_type=DocumentProblem.Type.error,
+                            problem_class=DocumentProblem.Class.cwl)]
                     sub_workflow = InvalidSub()
 
             sinks = OrderedDict([
@@ -193,11 +206,14 @@ class Workflow(WorkflowEditMixin, Base):
         self.connections = []
 
         if "steps" not in cwl_dict:
-            self.cwl_errors += [CWLError(pos=EditMark(0, 0),
-                                         message="Steps missing")]
+            self.cwl_errors += [DocumentProblem(line=0, column=0, message="Steps missing",
+                                                problem_type=DocumentProblem.Type.error,
+                                                problem_class=DocumentProblem.Class.cwl)]
         elif not isinstance(cwl_dict["steps"], (Ydict, LAM)):
-            self.cwl_errors += [CWLError(pos=EditMark(0, 0),
-                                         message="Steps need to be dictionary or list")]
+            self.cwl_errors += [DocumentProblem(line=0, column=0,
+                                                message="Steps need to be dictionary or list",
+                                                problem_type=DocumentProblem.Type.error,
+                                                problem_class=DocumentProblem.Class.cwl)]
         else:
             self.steps = OrderedDict(
                 (k, Step.from_doc(
@@ -259,7 +275,11 @@ class Workflow(WorkflowEditMixin, Base):
         # Connections into steps
         for step_id, step_doc in cwl_dict.get("steps", {}).items():
             if not isinstance(step_doc, dict):
-                self.cwl_errors += ["Invalid step: {}".format(step_id)]
+                self.cwl_errors += [
+                    DocumentProblem(line=step_doc.start.line, column=step_doc.start.column,
+                                    message="Invalid step: {}".format(step_id),
+                                    problem_type=DocumentProblem.Type.error,
+                                    problem_class=DocumentProblem.Class.cwl)]
                 continue
 
             this_step: Step = self.steps[step_id]
@@ -267,7 +287,11 @@ class Workflow(WorkflowEditMixin, Base):
             for step_sink_id, port_doc in (step_doc.get("in") or {}).items():
                 sink = this_step.available_sinks.get(step_sink_id, None)
                 if sink is None:
-                    self.cwl_errors += ["No such sink: {}.{}".format(this_step.id, step_sink_id)]
+                    self.cwl_errors += [
+                        DocumentProblem(line=port_doc.line, column=port_doc.column,
+                                        message="No such sink: {}.{}".format(this_step.id, step_sink_id),
+                                        problem_type=DocumentProblem.Type.error,
+                                        problem_class=DocumentProblem.Class.cwl)]
                     continue
 
                 if isinstance(port_doc, (str, list)):
@@ -279,16 +303,23 @@ class Workflow(WorkflowEditMixin, Base):
                         # Ignore default values for now
                         continue
                 else:
-                    self.cwl_errors += ["Can't parse source for {}.{}".format(this_step, step_sink_id)]
+                    self.cwl_errors += [
+                        DocumentProblem(line=port_doc.line, column=port_doc.column,
+                                        message="Can't parse source for {}.{}".format(this_step, step_sink_id),
+                                        problem_type=DocumentProblem.Type.error,
+                                        problem_class=DocumentProblem.Class.cwl)]
                     continue
 
                 for _src in iter_scalar_or_list(port_src):
                     try:
-                        # todo: clever way of getting exact line numbers for multiple sources
                         source = self._get_source(_src)
                         connections.append(Connection(source, sink, (_src.start.line, _src.end.line)))
                     except WFConnectionError as e:
-                        self.cwl_errors += ["{}.{}: {}".format(this_step, step_sink_id, e)]
+                        self.cwl_errors += [
+                            DocumentProblem(line=_src.start.line, column=_src.start.column,
+                                            message="{}.{}: {}".format(this_step, step_sink_id, e),
+                                            problem_type=DocumentProblem.Type.error,
+                                            problem_class=DocumentProblem.Class.cwl)]
                         continue
 
         # Connections to WF outputs
@@ -303,7 +334,11 @@ class Workflow(WorkflowEditMixin, Base):
                         source = self._get_source(_src)
                         connections.append(Connection(source, sink, (_src.start.line, _src.end.line)))
                     except WFConnectionError as e:
-                        self.cwl_errors += ["{}: {}".format(sink.port_id, e)]
+                        self.cwl_errors += [
+                            DocumentProblem(line=_src.start.line, column=_src.start.column,
+                                        message="{}: {}".format(sink.port_id, e),
+                                        problem_type=DocumentProblem.Type.error,
+                                        problem_class=DocumentProblem.Class.cwl)]
                         continue
 
         return connections

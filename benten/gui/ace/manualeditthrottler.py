@@ -18,7 +18,7 @@ class ManualEditThrottler:
         logger.debug("Burst window set to {}s".format(self.burst_window))
 
     def restart_edit_clock(self):
-        logger.debug("User still typing ...")
+        # logger.debug("User still typing ...")
         self.timer.start()
 
     def flush(self):

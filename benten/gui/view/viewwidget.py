@@ -114,8 +114,7 @@ class ViewWidget(QWidget):
     #     return self.code_editor.insert_text(edit)
 
     def save(self):
-        self.view.get_root().save()
-        # The attached root will be of type CwlDoc which does have a save function
+        self.view.root().save()
 
     # This only happens when we are in focus and the code has changed
     # It is only here that we do the (semi)expensive parsing computation
@@ -146,6 +145,7 @@ class ViewWidget(QWidget):
     def configure_as_workflow(self):
         self.process_view.setVisible(True)
         self.wiring_table.setVisible(True)
+
         old_transform = None
         if self.process_view.scene():  # There was a previous view which we should restore
             old_transform = self.process_view.transform()
@@ -160,6 +160,7 @@ class ViewWidget(QWidget):
         if old_transform is not None:
             self.process_view.setTransform(old_transform)
         else:
+            self.process_view.resize(1200, 800)
             self.process_view.fitInView(scene.sceneRect(), Qt.KeepAspectRatio)
         # if self.utility_tab_widget.count() == 1:
         #     self.utility_tab_widget.addTab(self.wiring_table, "Connections")
