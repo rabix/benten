@@ -214,7 +214,11 @@ class ViewWidget(QWidget):
         self.editor_pane.set_navbar(nav_items)
 
     def _update_yaml_error_banner(self):
-        self.editor_pane.mark_problems(self.process_model.cwl_errors)
+        if isinstance(self.view, YamlView):
+            if self.view.yaml_error:
+                self.editor_pane.mark_problems([self.view.yaml_error])
+            else:
+                self.editor_pane.mark_problems(self.process_model.cwl_errors)
 
     @Slot()
     def something_selected(self):
