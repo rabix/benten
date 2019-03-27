@@ -14,7 +14,7 @@ class EditorIPC(QObject):
     send_text_js_side = Signal(str)
     apply_edit = Signal(int, int, int, int, str)
     scroll_to = Signal(int)
-    send_error_annotation = Signal(int, int, str, str)
+    send_error_annotations = Signal('QVariantList')
     send_auto_completions = Signal('QVariantList')
 
     text_ready = Signal(str)

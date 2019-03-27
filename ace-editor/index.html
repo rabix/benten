@@ -35,16 +35,6 @@ document.addEventListener("DOMContentLoaded", function () {
     editor.session.setMode("ace/mode/yaml");
     editor.setAnimatedScroll(true)
 
-    // https://stackoverflow.com/a/42122466/2512851
-    var set_error_annotation = function(row, column, err_msg, type) {
-        editor.getSession().setAnnotations([{
-            row: row,
-            column: column,
-            text: err_msg, // Or the Json reply from the parser
-            type: type // error, warning, and information
-        }]);
-    }
-
     new QWebChannel(qt.webChannelTransport, function(channel) {
         // All the functions we use to communicate with the Python code are here
 
@@ -74,9 +64,13 @@ document.addEventListener("DOMContentLoaded", function () {
             editor.scrollToLine(line, true)
             editor.moveCursorTo(line, 0)
         })
-        ipc.send_error_annotation.connect(set_error_annotation);
 
-        // I do wish there was a way to retrieve a value from the
+        ipc.send_error_annotations.connect( function(errs) {
+            // https://stackoverflow.com/a/42122466/2512851
+            editor.getSession().setAnnotations(errs)
+        })
+
+        // I do wish there was a way to retrieve a value from the slot
         ipc.set_option.connect(function (option, value) {
             editor.setOption(option, value)
         })

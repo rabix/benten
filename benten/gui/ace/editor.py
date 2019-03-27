@@ -76,6 +76,15 @@ class Editor(QWebEngineView):
         self.ipc.scroll_to.emit(line)
 
     def mark_errors(self, problems: List[DocumentProblem]):
-        for problem in problems:
-            self.ipc.send_error_annotation.emit(
-                problem.line, problem.column, problem.message, problem.problem_type.name)
+        self.ipc.send_error_annotations.emit(
+            [
+                {
+                    "row": problem.line,
+                    "column": problem.column,
+                    "text": problem.message,
+                    "type": problem.problem_type.name,
+                    "class": problem.problem_class.name
+                }
+                for problem in problems
+            ]
+        )
