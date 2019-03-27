@@ -118,7 +118,7 @@ class TabWidget(QTabWidget):
             logger.warning("Editor is locked, can not navigate away")
             return
 
-        fp_str = ":".join(yaml_view.root().file_path.resolve().as_uri() + yaml_view.inline_path + inline_path)
+        fp_str = ":".join((yaml_view.root().file_path.resolve().as_uri(),) + yaml_view.inline_path + inline_path)
         if fp_str not in self.view_directory:
             vw = self._prepare_view_widget()
             vw.set_view(yaml_view.create_child_view(

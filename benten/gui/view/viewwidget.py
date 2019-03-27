@@ -247,4 +247,4 @@ class ViewWidget(QWidget):
                  and isinstance(item.data(0), str)]
         # exclude workflow inputs/outputs and connecting lines (which are tuples)
         if steps:
-            self.open_steps.emit((self.attached_view, steps))
+            self.open_steps.emit((self.view, steps))
