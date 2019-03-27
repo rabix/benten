@@ -1,7 +1,7 @@
 from typing import List
 
 from PySide2.QtWidgets import \
-    (QWidget, QComboBox, QLabel, QTabWidget, QTableWidget, QAbstractItemView, QHBoxLayout,
+    (QWidget, QComboBox, QLabel, QPushButton, QTabWidget, QTableWidget, QAbstractItemView, QHBoxLayout,
      QVBoxLayout, QSplitter, QShortcut)
 from PySide2.QtCore import Qt, QTimer, Slot, Signal
 from PySide2.QtGui import QKeySequence, QFontDatabase
@@ -13,6 +13,48 @@ from .commandwidget import CommandWidget
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+class ProblemHandler(QPushButton):
+    # A souped up button to handle our error navigation
+
+    goto = Signal(int, str)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # self.setFlat(True) -> this screws with the colors on mac ...
+        self.setMaximumHeight(30)
+        self.setVisible(False)
+
+        self.show_next_problem = QShortcut(QKeySequence("Ctrl+N"), self)
+        self.show_next_problem.activated.connect(self.next_problem_line)
+
+        self.clicked.connect(self.next_problem_line)
+
+        self.problems = []
+        self.next_problem = 0
+
+    def set_problems(self, problems: List[DocumentProblem]):
+        self.problems = sorted(problems, key=lambda x: x.line)
+        self.next_problem = 0
+        if DocumentProblem.Class.cwl in [p.problem_class for p in problems]:
+            self.setText("Document has CWL issues")
+            self.setStyleSheet("QPushButton { background-color : orange; color : white; }")
+            self.setVisible(True)
+        elif DocumentProblem.Class.yaml in [p.problem_class for p in problems]:
+            self.setText("Document has YAML issues")
+            self.setStyleSheet("QPushButton { background-color : red; color : white; }")
+            self.setVisible(True)
+        else:
+            self.setVisible(False)
+
+    @Slot()
+    def next_problem_line(self):
+        if self.problems:
+            self.goto.emit(self.problems[self.next_problem].line, None)
+            self.next_problem += 1
+            if self.next_problem == len(self.problems):
+                self.next_problem = 0
 
 
 class EditorPane(QWidget):
@@ -27,7 +69,8 @@ class EditorPane(QWidget):
 
         self.code_editor: Editor = self._setup_code_editor()
         self.navbar = self._setup_navbar()
-        self.yaml_error_banner = self._setup_yaml_banner()
+        self.problem_handler = ProblemHandler()
+        self.problem_handler.goto.connect(self.goto)
         self.command_widget = CommandWidget()
         self.command_widget.setVisible(False)
 
@@ -37,7 +80,7 @@ class EditorPane(QWidget):
         ed_layout = QVBoxLayout()
         ed_layout.addWidget(self.navbar)
         ed_layout.addWidget(self.code_editor)
-        ed_layout.addWidget(self.yaml_error_banner)
+        ed_layout.addWidget(self.problem_handler)
         ed_layout.setMargin(0)
         ed_layout.setSpacing(0)
         ed_widget = QWidget()
@@ -88,8 +131,7 @@ class EditorPane(QWidget):
     @Slot(object)
     def mark_problems(self, problems: List[DocumentProblem]):
         self.code_editor.mark_errors(problems)
-        # Todo: if there is an yaml error, raise the banner and link it to scrolling to
-        # the error on click otherwise clear the banner
+        self.problem_handler.set_problems(problems)
 
     def _setup_code_editor(self):
         ce = Editor(config=self.config)
@@ -100,13 +142,6 @@ class EditorPane(QWidget):
         navbar = QComboBox()
         navbar.activated[str].connect(lambda x: self.step_selected.emit(x))
         return navbar
-
-    @staticmethod
-    def _setup_yaml_banner():
-        banner = QLabel("Document has YAML errors")
-        banner.setStyleSheet("QLabel { background-color : red; color : white; }")
-        banner.setVisible(False)
-        return banner
 
     def update_navbar(self):
         self.navbar.clear()

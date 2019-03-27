@@ -214,7 +214,6 @@ class ViewWidget(QWidget):
         self.editor_pane.set_navbar(nav_items)
 
     def _update_yaml_error_banner(self):
-        #self.yaml_error_banner.setVisible(self.yaml_error() is not None)
         self.editor_pane.mark_problems(self.process_model.cwl_errors)
 
     @Slot()
