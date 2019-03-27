@@ -36,7 +36,7 @@ class ViewWidget(QWidget):
         self.config = config
 
         self.process_view = ProcessView()
-        self.wiring_table = WiringTable()
+        self.wiring_table = WiringTable(config=config)
 
         # self.utility_tab_widget = QTabWidget()
         # self.command_window = CommandWidget()
@@ -149,7 +149,7 @@ class ViewWidget(QWidget):
         old_transform = None
         if self.process_view.scene():  # There was a previous view which we should restore
             old_transform = self.process_view.transform()
-        scene = WorkflowScene(self)
+        scene = WorkflowScene(config=self.config, parent=self)
         scene.selectionChanged.connect(self.something_selected)
         scene.nodes_added.connect(self.nodes_added)
         scene.double_click.connect(self.something_double_clicked)

@@ -4,8 +4,9 @@ from PySide2.QtWidgets import \
     (QWidget, QComboBox, QLabel, QTabWidget, QTableWidget, QTableWidgetItem, QAbstractItemView, QHBoxLayout,
      QVBoxLayout, QSplitter, QShortcut)
 from PySide2.QtCore import Qt, QTimer, Slot, Signal
-from PySide2.QtGui import QKeySequence, QFontDatabase
+from PySide2.QtGui import QKeySequence, QFontDatabase, QBrush
 
+from ...configuration import Configuration
 from ...models.workflow import (Workflow, Step,
                                 special_id_for_inputs, special_id_for_outputs, special_ids_for_io)
 
@@ -17,13 +18,14 @@ class WiringTable(QTableWidget):
 
     goto = Signal(int, str)
 
-    def __init__(self, parent=None):
+    def __init__(self, config: Configuration=None, parent=None):
         super().__init__(parent)
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().setVisible(False)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.cellClicked.connect(self.connection_clicked)
 
+        self.config = config
         self.process_model = None
 
     @Slot(object)
@@ -87,6 +89,8 @@ class WiringTable(QTableWidget):
         self.populate_connection_table(str(info), [(Qt.white, conn)])
 
     def populate_connection_table(self, title, conns: [dict], focus_conn=True):
+        # text_color = Qt.black if self.config.getboolean("qt", "dark_theme") else Qt.white
+        text_brush = QBrush(Qt.black)
         row, col = 0, 0
         self.clear()
         self.setColumnCount(1)
@@ -96,6 +100,7 @@ class WiringTable(QTableWidget):
             for conn in conn_grp:
                 item = QTableWidgetItem(str(conn))
                 item.setData(Qt.UserRole, conn)  # All other roles try to replace as display text
+                item.setForeground(text_brush)
                 item.setBackgroundColor(color)
                 self.setItem(row, col, item)
                 row += 1

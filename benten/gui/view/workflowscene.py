@@ -4,13 +4,27 @@ from PySide2.QtCore import Qt, Slot
 from PySide2.QtGui import QBrush, QFont, QPen
 from PySide2.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsSimpleTextItem
 
+from ...configuration import Configuration
 from .processscene import ProcessScene
 from ...models.workflow import Workflow, Step, special_id_for_inputs, special_id_for_outputs
 from ...sbg.versionmixin import get_app_info
 
 
-color_code = {
+color_code_light_theme = {
+    "pen": Qt.black,
     "connections": Qt.gray,
+    "inputs": Qt.green,
+    "outputs": Qt.cyan,
+    "CommandLineTool": Qt.gray,
+    "ExpressionTool": Qt.yellow,
+    "Workflow": Qt.blue,
+    "invalid": Qt.white
+}
+
+
+color_code_dark_theme = {
+    "pen": Qt.white,
+    "connections": Qt.white,
     "inputs": Qt.green,
     "outputs": Qt.cyan,
     "CommandLineTool": Qt.gray,
@@ -42,8 +56,9 @@ class WFNodeItem(QGraphicsEllipseItem):
 
 
 class WorkflowScene(ProcessScene):
-    def __init__(self, parent):
+    def __init__(self, config: Configuration, parent):
         super().__init__(parent)
+        self.config = config
         self.workflow = None
         self.node_size = 30
         self.label_overlay = None
@@ -53,6 +68,10 @@ class WorkflowScene(ProcessScene):
         self.create_scene()
 
     def create_scene(self):
+
+        color_code = color_code_dark_theme if self.config.getboolean("qt", "dark_theme") \
+            else color_code_light_theme
+
         G = pgv.AGraph(directed=True)
 
         G.add_node(special_id_for_inputs)
@@ -124,6 +143,7 @@ class WorkflowScene(ProcessScene):
                                   node_size=self.node_size)
 
             item.set_normal_brush(QBrush(color_code.get(v["type"], "white")))
+            item.setPen(QPen(color_code["pen"]))
             item.setToolTip(v["label"])
             item.setFlag(QGraphicsItem.ItemIsSelectable, True)
             item.setData(0, k)
@@ -140,12 +160,17 @@ class WorkflowScene(ProcessScene):
         self.create_overlay(graph, self.node_size)
 
     def create_overlay(self, graph, node_size):
+
+        color_code = color_code_dark_theme if self.config.getboolean("qt", "dark_theme") \
+            else color_code_light_theme
+
         self.label_overlay = QGraphicsSimpleTextItem()
         font = QFont("Helvetica [Cronyx]", 5)
         for k, v in graph.items():
             if v["type"] in ["inputs", "outputs"]: continue
             p = v["pos"]
             txt = QGraphicsSimpleTextItem(v["label"], self.label_overlay)
+            txt.setBrush(QBrush(color_code["pen"]))
             txt.setFont(font)
             txt.setPos(p[0] - txt.boundingRect().width() / 2, p[1] - txt.boundingRect().height() - node_size/2)
 
