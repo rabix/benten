@@ -40,7 +40,8 @@ class Configuration(configparser.ConfigParser):
 
         self.load()
 
-        self.copy_missing_templates()
+        # self.copy_missing_templates()
+        self._copy_missing_config_files()
 
     # https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
     def optionxform(self, optionstr):
@@ -83,3 +84,11 @@ class Configuration(configparser.ConfigParser):
     # We don't do this because we don't want to mess with the user's original formatting
     # def save(self):
     #     self.write(self.path.open("w"))
+
+    def _copy_missing_config_files(self):
+        for fn in ["snippets.yaml", "autocomplete.yaml", "aliases.yaml"]:
+            src_file = P(default_config_data_dir, fn)
+            dst_file = P(self.cfg_path, fn)
+            if not dst_file.exists():
+                # os.makedirs(os.path.dirname(dst_file.parent), exist_ok=True)
+                shutil.copy(src_file, dst_file)

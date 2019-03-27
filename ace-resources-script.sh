@@ -11,7 +11,6 @@ echo '<!DOCTYPE RCC>' > ${QRC}
 echo '<RCC version="1.0">' >> ${QRC}
 echo '  <qresource>' >> ${QRC}
 echo '    <file>index.html</file>' >> ${QRC}
-echo '    <file>cwl_snippets.js</file>' >> ${QRC}
 
 # Each file in the Ace source folder has to be added in individually
 for a in $(find ${ACE_DIR} -d)

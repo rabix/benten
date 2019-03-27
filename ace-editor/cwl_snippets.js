@@ -50,4 +50,20 @@ requirements: []
 hints: []
 `
 }
+,{
+name: "Step",
+tabTrigger: "step",
+content:
+`id: $1
+label: $2
+doc: ''
+in: $3
+out: $4
+run: $5
+scatter:
+scatterMethod:
+hints: []
+requirements: []
+`
+}
 ]

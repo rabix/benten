@@ -7,7 +7,6 @@
 // This file comes bundled with Pyside2 and the resource bundler knows to include it ...
 <script src="qrc:/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="qrc:/ace-builds/src-min-noconflict/ext-language_tools.js" type="text/javascript"></script>
-<script src="qrc:/cwl_snippets.js" type="text/javascript"></script>
 
 <style type="text/css" media="screen">
     #editor {
@@ -28,9 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
     var placeholder = document.getElementById('editor');
 
     var editor = ace.edit("editor");
-
-    var snippetManager = ace.require("ace/snippets").snippetManager
-    snippetManager.register(cwl_snippets, "yaml");
 
     editor.session.setMode("ace/mode/yaml");
     editor.setAnimatedScroll(true)
@@ -74,7 +70,11 @@ document.addEventListener("DOMContentLoaded", function () {
         ipc.set_option.connect(function (option, value) {
             editor.setOption(option, value)
         })
-        ipc.fetch_options()
+        ipc.set_snippets.connect(function (snippets) {
+            var snippetManager = ace.require("ace/snippets").snippetManager
+            snippetManager.register(snippets, "yaml");
+        })
+        ipc.fetch_settings()
 
         // Python based, context/syntax aware completer
         let langTools = ace.require('ace/ext/language_tools');

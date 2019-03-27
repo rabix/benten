@@ -1,3 +1,6 @@
+import yaml
+import pathlib
+
 from PySide2.QtCore import QObject, QJsonValue, Signal, Slot
 from PySide2.QtWidgets import QApplication
 
@@ -10,6 +13,8 @@ logger = logging.getLogger(__name__)
 class EditorIPC(QObject):
 
     set_option = Signal(str, str)
+    set_snippets = Signal('QVariantList')
+
     fetch_text = Signal()
     send_text_js_side = Signal(str)
     apply_edit = Signal(int, int, int, int, str)
@@ -40,7 +45,10 @@ class EditorIPC(QObject):
     # Any function that should be callable from JS, has to be declared a slot
 
     @Slot()
-    def fetch_options(self):
+    def fetch_settings(self):
+        snippet_file = self.editor.config._resolve_path(pathlib.Path("snippets.yaml"))
+        self.set_snippets.emit(yaml.load(snippet_file.open("r").read()))
+
         for k, v in self.editor.config.items("ace-options"):
             logger.debug("ACE editor: Set {} to {}".format(k, v))
             self.set_option.emit(k, v)

@@ -30,8 +30,8 @@ def test_basic(monkeypatch):
     assert "files" in config.sections()
     assert "autosave" in config["files"]
 
-    assert config.getpath("cwl", "template_dir") == \
-           pathlib.Path(test_dir, "sevenbridges", "benten", "cwl-templates")
+    assert config.getpath("executions", "command_alias_file") == \
+           pathlib.Path(test_dir, "sevenbridges", "benten", "aliases.yaml")
 
 
 def test_template_copying(monkeypatch):
@@ -40,4 +40,4 @@ def test_template_copying(monkeypatch):
 
     config = Configuration()
 
-    assert config.getpath("cwl", "template_dir").exists()
+    assert config.getpath("executions", "command_alias_file").exists()
