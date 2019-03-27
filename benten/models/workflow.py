@@ -117,7 +117,7 @@ class Step:
         root = pathlib.Path(cwl_doc.root().file_path)
         sub_workflow = InvalidSub()
 
-        if isinstance(step_doc, YNone) or "run" not in step_doc:
+        if isinstance(step_doc, (YNone, str)) or "run" not in step_doc:
             sinks = {}
             sources = {}
             sub_process = {}
