@@ -256,11 +256,11 @@ def reverse_lookup(line, col, doc: Union[Ydict, Ylist], path: Tuple[Union[str, i
     k, v = None, None
     for k, v in values:
         if v.start.line <= line <= v.end.line:
-            # if v.start.line != v.end.line or v.start.column <= col <= v.end.column:
-            if not isinstance(v, Ydict) and not isinstance(v, Ylist):
-                return path + (k,), v
-            else:
-                return reverse_lookup(line, col, v, path + (k,))
+            if v.start.line != v.end.line or v.start.column <= col <= v.end.column:
+                if not isinstance(v, Ydict) and not isinstance(v, Ylist):
+                    return path + (k,), v
+                else:
+                    return reverse_lookup(line, col, v, path + (k,))
     else:
         return k, v
 

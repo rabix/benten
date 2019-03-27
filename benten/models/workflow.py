@@ -151,7 +151,7 @@ class Step:
                     sub_process = {}
                     wf_error_list += [
                         DocumentProblem(
-                            line=sub_process.start.line, column=sub_process.start.column,
+                            line=step_doc["run"].start.line, column=step_doc["run"].start.column,
                             message="Sub workflow is empty",
                             problem_type=DocumentProblem.Type.error,
                             problem_class=DocumentProblem.Class.cwl)]
