@@ -10,7 +10,7 @@ class CommandLineTool(Base):
         super().__init__(*args, **kwargs)
         self.id = (self.cwl_doc.yaml or {}).get("id", None)
 
-        required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]
+        required_sections = ["cwlVersion", "class", "inputs", "outputs"]
         self.parse_sections(required_sections)
 
     def get_auto_completions(self, line, column, prefix):
