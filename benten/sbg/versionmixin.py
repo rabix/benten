@@ -43,7 +43,7 @@ class SBGAppInfo:
 #  user / project / app id / version
 def get_app_info(app_id):
     info = None
-    if app_id is not None:
+    if isinstance(app_id, str):
         parts = app_id.split("/")
         if len(parts) != 4:
             pass
