@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         ipc.scroll_to.connect( function(line) {
             editor.scrollToLine(line, true)
-            editor.moveCursorTo(line, 0)
+            editor.navigateTo(line, 0)
         })
 
         ipc.send_error_annotations.connect( function(errs) {
