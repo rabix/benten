@@ -5,12 +5,6 @@ from ..editing.edit import EditMark
 from ..editing.yamlview import YamlView
 
 
-# class CWLError:
-#     def __init__(self, pos: EditMark, message: str):
-#         self.pos = pos
-#         self.message = message
-
-
 class Base:
     """We don't know what the user intends this to be"""
 
