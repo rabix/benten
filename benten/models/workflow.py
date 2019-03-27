@@ -288,7 +288,7 @@ class Workflow(WorkflowEditMixin, Base):
                 sink = this_step.available_sinks.get(step_sink_id, None)
                 if sink is None:
                     self.cwl_errors += [
-                        DocumentProblem(line=port_doc.line, column=port_doc.column,
+                        DocumentProblem(line=port_doc.start.line, column=port_doc.start.column,
                                         message="No such sink: {}.{}".format(this_step.id, step_sink_id),
                                         problem_type=DocumentProblem.Type.error,
                                         problem_class=DocumentProblem.Class.cwl)]
@@ -304,7 +304,7 @@ class Workflow(WorkflowEditMixin, Base):
                         continue
                 else:
                     self.cwl_errors += [
-                        DocumentProblem(line=port_doc.line, column=port_doc.column,
+                        DocumentProblem(line=port_doc.start.line, column=port_doc.start.column,
                                         message="Can't parse source for {}.{}".format(this_step, step_sink_id),
                                         problem_type=DocumentProblem.Type.error,
                                         problem_class=DocumentProblem.Class.cwl)]
@@ -336,9 +336,9 @@ class Workflow(WorkflowEditMixin, Base):
                     except WFConnectionError as e:
                         self.cwl_errors += [
                             DocumentProblem(line=_src.start.line, column=_src.start.column,
-                                        message="{}: {}".format(sink.port_id, e),
-                                        problem_type=DocumentProblem.Type.error,
-                                        problem_class=DocumentProblem.Class.cwl)]
+                                            message="{}: {}".format(sink.port_id, e),
+                                            problem_type=DocumentProblem.Type.error,
+                                            problem_class=DocumentProblem.Class.cwl)]
                         continue
 
         return connections
