@@ -101,6 +101,9 @@ class TabWidget(QTabWidget):
 
         vw = self.view_directory[fp_str]
 
+        if vw not in self:
+            self.addTab(vw, vw.view.readable_path())
+
         self.setCurrentWidget(vw)
 
     def open_inline_section(self, yaml_view: YamlView, inline_path: Tuple[str, ...]):
@@ -125,8 +128,15 @@ class TabWidget(QTabWidget):
         self.setCurrentWidget(vw)
 
     #
-    # Ugly helper functions
+    # Helper functions
     #
+
+    def __contains__(self, item):
+        for idx in range(self.count()):
+            if item == self.widget(idx):
+                return True
+        else:
+            return False
 
     def _make_base_tab_unclosable(self):
         tbl = self.tabBar().tabButton(0, QTabBar.LeftSide)
@@ -156,10 +166,3 @@ class TabWidget(QTabWidget):
         vw = ViewWidget(config=self.config)
         vw.open_steps.connect(self.open_steps)
         return vw
-
-    def __contains__(self, item):
-        for idx in range(self.count()):
-            if item == self.widget(idx):
-                return True
-        else:
-            return False

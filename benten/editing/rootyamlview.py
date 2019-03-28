@@ -323,3 +323,6 @@ class RootYamlView(YamlView):
 
         start = EditMark(line_to_insert, column_to_insert)
         return Edit(start, end, "".join(text_lines), text_lines)
+
+    def readable_path(self):
+        return self.file_path.name

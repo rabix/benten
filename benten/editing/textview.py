@@ -60,4 +60,5 @@ class TextView:
             self.delete_callback()
 
     def readable_path(self):
-        return ".".join(p for p in self.inline_path if p not in ["steps", "run"])
+        return self.root().readable_path() + ":" + \
+               ".".join(p for p in self.inline_path if p not in ["steps", "run"])
