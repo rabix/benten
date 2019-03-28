@@ -8,3 +8,4 @@ sandbox
 tests/credentials
 benten.qrc
 benten/gui/ace/resources.py
+dist
