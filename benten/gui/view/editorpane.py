@@ -104,6 +104,10 @@ class EditorPane(QWidget):
     @Slot()
     def toggle_command_widget(self):
         self.command_widget.setVisible(not self.command_widget.isVisible())
+        if self.command_widget.isVisible():
+            self.command_widget.command_line.setFocus()
+        else:
+            self.code_editor.setFocus()
 
     @Slot(str)
     def set_text(self, text):
