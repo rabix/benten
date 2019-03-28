@@ -1,9 +1,11 @@
 import sevenbridges.errors as sbgerr
-sbgerr.SbgError.__str__ = lambda x: str(x.message)
-# Monkey patch until https://github.com/sbg/sevenbridges-python/pull/119 is resolved
 
 import logging
 logger = logging.getLogger(__name__)
+logging.getLogger("sevenbridges.http.client").propagate = False
+
+sbgerr.SbgError.__str__ = lambda x: str(x.message)
+# Monkey patch until https://github.com/sbg/sevenbridges-python/pull/119 is resolved
 
 
 def valid(app_path):
