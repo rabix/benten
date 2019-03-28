@@ -123,12 +123,12 @@ class CommandWidget(QWidget):
             response = "Unknown command: {}".format(cmd)
 
         self.command_line.clear()
-        self.response_received(cmd, arguments, response)
+        self.response_received(cmd_line, response)
 
     @Slot(str, str)
-    def response_received(self, command, arguments, response):
+    def response_received(self, cmd_line, response):
         self.command_log.moveCursor(QTextCursor.End)
-        self.command_log.insertPlainText("\n" + "$> " + command + " " + " ".join(arguments) + "\n")
+        self.command_log.insertPlainText("\n" + f"$> {cmd_line}\n")
         self.command_log.moveCursor(QTextCursor.End)
         self.command_log.insertPlainText(response)
         self.command_log.moveCursor(QTextCursor.End)
@@ -144,7 +144,7 @@ class CommandWidget(QWidget):
 
     @meta(
         cmd="sbpush",
-        cmd_help="sbpush <message> [project/id] : Push this app to the platform")
+        cmd_help="sbpush <message> [project/id]  \nPush this app to the platform")
     def sbpush(self, args):
 
         if not (0 < len(args) < 3):
@@ -157,7 +157,7 @@ class CommandWidget(QWidget):
 
         app = push(self.editor.config.api, load_yaml(self.editor.cached_text), commit_message, app_path)
         logger.debug("Pushed app and git back app id: {}".format(app.raw["sbg:id"]))
-        return "Pushed app to {}".format(app.id)
+        return "Pushed app to {}\n".format(app.id)
 
     @meta(
         cmd="docker",
