@@ -1,19 +1,19 @@
-"""This class is meant to be mixed-in with CwlDoc so that it becomes SBG repo aware.
-We operate at the level of CwlDoc since these operations and properties apply to inline
-as well as base docs.
-
-1. It will be able to say if the app has been registered on an SBG repo and extract it's version
-2. It will be able to provide a list of versions for this app
-3. It will be able to toggle the app id between pushed/not-pushed
-    - todo: monitor if we need any clever manipulations on the not pushed id string to compare saves
-4. It will be able to push and pull the app from the app repository. Pulling will return the raw
-   cwl and someone else is responsible for inserting this as an edit
-5. It will add a pushed/not pushed status to the class. These are blocking operations, so use with
-   due care
-"""
+""""""
 from sevenbridges import Api
 
 file_not_pushed_suffix = "-local-edits"
+
+
+# lets see how far we can get with a heuristic
+def change_or_add_sbg_repo_tag(raw_text, new_id):
+    lines = raw_text.splitlines(keepends=True)
+    for n, line in enumerate(lines):
+        if line.startswith("sbg:id: "):
+            lines[n] = "sbg:id: " + new_id + "\n"
+            break
+    else:
+        lines.append("sbg:id: " + new_id + "\n")
+    return "".join(lines)
 
 
 class SBGAppInfo:
