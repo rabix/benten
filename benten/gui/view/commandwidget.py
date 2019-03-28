@@ -184,7 +184,7 @@ class CommandWidget(QWidget):
         from ...sbg.push import push
 
         app = push(self.editor.config.api, load_yaml(self.editor.cached_text), commit_message, app_path)
-        logger.debug("Pushed app and git back app id: {}".format(app.raw["sbg:id"]))
+        logger.debug("Pushed app and got back app id: {}".format(app.raw["sbg:id"]))
         return "Pushed app to {}\n".format(app.id)
 
     @meta(
