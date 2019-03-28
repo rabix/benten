@@ -7,8 +7,6 @@ from PySide2.QtWidgets import QTabWidget, QTabBar, QMessageBox
 from PySide2.QtCore import Slot
 from PySide2.QtGui import QCloseEvent
 
-from ..sbg.jsonimport import if_json_convert_to_yaml_and_save
-
 from ..editing.rootyamlview import RootYamlView, YamlView, TextView
 from ..sbg.profiles import Profiles, Configuration
 from ..models.workflow import Step, InvalidSub, InlineSub, ExternalSub
@@ -28,9 +26,6 @@ class TabWidget(QTabWidget):
         self.setMovable(True)
         self.setUsesScrollButtons(True)
 
-        self.sbg_profiles = Profiles(config=config)
-
-        self.api = None
         self.view_directory: Dict[str, ViewWidget] = {}
         # Because we often need to find a ViewWidget by path
 
@@ -42,11 +37,6 @@ class TabWidget(QTabWidget):
         self.currentChanged.connect(self.tab_selected)
 
         self.open_linked_file(file_path=file_path)
-
-    @Slot(str)
-    def profile_selected(self, profile):
-        self.api = self.sbg_profiles[profile]
-        logger.debug("Profile set to: {}".format(profile))
 
     @Slot()
     def save(self):

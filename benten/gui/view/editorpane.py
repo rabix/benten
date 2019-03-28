@@ -71,7 +71,7 @@ class EditorPane(QWidget):
         self.navbar = self._setup_navbar()
         self.problem_handler = ProblemHandler()
         self.problem_handler.goto.connect(self.goto)
-        self.command_widget = CommandWidget()
+        self.command_widget = CommandWidget(editor=self.code_editor)
         self.command_widget.setVisible(False)
 
         self.cmd_toggle = QShortcut(QKeySequence("Ctrl+P"), self)

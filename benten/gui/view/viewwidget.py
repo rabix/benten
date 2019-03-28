@@ -37,11 +37,6 @@ class ViewWidget(QWidget):
 
         self.process_view = ProcessView()
         self.wiring_table = WiringTable(config=config)
-
-        # self.utility_tab_widget = QTabWidget()
-        # self.command_window = CommandWidget()
-        # self.utility_tab_widget.addTab(self.command_window, "CMD")
-
         self.editor_pane = EditorPane(config=self.config)
 
         self._setup_panes()

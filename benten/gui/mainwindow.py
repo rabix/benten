@@ -8,10 +8,13 @@ from PySide2.QtGui import QCloseEvent, QIcon
 import qdarkstyle
 
 from ..version import __version__
-from ..configuration import Configuration
+from ..sbg.sbconfig import SBConfig
 from ..sbg.profiles import Profiles
 from .tabwidget import TabWidget
 from .view.viewwidget import ViewWidget
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow):
@@ -19,7 +22,7 @@ class MainWindow(QMainWindow):
     def __init__(self, file_path: pathlib.Path):
         QMainWindow.__init__(self)
 
-        self.config = Configuration()
+        self.config = SBConfig()
 
         if self.config.getboolean("qt", "dark_theme"):
             QApplication.instance().setStyleSheet(qdarkstyle.load_stylesheet())
@@ -95,7 +98,8 @@ class MainWindow(QMainWindow):
 
         def _profile_selected(_action: QAction):
             prof_menu.setTitle(_action.text())
-            self.tab_widget.profile_selected(_action.text())
+            self.config.set_profile(_action.text())
+            logger.debug("Switching platform to {}".format(_action.text()))
 
         prof_action_group.triggered.connect(_profile_selected)
         prof_action_group.actions()[0].setChecked(True)

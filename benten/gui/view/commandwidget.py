@@ -1,7 +1,7 @@
 """This handles the command line bar and the response log.
 It consists of a single-line text edit on top. You enter commands into this box.
 Below it is a read only multiline text box that shows the response to the commands.
-The command is echoed and the response printed below. The latest command is on top.
+The command is echoed and the response printed below.
 """
 import pathlib
 
@@ -11,6 +11,9 @@ from PySide2.QtGui import QTextCursor
 from PySide2.QtGui import QFontDatabase
 
 from ...editing.edit import Edit, EditMark
+from ...editing.yamlview import YamlView
+
+from ..ace.editor import Editor
 
 import logging
 
@@ -51,8 +54,12 @@ class CommandWidget(QWidget):
     proposed_edit = Signal(object)
     step_selected = Signal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, editor: Editor, parent=None):
         QWidget.__init__(self, parent=parent)
+
+        self.editor = editor
+        # We need a reference to the editor since several commands operate on the raw text both
+        # reading and writing back to the original document
 
         self.command_line = QLineEdit()
         self.command_line.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
@@ -134,13 +141,22 @@ class CommandWidget(QWidget):
     #
 
     @meta(
-        cmd="create",
-        cmd_help="create <clt|et|wf> : When in an empty document, create a scaffold"
-                 " for CommandLineTool, ExpressionTool or Workflow")
-    def create_scaffold(self, args):
+        cmd="sbpush",
+        cmd_help="sbpush <message> [project/id] : Push this app to the platform")
+    def sbpush(self, args):
 
-        if self.get_text():
-            return "Document not empty, will not create scaffold"
+        cwl_view = YamlView(raw_text=self.editor.cached_text)
+        if cwl_view.yaml is None:
+            message = "Can not push malformed CWL document"
+            logger.debug(message)
+            raise RuntimeError(message)
+
+        app_path = args[0] if len(args) else None
+
+        from ...sbg.push import push
+
+        app = push(api, cwl_view.yaml, app_path)
+
 
         arg = args[0] if isinstance(args, list) else args
 
