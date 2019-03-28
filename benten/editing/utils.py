@@ -14,3 +14,7 @@ def iter_scalar_or_list(obj: (list, str)):
         return obj
     else:
         return [obj]
+
+
+def shorten(val: str, width=10, placeholder="..."):
+    return val[:width] + (val[width:] and placeholder)

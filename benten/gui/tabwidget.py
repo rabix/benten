@@ -94,17 +94,10 @@ class TabWidget(QTabWidget):
                 file_path=file_path))
 
             self.view_directory[fp_str] = vw
-            self.addTab(vw, file_path.name)
 
-            if self.count() == 1:
-                self._make_base_tab_unclosable()
-
-        vw = self.view_directory[fp_str]
-
-        if vw not in self:
-            self.addTab(vw, vw.view.readable_path())
-
-        self.setCurrentWidget(vw)
+        self._switch_to_tab(fp_str)
+        if self.count() == 1:
+            self._make_base_tab_unclosable()
 
     def open_inline_section(self, yaml_view: YamlView, inline_path: Tuple[str, ...]):
         if yaml_view.yaml_error is not None:
@@ -120,12 +113,7 @@ class TabWidget(QTabWidget):
 
             self.view_directory[fp_str] = vw
 
-        vw = self.view_directory[fp_str]
-
-        if vw not in self:
-            self.addTab(vw, vw.view.readable_path())
-
-        self.setCurrentWidget(vw)
+        self._switch_to_tab(fp_str)
 
     #
     # Helper functions
@@ -166,3 +154,13 @@ class TabWidget(QTabWidget):
         vw = ViewWidget(config=self.config)
         vw.open_steps.connect(self.open_steps)
         return vw
+
+    def _switch_to_tab(self, fp_str: str):
+        vw = self.view_directory[fp_str]
+
+        if vw not in self:
+            self.setTabToolTip(
+                self.addTab(vw, vw.view.short_readable_path()),
+                vw.view.readable_path())
+
+        self.setCurrentWidget(vw)

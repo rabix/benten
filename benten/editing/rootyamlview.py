@@ -45,6 +45,7 @@ import pathlib
 from typing import Tuple, Dict, Callable
 from enum import IntEnum
 
+from .utils import shorten
 from ..implementationerror import ImplementationError
 from .lineloader import YNone, Ystr, Ydict, LAM
 from .edit import Edit, EditMark
@@ -324,5 +325,8 @@ class RootYamlView(YamlView):
         start = EditMark(line_to_insert, column_to_insert)
         return Edit(start, end, "".join(text_lines), text_lines)
 
+    def short_readable_path(self):
+        return shorten(self.file_path.name, width=10, placeholder="..")
+
     def readable_path(self):
-        return self.file_path.name
+        return self.file_path.as_posix()

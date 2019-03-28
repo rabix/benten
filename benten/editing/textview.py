@@ -1,6 +1,7 @@
 """This represents a leaf node in a document, which is plain text"""
 from typing import Tuple
 
+from .utils import shorten
 from ..implementationerror import ImplementationError
 
 
@@ -59,6 +60,11 @@ class TextView:
         if self.delete_callback is not None:
             self.delete_callback()
 
+    def short_readable_path(self):
+        return self.root().short_readable_path() + " : " + \
+               "/".join(shorten(p, width=10, placeholder="..")
+                        for p in self.inline_path if p not in ["steps", "run"])
+
     def readable_path(self):
-        return self.root().readable_path() + ":" + \
-               ".".join(p for p in self.inline_path if p not in ["steps", "run"])
+        return self.root().readable_path() + " : " + \
+               "/".join(p for p in self.inline_path if p not in ["steps", "run"])
