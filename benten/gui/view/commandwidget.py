@@ -6,10 +6,9 @@ The command is echoed and the response printed below.
 import pathlib
 from shlex import split
 
-from PySide2.QtCore import Slot, Signal
+from PySide2.QtCore import Qt, Slot, Signal
 from PySide2.QtWidgets import QVBoxLayout, QLineEdit, QTextEdit, QWidget
-from PySide2.QtGui import QTextCursor
-from PySide2.QtGui import QFontDatabase
+from PySide2.QtGui import QTextCursor, QFontDatabase, QKeyEvent
 
 from ...editing.edit import Edit, EditMark
 from ...editing.lineloader import load_yaml
@@ -51,6 +50,37 @@ def only_wf(func):
     return cmd
 
 
+class CommandLine(QLineEdit):
+    """Adds history and history navigation"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.history = [""]
+        self.history_n = 0
+
+        self.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
+        self.setToolTip("Enter commands here")
+        self.returnPressed.connect(self.command_entered)
+
+    def keyPressEvent(self, event:QKeyEvent):
+        if event.key() == Qt.Key_Up:
+            self.history_n -= 1
+            if self.history_n < 0: self.history_n = len(self.history) - 1
+        elif event.key() == Qt.Key_Down:
+            self.history_n += 1
+            if self.history_n > len(self.history) - 1: self.history_n = 0
+        else:
+            return super().keyPressEvent(event)
+
+        if -1 < self.history_n < len(self.history):
+            self.setText(self.history[self.history_n])
+
+    @Slot()
+    def command_entered(self):
+        if self.text() not in self.history:
+            self.history.append(self.text())
+        self.history_n = len(self.history)
+
+
 class CommandWidget(QWidget):
 
     proposed_edit = Signal(object)
@@ -63,9 +93,7 @@ class CommandWidget(QWidget):
         # We need a reference to the editor since several commands operate on the raw text both
         # reading and writing back to the original document
 
-        self.command_line = QLineEdit()
-        self.command_line.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
-        self.command_line.setToolTip("Enter commands here")
+        self.command_line = CommandLine()
         self.command_line.returnPressed.connect(self.command_entered)
 
         self.command_log = QTextEdit()
