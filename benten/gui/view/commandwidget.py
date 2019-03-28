@@ -4,6 +4,7 @@ Below it is a read only multiline text box that shows the response to the comman
 The command is echoed and the response printed below.
 """
 import pathlib
+from shlex import split
 
 from PySide2.QtCore import Slot, Signal
 from PySide2.QtWidgets import QVBoxLayout, QLineEdit, QTextEdit, QWidget
@@ -11,6 +12,7 @@ from PySide2.QtGui import QTextCursor
 from PySide2.QtGui import QFontDatabase
 
 from ...editing.edit import Edit, EditMark
+from ...editing.lineloader import load_yaml
 from ...editing.yamlview import YamlView
 
 from ..ace.editor import Editor
@@ -110,7 +112,7 @@ class CommandWidget(QWidget):
     @Slot()
     def command_entered(self):
         cmd_line = self.command_line.text()
-        cmd, *arguments = cmd_line.split()
+        cmd, *arguments = split(cmd_line)
 
         if cmd in self.dispatch_table:
             try:
@@ -145,37 +147,17 @@ class CommandWidget(QWidget):
         cmd_help="sbpush <message> [project/id] : Push this app to the platform")
     def sbpush(self, args):
 
-        cwl_view = YamlView(raw_text=self.editor.cached_text)
-        if cwl_view.yaml is None:
-            message = "Can not push malformed CWL document"
-            logger.debug(message)
-            raise RuntimeError(message)
+        if not (0 < len(args) < 3):
+            return "Arguments are <message> [project/id]"
 
-        app_path = args[0] if len(args) else None
+        commit_message = args[0]
+        app_path = args[1] if len(args) > 1 else None
 
         from ...sbg.push import push
 
-        app = push(api, cwl_view.yaml, app_path)
-
-
-        arg = args[0] if isinstance(args, list) else args
-
-        choices = {
-            "clt": "command-line-tool.cwl",
-            "et": "expression-tool.cwl",
-            "wf": "workflow.cwl"
-        }
-        scaffold_path = pathlib.Path(
-            self.config.getpath("cwl", "template_dir"), choices.get(arg, "doesnotexist"))
-
-        if scaffold_path.exists():
-            edit = Edit(start=EditMark(line=0, column=0), end=None,
-                        text=scaffold_path.open("r").read(), text_lines=[])
-
-            self.proposed_edit.emit(edit)
-            return "Added scaffold from file {}".format(scaffold_path)
-        else:
-            return "No scaffold for process type {}. Valid arguments are {}".format(arg, list(choices.keys()))
+        app = push(self.editor.config.api, load_yaml(self.editor.cached_text), commit_message, app_path)
+        logger.debug("Pushed app and git back app id: {}".format(app.raw["sbg:id"]))
+        return "Pushed app to {}".format(app.id)
 
     @meta(
         cmd="docker",
