@@ -91,8 +91,8 @@ class EditorPane(QWidget):
         main_pane.setOrientation(Qt.Vertical)
         main_pane.addWidget(ed_widget)
         main_pane.addWidget(self.command_widget)
-        main_pane.setStretchFactor(0, 5)
-        main_pane.setStretchFactor(1, 3)
+        # main_pane.setStretchFactor(0, 5)
+        # main_pane.setStretchFactor(1, 3)
 
         # If we don't put all this in a layout and set zero margin QT puts us in a tiny box within
         # the window
