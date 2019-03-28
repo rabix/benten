@@ -39,9 +39,11 @@ class Configuration(configparser.ConfigParser):
             self.create_default_config_file()
 
         self.load()
-
-        # self.copy_missing_templates()
         self._copy_missing_config_files()
+
+        self.last_session_file = P(self.cfg_path, "last-session.ini")
+        self.last_session = configparser.ConfigParser()
+        self.load_last_session()
 
     # https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
     def optionxform(self, optionstr):
@@ -63,23 +65,16 @@ class Configuration(configparser.ConfigParser):
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         shutil.copy(P(default_config_data_dir, "config.ini"), self.path)
 
-    def copy_missing_templates(self):
-        cwl_default_template_dir = P(default_config_data_dir, "cwl-templates")
-        cwl_template_dir = self._resolve_path(P(self.get("cwl", "template_dir")))
-        for dirpath, dirnames, filenames in os.walk(cwl_default_template_dir):
-            for name in filenames:
-                src_tplt = P(dirpath, name)
-                dst_tplt = P(cwl_template_dir, src_tplt.relative_to(cwl_default_template_dir))
-                if dst_tplt.exists():
-                    continue
-                else:
-                    os.makedirs(os.path.dirname(dst_tplt), exist_ok=True)
-                    shutil.copy(src_tplt, dst_tplt)
-
     def load(self):
         # https://docs.python.org/3/library/configparser.html#configparser.ConfigParser.read
         self.read_file(P(default_config_data_dir, "config.ini").open("r"))
         self.read(self.path)
+
+    def load_last_session(self):
+        self.last_session.read(self.last_session_file)
+
+    def save_last_session(self):
+        self.last_session.write(self.last_session_file.open("w"))
 
     # We don't do this because we don't want to mess with the user's original formatting
     # def save(self):

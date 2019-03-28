@@ -102,8 +102,16 @@ class MainWindow(QMainWindow):
             logger.debug("Switching platform to {}".format(_action.text()))
 
         prof_action_group.triggered.connect(_profile_selected)
-        prof_action_group.actions()[0].setChecked(True)
-        _profile_selected(prof_action_group.actions()[0])
+
+        ls = self.config.last_session.get("sbg", "context", fallback=None)
+        act = next((act for act in prof_action_group.actions() if act.text() == ls), None)
+        if act is not None:
+            act.activate(QAction.Trigger)
+        else:
+            prof_action_group.actions()[0].activate(QAction.Trigger)
+
+        # prof_action_group.actions()[0].setChecked(True)
+        # _profile_selected(prof_action_group.actions()[0])
 
     def _add_file_menu(self, menu):
         file_menu = menu.addMenu("File")
@@ -119,6 +127,11 @@ class MainWindow(QMainWindow):
             event.accept()
         else:
             event.ignore()
+            return
+
+        self.config.save_last_session()
+        logger.debug("Saved session variables")
+
         # super().closeEvent(event)
 
     # @Slot()

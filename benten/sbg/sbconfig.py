@@ -13,3 +13,7 @@ class SBConfig(Configuration):
 
     def set_profile(self, profile):
         self.api = Profiles(self)[profile]
+
+        if "sbg" not in self.last_session.sections():
+            self.last_session["sbg"] = {}
+        self.last_session["sbg"]["context"] = profile
