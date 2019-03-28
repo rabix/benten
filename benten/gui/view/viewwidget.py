@@ -218,7 +218,7 @@ class ViewWidget(QWidget):
             if self.view.yaml_error:
                 self.editor_pane.mark_problems([self.view.yaml_error])
             else:
-                self.editor_pane.mark_problems(self.process_model.cwl_errors)
+                self.editor_pane.mark_problems(self.view.cwl_problems + self.process_model.cwl_errors)
 
     @Slot()
     def something_selected(self):

@@ -15,12 +15,14 @@ class YamlView(TextView):
         self._yaml = None
         self._last_good_yaml = None
         self.yaml_error = None
+        self.cwl_problems = []
 
     @property
     def yaml(self):
         if self._yaml is None:
             try:
-                self._yaml = parse_yaml_with_line_info(self.raw_text, convert_to_lam=True) or Ydict.empty()
+                self._yaml = parse_yaml_with_line_info(
+                    self.raw_text, convert_to_lam=True, errors=self.cwl_problems) or Ydict.empty()
                 self.yaml_error = None
                 self._last_good_yaml = self._yaml
             except DocumentError as e:

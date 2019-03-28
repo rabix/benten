@@ -49,6 +49,8 @@ except ImportError:
                   ImportWarning)
     from yaml import SafeLoader as Loader
 
+from .documentproblem import DocumentProblem
+
 
 def load_yaml(raw_cwl: str):
     return yaml.load(raw_cwl, Loader)
@@ -147,17 +149,31 @@ allowed_loms = {
 
 
 class LAM(dict):
-    def __init__(self, value, node, key_field: str="id"):
+    def __init__(self, value, node, key_field: str="id", errors=[]):
         secret_missing_key = "there is no CWL field that looks like this, and it can safely be used"
-        self.errors = []
 
-        def _add_error_line(ln):
-            self.errors += [ln]
-            return secret_missing_key
+        def _get_key(x, _errors):
+            if not isinstance(x, dict):
+                _errors += [
+                    DocumentProblem(line=node.start_mark.line, column=node.start_mark.column,
+                                    message="Expecting a dictionary here",
+                                    problem_type=DocumentProblem.Type.error,
+                                    problem_class=DocumentProblem.Class.cwl)]
+                return None
+            elif key_field not in x:
+                _errors += [
+                    DocumentProblem(line=node.start_mark.line, column=node.start_mark.column,
+                                    message="Expecting a dictionary here",
+                                    problem_type=DocumentProblem.Type.error,
+                                    problem_class=DocumentProblem.Class.cwl)]
+                return None
+            else:
+                return x[key_field]
 
         dict.__init__(self, {
-            (v.get(key_field) or _add_error_line(v)): v
-            for v in value
+            _k: _v
+            for _k, _v in ((_get_key(v, errors), v) for v in value)
+            if _k is not None
         })
 
         if secret_missing_key in self:
@@ -214,16 +230,15 @@ YSafeLineLoader.add_constructor(
     YSafeLineLoader.construct_yaml_null)
 
 
-def _recurse_extract_meta(x, key=None, convert_to_lam=False):
+def _recurse_extract_meta(x, key=None, convert_to_lam=False, errors=[]):
     if isinstance(x, dict):
         node = x.pop(meta_node_key)
-        return Ydict({k: _recurse_extract_meta(v, k, convert_to_lam) for k, v in x.items()}, node)
+        return Ydict({k: _recurse_extract_meta(v, k, convert_to_lam, errors) for k, v in x.items()}, node)
     elif isinstance(x, list):
         node = x.pop(-1)
-        _data = [_recurse_extract_meta(v, None, convert_to_lam) for v in x]
+        _data = [_recurse_extract_meta(v, None, convert_to_lam, errors) for v in x]
         if convert_to_lam and key in allowed_loms:
-            if isinstance(x, list):
-                return LAM(_data, node, key_field=allowed_loms[key])
+            return LAM(_data, node, key_field=allowed_loms[key], errors=errors)
         return Ylist(_data, node)
     else:
         return x
@@ -236,9 +251,10 @@ class DocumentError(Exception):
         self.message = msg
 
 
-def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False):
+def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False, errors=[]):
     try:
-        return _recurse_extract_meta(yaml.load(raw_cwl, YSafeLineLoader), convert_to_lam=convert_to_lam)
+        return _recurse_extract_meta(yaml.load(raw_cwl, YSafeLineLoader),
+                                     convert_to_lam=convert_to_lam, errors=errors)
     except (ParserError, ScannerError) as e:
         raise DocumentError(e.problem_mark.line, e.problem_mark.column, str(e))
 
