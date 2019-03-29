@@ -182,13 +182,18 @@ class CommandWidget(QWidget):
         app_path = args[1] if len(args) > 1 else None
 
         from ...sbg.push import push
+        from ...sbg.versionmanagement import change_or_add_sbg_repo_tag
 
         app = push(self.editor.config.api, load_yaml(self.editor.cached_text), commit_message, app_path)
+
+        new_raw_text = change_or_add_sbg_repo_tag(self.editor.cached_text, app.raw["sbg:id"])
+        self.editor.set_text(raw_text=new_raw_text)
+
         logger.debug("Pushed app and got back app id: {}".format(app.raw["sbg:id"]))
         return "Pushed app to {}\n".format(app.id)
 
     @meta(
-        cmd="docker",
+        cmd="sbrun",
         cmd_help="docker <docker_image> : Add DockerRequirement to CLT")
     @only_clt
     def docker_scaffold(self, args):
@@ -207,8 +212,8 @@ class CommandWidget(QWidget):
         return "Added DockerRequirement"
 
     @meta(
-        cmd="add",
-        cmd_help="add <step_id> [path] : Create scaffold for new inline step, "
+        cmd="sbadd",
+        cmd_help="add <step_id> <path> : Create scaffold for new inline step, "
                  "or, if path is given new linked step.")
     @only_wf
     def add_step_scaffold(self, args):
