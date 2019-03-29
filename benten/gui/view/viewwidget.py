@@ -51,20 +51,20 @@ class ViewWidget(QWidget):
         self.set_text(self.view.raw_text)
 
     def _setup_panes(self):
-        left_pane = QSplitter()
-        left_pane.setHandleWidth(1)
-        left_pane.setOrientation(Qt.Vertical)
-        left_pane.addWidget(self.process_view)
-        left_pane.addWidget(self.wiring_table)
-        left_pane.setStretchFactor(0, 3)
-        left_pane.setStretchFactor(1, 1)
+        visual_pane = QSplitter()
+        visual_pane.setHandleWidth(1)
+        visual_pane.setOrientation(Qt.Vertical)
+        visual_pane.addWidget(self.process_view)
+        visual_pane.addWidget(self.wiring_table)
+        visual_pane.setStretchFactor(0, 3)
+        visual_pane.setStretchFactor(1, 1)
 
         main_pane = QSplitter(self)
         main_pane.setHandleWidth(1)
-        main_pane.addWidget(left_pane)
         main_pane.addWidget(self.editor_pane)
-        main_pane.setStretchFactor(0, 5)
+        main_pane.addWidget(visual_pane)
         main_pane.setStretchFactor(1, 3)
+        main_pane.setStretchFactor(0, 5)
 
         # If we don't put all this in a layout and set zero margin QT puts us in a tiny box within
         # the window
