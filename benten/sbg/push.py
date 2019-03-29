@@ -1,5 +1,7 @@
 import sevenbridges.errors as sbgerr
 
+from ..sbg.versionmanagement import strip_local_edits_suffix
+
 import logging
 logger = logging.getLogger(__name__)
 logging.getLogger("sevenbridges.http.client").propagate = False
@@ -25,12 +27,11 @@ def push(api, yaml, commit_message, app_path=None):
             raise RuntimeError("This app has not been registered in the repository.\n"
                                "Please pass an app path (user/project/appid) to register.")
         else:
-            app_path = yaml["sbg:id"]
+            app_path = strip_local_edits_suffix(yaml["sbg:id"])
     else:
         if not valid(app_path):
             raise RuntimeError("App path needs to be in the form user/project/app_id")
 
-    # this_rev_info = {"sbg:revisionNotes": commit_message}
     yaml["sbg:revisionNotes"] = commit_message
     try:
         app = api.apps.get(app_path)

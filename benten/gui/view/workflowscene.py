@@ -7,7 +7,7 @@ from PySide2.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsSimp
 from ...configuration import Configuration
 from .processscene import ProcessScene
 from ...models.workflow import Workflow, Step, special_id_for_inputs, special_id_for_outputs
-from ...sbg.versionmixin import get_app_info
+from ...sbg.versionmanagement import get_app_info
 
 
 color_code_light_theme = {

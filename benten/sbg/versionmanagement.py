@@ -1,7 +1,44 @@
-""""""
+"""This handles
+1. Pulling version information from the SBG repository
+2. Manipulating the "sbg:id" tag in response to local edits, pushes and retrieval of versions
+
+Algorithm of note:
+
+Editing a view of a document marks it and any ancestor documents also as edited. We need to walk
+back up the ancestor chain doing this. We do all this programmatically
+
+
+
+
+For this reason we can use a
+
+As a result we can use a fast algorithm
+
+
+"""
 from sevenbridges import Api
 
+from ..editing.rootyamlview import RootYamlView, YamlView
+
 file_not_pushed_suffix = "-local-edits"
+
+
+def mark_with_local_edits(raw_text):
+    lines = raw_text.splitlines(keepends=True)
+    for n, line in enumerate(lines):
+        if line.startswith("sbg:id: "):
+            if not line.strip("\n").endswith(file_not_pushed_suffix):
+                lines[n] = lines[n].rstrip() + file_not_pushed_suffix + "\n"
+            break
+    return "".join(lines)
+
+
+
+def strip_local_edits_suffix(path_str):
+    if path_str.endswith(file_not_pushed_suffix):
+        return path_str[:-len(file_not_pushed_suffix)]
+    else:
+        return path_str
 
 
 # lets see how far we can get with a heuristic
@@ -14,6 +51,15 @@ def change_or_add_sbg_repo_tag(raw_text, new_id):
     else:
         lines.append("sbg:id: " + new_id + "\n")
     return "".join(lines)
+
+
+def propagate_local_edits_tag(view: YamlView):
+    """Edits to a registered app should be marked with a prefix disconnecting it from the
+    repository
+
+    Alter the text of all ancestors of this view to indicate they have been edited.
+    Again, these being single line changes, we can """
+
 
 
 class SBGAppInfo:
