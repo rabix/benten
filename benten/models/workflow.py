@@ -157,15 +157,33 @@ class Step:
                             problem_class=DocumentProblem.Class.cwl)]
                     sub_workflow = InvalidSub()
 
-            sinks = OrderedDict([
-                (k, Port(node_id=step_id, port_id=k))
-                for k, v in dictify(sub_process.get("inputs", {})).items()
-            ])
+            if isinstance(sub_process.get("inputs"), (dict, list)):
+                sinks = OrderedDict([
+                    (k, Port(node_id=step_id, port_id=k))
+                    for k, v in dictify(sub_process.get("inputs", {})).items()
+                ])
+            else:
+                sinks = {}
+                wf_error_list += [
+                    DocumentProblem(
+                        line=step_doc["run"].start.line, column=step_doc["run"].start.column,
+                        message="Sub workflow ouputs are incomplete",
+                        problem_type=DocumentProblem.Type.error,
+                        problem_class=DocumentProblem.Class.cwl)]
 
-            sources = OrderedDict([
-                (k, Port(node_id=step_id, port_id=k))
-                for k, v in dictify(sub_process.get("outputs", {})).items()
-            ])
+            if isinstance(sub_process.get("outputs"), (dict, list)):
+                sources = OrderedDict([
+                    (k, Port(node_id=step_id, port_id=k))
+                    for k, v in dictify(sub_process.get("outputs", {})).items()
+                ])
+            else:
+                sources = {}
+                wf_error_list += [
+                    DocumentProblem(
+                        line=step_doc["run"].start.line, column=step_doc["run"].start.column,
+                        message="Sub workflow inputs are incomplete",
+                        problem_type=DocumentProblem.Type.error,
+                        problem_class=DocumentProblem.Class.cwl)]
 
         return cls(_id=step_id, line=line, sinks=sinks, sources=sources,
                    process_type=sub_process.get("class", "invalid"),
@@ -223,8 +241,7 @@ class Workflow(WorkflowEditMixin, Base):
             )
             self.connections = self._list_connections()
 
-    @staticmethod
-    def _parse_ports(obj):
+    def _parse_ports(self, obj):
         # Papers please
         # def _line_no(_v, _default: (int, int)):
         #     if isinstance(_v, (CWLList, CWLMap)):
@@ -237,13 +254,21 @@ class Workflow(WorkflowEditMixin, Base):
         # else:
         #     def_ln = None
 
+        if not isinstance(obj, dict):
+            self.cwl_errors += [DocumentProblem(line=obj.start.line, column=0,
+                                                message="Port object needs to be dict",
+                                                problem_type=DocumentProblem.Type.error,
+                                                problem_class=DocumentProblem.Class.cwl)]
+            return {}
+
         return OrderedDict([
             (k, Port(node_id=None, port_id=k, line=(v.start.line, v.end.line)))
             for k, v in obj.items()
         ])
 
     def _get_source(self, _src) -> Port:
-        if _src is None or _src == "":
+
+        if isinstance(_src, YNone) or _src == "":
             raise WFConnectionError("No source specified")
 
         if "/" in _src:
@@ -284,6 +309,23 @@ class Workflow(WorkflowEditMixin, Base):
 
             this_step: Step = self.steps[step_id]
             # TODO: error check
+            in_ports = step_doc.get("in")
+            if in_ports is None:
+                self.cwl_errors += [
+                    DocumentProblem(line=step_doc.start.line, column=step_doc.start.column,
+                                    message="Missing inputs description in step",
+                                    problem_type=DocumentProblem.Type.error,
+                                    problem_class=DocumentProblem.Class.cwl)]
+                continue
+
+            if not isinstance(in_ports, dict):
+                self.cwl_errors += [
+                    DocumentProblem(line=in_ports.start.line, column=in_ports.start.column,
+                                    message="Issue with step inputs",
+                                    problem_type=DocumentProblem.Type.error,
+                                    problem_class=DocumentProblem.Class.cwl)]
+                continue
+
             for step_sink_id, port_doc in (step_doc.get("in") or {}).items():
                 sink = this_step.available_sinks.get(step_sink_id, None)
                 if sink is None:
@@ -323,8 +365,29 @@ class Workflow(WorkflowEditMixin, Base):
                         continue
 
         # Connections to WF outputs
+        wf_outputs = cwl_dict.get("outputs", None)
+        if wf_outputs is None:
+            # The error has been registered in the initializer
+            return connections
+
+        if not isinstance(wf_outputs, dict):
+            self.cwl_errors += [
+                DocumentProblem(line=wf_outputs.start.line, column=wf_outputs.start.column,
+                                message="Outputs need to be a dict or list",
+                                problem_type=DocumentProblem.Type.error,
+                                problem_class=DocumentProblem.Class.cwl)]
+            return connections
+
         for out_id, out_doc in (cwl_dict.get("outputs") or {}).items():
             sink = self.outputs[out_id]
+
+            if not isinstance(out_doc, dict):
+                self.cwl_errors += [
+                    DocumentProblem(line=out_doc.start.line, column=out_doc.start.column,
+                                    message="Sink has to be a dict",
+                                    problem_type=DocumentProblem.Type.error,
+                                    problem_class=DocumentProblem.Class.cwl)]
+                continue
 
             if "outputSource" in out_doc:
                 # todo: figure out line numbers
