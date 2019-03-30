@@ -10,13 +10,13 @@
     - [Scaffolding](#scaffolding)
     - [Editing inlined steps](#editing-inlined-steps)
 - [Suggested git based workflow](#suggested-git-based-workflow)
-- [Modifying scaffold templates](#modifying-scaffold-templates)
 - [SBG Tutorial](#sbg-tutorial)
     - [Credentials file and profiles](#credentials-file-and-profiles)
         - [Switching contexts while editing](#switching-contexts-while-editing)
     - [Push an App to the platform](#push-an-app-to-the-platform)
+        - [Pushing inlined apps.](#pushing-inlined-apps)
         - [Editing an app after pushing](#editing-an-app-after-pushing)
-        - [App ids](#app-ids)
+        - ["sbg:id"](#sbgid)
     - [Run a test](#run-a-test)
     - [Re-run a test](#re-run-a-test)
     - [Upgrade/downgrade apps](#upgradedowngrade-apps)
@@ -34,6 +34,7 @@
         - [Synchronized editing and undo/redo](#synchronized-editing-and-undoredo)
         - [Inline step editing and blank lines](#inline-step-editing-and-blank-lines)
         - [Opening CWL in JSON format](#opening-cwl-in-json-format)
+        - [Modifying autocomplete templates](#modifying-autocomplete-templates)
         - [Editor options](#editor-options)
 
 <!-- /TOC -->
@@ -150,12 +151,6 @@ Let's flesh out the Command Line Tool.
 
 
 
-# Modifying scaffold templates
-
-Most of the major templates are found as `.cwl` files in the config directory.
-These can be edited to change the template, e.g. by reordering sections as the
-user prefers. Be aware that some templates (e.g. the step template) have 
-variable substitutions that need to be present.
 
 
 # SBG Tutorial
@@ -220,18 +215,22 @@ to the  current SBG platform. If this is the first time you are pushing the
 App you will have to supply a project and app name. 
 `sbpush <message> project/appid`.
 
+### Pushing inlined apps.
+The push command applies to the current app being edited. If this is an inlined
+app, just that app is pushed. This naturally marks all parent apps as edited if 
+they are registered in an SBG repository. 
+
+
 ### Editing an app after pushing
 Pushing an app to the SBG platform registers it. Pushing an app will change one
 line in your local copy - the app id field. This will be replaced with the app
 id string the SBG repository returns. Once you begin to edit the app the suffix
 `-local-edits` will be added to the id to indicate this.
 
-### App ids
-Some developers encode their own metadata in the app id field. The SBG platform
-uses the app id field within the SBG app ecosystem to track versions and links
-across apps used in workflows. For this reason if you wish to interoperate
-with the SBG app eco system it is best to use a custom field, such as `my-metadata`
-to store this metadata rather than inserting it in the id field. 
+### "sbg:id"
+The SBG platform uses the "sbg:id" field to track versions and links across apps 
+used in workflows. Hand editing this can result in problems with app management
+(such as upgrading/downgrading versions) 
 
 ## Run a test
 After pushing an app typing `sbrun` will create a draft task on the platform
@@ -341,7 +340,6 @@ whole document. For this reason you'll lose your cursor place after an undo/redo
 undo/redo registers as a new edit in the linked views. *In general, it is most comfortable to edit
 an inlined sub-workflow in it's own view.*
 
-
 ### Inline step editing and blank lines
 If you have an inline step, and have a blank line with white-spaces, on editing the step these
 white-spaces will disappear from your blank line. In general it is a good practice not to have
@@ -357,6 +355,10 @@ Basically, if you are using _Benten_ presumably you do a lot of CWL coding by ha
 likely you are doing this in YAML, not JSON, so the best flow is to just stay in YAML. **This
 auto-conversion is offered as a convenience when you just want to peek at a CWL in JSON format,
 not for doing regular work in hand written JSON (shudder).**
+
+### Modifying autocomplete templates
+
+The CWL templates are found in the `snippets.yaml` file and can be customized.
 
 ### Editor options
 The editor options (section `[editor]`) are passed verbatim to the Ace editor.
