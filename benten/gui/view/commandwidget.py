@@ -5,11 +5,13 @@ The command is echoed and the response printed below.
 """
 import pathlib
 from shlex import split
+import traceback
 
 from PySide2.QtCore import Qt, Slot, Signal
 from PySide2.QtWidgets import QVBoxLayout, QLineEdit, QTextEdit, QWidget
 from PySide2.QtGui import QTextCursor, QFontDatabase, QKeyEvent
 
+from ...sbg.sbconfig import SBConfig
 from ...editing.edit import Edit, EditMark
 from ...editing.lineloader import load_yaml
 from ...editing.yamlview import YamlView
@@ -86,12 +88,13 @@ class CommandWidget(QWidget):
     proposed_edit = Signal(object)
     step_selected = Signal(str)
 
-    def __init__(self, editor: Editor, parent=None):
+    def __init__(self, config: SBConfig, parent=None):
         QWidget.__init__(self, parent=parent)
 
-        self.editor = editor
-        # We need a reference to the editor since several commands operate on the raw text both
-        # reading and writing back to the original document
+        self.config = config
+        self.view = None
+        # Several commands need read/write access to both the raw text and the YAML of the
+        # base document and current view
 
         self.command_line = CommandLine()
         self.command_line.returnPressed.connect(self.command_entered)
@@ -146,6 +149,8 @@ class CommandWidget(QWidget):
             try:
                 response = str(self.dispatch_table[cmd]["call"](arguments))
             except Exception as e:
+                tb = traceback.format_exc()
+                logger.debug(tb)
                 response = f"Command error:\n{e}"
         else:
             response = "Unknown command: {}".format(cmd)
@@ -182,12 +187,10 @@ class CommandWidget(QWidget):
         app_path = args[1] if len(args) > 1 else None
 
         from ...sbg.push import push
-        from ...sbg.versionmanagement import change_or_add_sbg_repo_tag
+        from ...sbg.versionmanagement import propagate_local_edits_tag
 
-        app = push(self.editor.config.api, load_yaml(self.editor.cached_text), commit_message, app_path)
-
-        new_raw_text = change_or_add_sbg_repo_tag(self.editor.cached_text, app.raw["sbg:id"])
-        self.editor.set_text(raw_text=new_raw_text)
+        app = push(self.config.api, load_yaml(self.view.raw_text), commit_message, app_path)
+        propagate_local_edits_tag(self.view, app.raw["sbg:id"])
 
         logger.debug("Pushed app and got back app id: {}".format(app.raw["sbg:id"]))
         return "Pushed app to {}\n".format(app.id)

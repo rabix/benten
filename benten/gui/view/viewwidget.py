@@ -15,6 +15,7 @@ from ...models.unk import Unk
 from ...models.commandlinetool import CommandLineTool
 from ...models.workflow import Workflow
 
+from .commandwidget import CommandWidget
 from .editorpane import EditorPane
 from .processview import ProcessView
 from .wiringtable import WiringTable
@@ -37,7 +38,13 @@ class ViewWidget(QWidget):
 
         self.process_view = ProcessView()
         self.wiring_table = WiringTable(config=config)
+
         self.editor_pane = EditorPane(config=self.config)
+        self.command_widget = CommandWidget(config=self.config)
+        self.command_widget.setVisible(False)
+
+        self.cmd_toggle = QShortcut(QKeySequence("Ctrl+P"), self)
+        self.cmd_toggle.activated.connect(self.toggle_command_widget)
 
         self._setup_panes()
         self._connect_widgets()
@@ -50,6 +57,8 @@ class ViewWidget(QWidget):
         self.view.delete_callback = self.close
         self.set_text(self.view.raw_text)
 
+        self.command_widget.view = self.view
+
     def _setup_panes(self):
         visual_pane = QSplitter()
         visual_pane.setHandleWidth(1)
@@ -59,9 +68,17 @@ class ViewWidget(QWidget):
         visual_pane.setStretchFactor(0, 3)
         visual_pane.setStretchFactor(1, 1)
 
+        code_pane = QSplitter()
+        code_pane.setHandleWidth(1)
+        code_pane.setOrientation(Qt.Vertical)
+        code_pane.addWidget(self.editor_pane)
+        code_pane.addWidget(self.command_widget)
+        code_pane.setStretchFactor(0, 1)
+        code_pane.setStretchFactor(1, 1)
+
         main_pane = QSplitter(self)
         main_pane.setHandleWidth(1)
-        main_pane.addWidget(self.editor_pane)
+        main_pane.addWidget(code_pane)
         main_pane.addWidget(visual_pane)
         main_pane.setStretchFactor(1, 3)
         main_pane.setStretchFactor(0, 5)
@@ -99,6 +116,14 @@ class ViewWidget(QWidget):
         self.view.set_raw_text(raw_text=raw_text)
         self.view.synchronize_text()
         self.update_from_code()
+
+    @Slot()
+    def toggle_command_widget(self):
+        self.command_widget.setVisible(not self.command_widget.isVisible())
+        if self.command_widget.isVisible():
+            self.command_widget.command_line.setFocus()
+        else:
+            self.editor_pane.setFocus()
 
     # def get_text(self):
     #     # return self.code_editor.toPlainText()

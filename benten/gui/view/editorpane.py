@@ -9,7 +9,6 @@ from PySide2.QtGui import QKeySequence, QFontDatabase
 from ...editing.documentproblem import DocumentProblem
 from ...models.workflow import Workflow
 from ..ace.editor import Editor
-from .commandwidget import CommandWidget
 
 import logging
 logger = logging.getLogger(__name__)
@@ -71,11 +70,6 @@ class EditorPane(QWidget):
         self.navbar = self._setup_navbar()
         self.problem_handler = ProblemHandler()
         self.problem_handler.goto.connect(self.goto)
-        self.command_widget = CommandWidget(editor=self.code_editor)
-        self.command_widget.setVisible(False)
-
-        self.cmd_toggle = QShortcut(QKeySequence("Ctrl+P"), self)
-        self.cmd_toggle.activated.connect(self.toggle_command_widget)
 
         ed_layout = QVBoxLayout()
         ed_layout.addWidget(self.navbar)
@@ -83,31 +77,7 @@ class EditorPane(QWidget):
         ed_layout.addWidget(self.problem_handler)
         ed_layout.setMargin(0)
         ed_layout.setSpacing(0)
-        ed_widget = QWidget()
-        ed_widget.setLayout(ed_layout)
-
-        main_pane = QSplitter(self)
-        main_pane.setHandleWidth(1)
-        main_pane.setOrientation(Qt.Vertical)
-        main_pane.addWidget(ed_widget)
-        main_pane.addWidget(self.command_widget)
-        # main_pane.setStretchFactor(0, 5)
-        # main_pane.setStretchFactor(1, 3)
-
-        # If we don't put all this in a layout and set zero margin QT puts us in a tiny box within
-        # the window
-        main_layout = QHBoxLayout()
-        main_layout.setMargin(0)
-        main_layout.addWidget(main_pane)
-        self.setLayout(main_layout)
-
-    @Slot()
-    def toggle_command_widget(self):
-        self.command_widget.setVisible(not self.command_widget.isVisible())
-        if self.command_widget.isVisible():
-            self.command_widget.command_line.setFocus()
-        else:
-            self.code_editor.setFocus()
+        self.setLayout(ed_layout)
 
     @Slot(str)
     def set_text(self, text):
