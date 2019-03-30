@@ -53,13 +53,39 @@ def change_or_add_sbg_repo_tag(raw_text, new_id):
     return "".join(lines)
 
 
-def propagate_local_edits_tag(view: YamlView):
+def propagate_local_edits_tag(view: YamlView, new_id=None):
     """Edits to a registered app should be marked with a prefix disconnecting it from the
-    repository
+    repository. These "local change" tags should propagate to all ancestors."""
+    if "sbg:id" in view.yaml and \
+            view.yaml["sbg:id"].endswith(file_not_pushed_suffix) and \
+            new_id is None:
+        return
 
-    Alter the text of all ancestors of this view to indicate they have been edited.
-    Again, these being single line changes, we can """
+    base = view.root()
+    new_lines = _propagate_local_edits_tag(base.raw_lines, base.yaml, view.inline_path, new_id)
+    base.set_raw_text("".join(new_lines))
+    base.synchronize_text()
 
+
+def _propagate_local_edits_tag(lines, obj, inline_path, new_id):
+    if len(inline_path):  # Still a ways to go
+        if "sbg:id" in obj:
+            sbg_id_v = obj["sbg:id"]
+            if not sbg_id_v.endswith(file_not_pushed_suffix):
+                lines[sbg_id_v.start.line] = lines[sbg_id_v.start.line].rstrip() + file_not_pushed_suffix + "\n"
+        return _propagate_local_edits_tag(lines, obj[inline_path[0]], inline_path[1:], new_id)
+    else:
+        if "sbg:id" in obj:
+            sbg_id_v = obj["sbg:id"]
+            if new_id is not None:
+                lines[sbg_id_v.start.line] = lines[sbg_id_v.start.line][:sbg_id_v.start.column] + new_id + "\n"
+            else:
+                if not sbg_id_v.endswith(file_not_pushed_suffix):
+                    lines[sbg_id_v.start.line] = lines[sbg_id_v.start.line].rstrip() + file_not_pushed_suffix + "\n"
+        elif new_id is not None:
+            new_line = " " * obj.start.column + "sbg:id: " + new_id + "\n"
+            lines = lines[:obj.end.line] + [new_line] + lines[obj.end.line:]
+        return lines
 
 
 class SBGAppInfo:
