@@ -5,6 +5,7 @@ from ..sbg.versionmanagement import strip_local_edits_suffix
 import logging
 logger = logging.getLogger(__name__)
 logging.getLogger("sevenbridges.http.client").propagate = False
+logging.getLogger("urllib3.connectionpool").propagate = False
 
 sbgerr.SbgError.__str__ = lambda x: str(x.message)
 # Monkey patch until https://github.com/sbg/sevenbridges-python/pull/119 is resolved
