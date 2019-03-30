@@ -242,7 +242,21 @@ class CommandWidget(QWidget):
         return "Added step"
 
 
+    @meta(
+        cmd="!",
+        cmd_help="! [command] : Run this command in the shell. ")
+    def shell_command(self, args):
 
+        import subprocess
+
+        cwl_name = str(self.view.root().file_path)
+        job_file = str(self.view.root().file_path) + ".job.yaml"
+
+        process = subprocess.Popen([
+            'env', r'BEN_CWL={cwl_name}', 'env', r'BEN_JOB={job_file}'] + args,
+            stdout=subprocess.PIPE)
+
+        return process.stdout
 
     # def list_steps(self, args):
     #     if self.bw.cwl_doc.process_type() in ["CommandLineTool", "ExpressionTool"]:
