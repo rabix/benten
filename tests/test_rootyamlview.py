@@ -158,7 +158,7 @@ def test_basic():
           - id: step2312
 """
     assert view2.raw_text == expected
-    assert view2.readable_path() == "step2"
+    assert view2.readable_path() == "yaml-test-temp-dir/test.cwl : step2"
     assert ed2.text == expected
 
 
@@ -190,6 +190,13 @@ def open_tree(fn="./test.cwl") -> Tuple[Dict[str, Union[RootYamlView, YamlView, 
     new_child("root/step2/step22/step222", "step2221", False)
 
     return views, editors
+
+
+def test_self_synchronization():
+    views, editors = open_tree()
+
+    views["root"].synchronize_text()
+    assert views["root"].raw_text == nested_document
 
 
 def test_null_synchronization():
