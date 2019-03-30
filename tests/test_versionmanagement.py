@@ -1,7 +1,7 @@
 import pathlib
 import pytest
 
-import benten.sbg.versionmixin as sam
+import benten.sbg.versionmanagement as sam
 from benten.editing.yamlview import YamlView
 
 
