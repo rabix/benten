@@ -125,6 +125,15 @@ class RootYamlView(YamlView):
             if value.style == "":
                 return value
 
+        # Heuristic to pick up blank and comment lines between the key and the value
+        # todo: won't handle quoted keys
+        if len(path) == 0:  # Heuristic for root document
+            start_line = 0
+        else:
+            while start_line - 1 > -1 and \
+                    not self.raw_lines[start_line - 1].lstrip().startswith(path[-1]):
+                start_line -= 1
+
         lines_we_need = self.raw_lines[start_line:end_line]
         lines = [
             l[indent_level:] if len(l) > indent_level else "\n"
@@ -155,8 +164,10 @@ class RootYamlView(YamlView):
         for inline_path, child in self.children.items():
             child.set_raw_text(raw_text=self.get_raw_text_for_section(inline_path))
 
+    # todo: We've patched this to work properly with run fields, but will need a different
+    #       approach for flow style elements, if we handle them at all ...
     # todo: V1.0 this code does not handle block text properly. Will extend for V2.0
-    # Right now we worry mostly about "run" field of steps, which is a dict
+    #       Right now we worry mostly about "run" field of steps, which is a dict
     def _project_raw_text_to_section_as_edit(self, raw_text, path: Tuple[str, ...]):
         def _block_style(_ov):
             if isinstance(_ov, YNone): return False
@@ -169,6 +180,16 @@ class RootYamlView(YamlView):
         projected_text_lines = []
 
         start = EditMark(original_value.start.line, original_value.start.column)
+        # todo: this is special cased for the root document. We should develop a heuristic
+        #       that works for child views as well.
+        if len(path) == 0:  # Heuristic for root document
+            start.line = 0
+            start.column = 0
+        else:
+            while start.line - 1 > -1 and \
+                    not self.raw_lines[start.line - 1].lstrip().startswith(path[-1]):
+                start.line -= 1
+
         end = EditMark(original_value.end.line, original_value.end.column)
 
         block_style = _block_style(original_value)
