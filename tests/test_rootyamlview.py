@@ -2,6 +2,7 @@ import pathlib
 import shutil
 import os
 from typing import Union, Dict, Tuple
+import pytest
 
 from benten.editing.rootyamlview import RootYamlView, YamlView, TextView
 
@@ -197,6 +198,110 @@ def test_self_synchronization():
 
     views["root"].synchronize_text()
     assert views["root"].raw_text == nested_document
+
+
+@pytest.mark.skip(reason="This test requires flow style handling of synchronization to be fixed")
+def test_spaces_and_comments_at_top_flow():
+    text_w_spaces = """
+# Space at the top, comment at the top
+
+key1:
+    
+    # Spaces and comments in between
+    
+    key2: Now here's the value
+
+"""
+    editors = {"root": FakeEditor()}
+    views = {"root": RootYamlView(
+        raw_text=text_w_spaces,
+        file_path=pathlib.Path(test_dir, "with-spaces.cwl"),
+        edit_callback=editors["root"].new_text_available,
+        delete_callback=editors["root"].close)}
+
+    editors["key2"] = FakeEditor()
+    views["key2"] = views["root"].create_child_view(
+        child_path=("key1", "key2"),
+        can_have_children=False,
+        edit_callback=editors["key2"].new_text_available,
+        delete_callback=editors["key2"].close)
+
+    assert views["key2"].raw_text == "Now here's the value"
+
+    views["key2"].set_raw_text("Now here's the value")
+    views["key2"].synchronize_text()
+
+    expected_text = """
+# Space at the top, comment at the top
+
+key1:
+
+    # Spaces and comments in between
+
+    key2: Now here's the value1
+
+"""
+
+    assert views["root"].raw_text == expected_text
+
+
+def test_spaces_and_comments_at_top_dict():
+    text_w_spaces = """
+# Space at the top, comment at the top
+
+key1:
+
+    # Spaces and comments in between
+
+    key2:
+        # A comment here
+
+        key3: Now here's the value
+
+"""
+    editors = {"root": FakeEditor()}
+    views = {"root": RootYamlView(
+        raw_text=text_w_spaces,
+        file_path=pathlib.Path(test_dir, "with-spaces.cwl"),
+        edit_callback=editors["root"].new_text_available,
+        delete_callback=editors["root"].close)}
+
+    editors["key2"] = FakeEditor()
+    views["key2"] = views["root"].create_child_view(
+        child_path=("key1", "key2"),
+        can_have_children=False,
+        edit_callback=editors["key2"].new_text_available,
+        delete_callback=editors["key2"].close)
+
+    expected_text = """# A comment here
+
+key3: Now here's the value
+
+"""
+
+    assert views["key2"].raw_text == expected_text
+
+    new_text = """# A comment here
+
+key3: Now here's the value that is changed
+"""
+
+    views["key2"].set_raw_text(new_text)
+    views["key2"].synchronize_text()
+
+    expected_text = """
+# Space at the top, comment at the top
+
+key1:
+
+    # Spaces and comments in between
+
+    key2:
+        # A comment here
+
+        key3: Now here's the value that is changed
+"""
+    assert views["root"].raw_text == expected_text
 
 
 def test_null_synchronization():

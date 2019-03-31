@@ -180,8 +180,9 @@ class RootYamlView(YamlView):
         projected_text_lines = []
 
         start = EditMark(original_value.start.line, original_value.start.column)
-        # todo: this is special cased for the root document. We should develop a heuristic
-        #       that works for child views as well.
+        # todo: This is specialized for dict values. We only use this for "steps" now, so we get
+        #       away with it, but we should generalize it as we go along
+        # todo: handle quoted keys
         if len(path) == 0:  # Heuristic for root document
             start.line = 0
             start.column = 0
