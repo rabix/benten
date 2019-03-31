@@ -206,7 +206,7 @@ def test_null_synchronization():
 - id: step2211
 - id: step2212
 """
-    assert views["root/step2/step22/step221"].readable_path() == "step2.step22.step221"
+    assert views["root/step2/step22/step221"].readable_path() == "yaml-test-temp-dir/test.cwl : step2/step22/step221"
     assert editors["root/step2/step22/step221"].text == """steps:
 - id: step2211
 - id: step2212
