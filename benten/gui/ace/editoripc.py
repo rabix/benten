@@ -47,7 +47,8 @@ class EditorIPC(QObject):
     @Slot()
     def fetch_settings(self):
         snippet_file = self.editor.config._resolve_path(pathlib.Path("snippets.yaml"))
-        self.set_snippets.emit(yaml.load(snippet_file.open("r").read()))
+        if snippet_file.exists():
+            self.set_snippets.emit(yaml.load(snippet_file.open("r").read()))
 
         for k, v in self.editor.config.items("ace-options"):
             logger.debug("ACE editor: Set {} to {}".format(k, v))
