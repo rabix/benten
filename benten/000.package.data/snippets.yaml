@@ -56,3 +56,27 @@
     scatterMethod:
     hints: []
     requirements: []
+
+- name: "Docker"
+  tabTrigger: "dock"
+  content: |-
+    DockerRequirement:
+      dockerPull: $1
+
+- name: "ResourceRequirement"
+  tabTrigger: "resreq"
+  content: |-
+    ResourceRequirement:
+      coresMin: $1
+      ramMin: $2
+
+- name: "InitialWorkDir"
+  tabTrigger: "initial"
+  content: |-
+    InitialWorkDirRequirement:
+      listing:
+        - entryname: $1
+          entry: |-
+            PREFIX='Bash variable'
+            MSG="\${PREFIX} $(inputs.cwl_variable)"
+            echo \${MSG}
