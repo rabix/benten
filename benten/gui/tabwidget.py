@@ -71,7 +71,10 @@ class TabWidget(QTabWidget):
             if isinstance(sub, InvalidSub):
                 continue
             elif isinstance(sub, InlineSub):
-                self.open_inline_section(yaml_view, sub.inline_path)
+                if self.config.getboolean("editor", "allow_inline_editing", fallback=False):
+                    self.open_inline_section(yaml_view, sub.inline_path)
+                else:
+                    logger.debug("Inline editing requested, but is set to off in configuration")
             elif isinstance(sub, ExternalSub):
                 self.open_linked_file(sub.path)
             else:

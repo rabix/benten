@@ -114,7 +114,9 @@ class ViewWidget(QWidget):
     @Slot()
     def _retrieve_new_text_from_editor(self, raw_text: str):
         self.view.set_raw_text(raw_text=raw_text)
-        self.view.synchronize_text()
+        if self.view.inline_path:
+            # Implicitly, we are allowing users to open inline steps
+            self.view.synchronize_text()
         self.update_from_code()
 
     @Slot()

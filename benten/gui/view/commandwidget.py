@@ -187,10 +187,10 @@ class CommandWidget(QWidget):
         app_path = args[1] if len(args) > 1 else None
 
         from ...sbg.push import push
-        from ...sbg.versionmanagement import propagate_local_edits_tag
+        from ...sbg.versionmanagement import update_repo_tag
 
         app = push(self.config.api, load_yaml(self.view.raw_text), commit_message, app_path)
-        propagate_local_edits_tag(self.view, app.raw["sbg:id"])
+        update_repo_tag(self.view, app.raw["sbg:id"])
 
         logger.debug("Pushed app and got back app id: {}".format(app.raw["sbg:id"]))
         return "Pushed app to {}\n".format(app.id)

@@ -1,14 +1,9 @@
 <!-- TOC -->
 
-- [A note on the modular nature of CWL](#a-note-on-the-modular-nature-of-cwl)
-    - [To inline or not to inline](#to-inline-or-not-to-inline)
-        - [Use cases for in-lining](#use-cases-for-in-lining)
-        - [Use cases for linking](#use-cases-for-linking)
 - [General Tutorial](#general-tutorial)
     - [Starting out](#starting-out)
     - [Command line](#command-line)
     - [Scaffolding](#scaffolding)
-    - [Editing inlined steps](#editing-inlined-steps)
 - [Suggested git based workflow](#suggested-git-based-workflow)
 - [SBG Tutorial](#sbg-tutorial)
     - [Credentials file and profiles](#credentials-file-and-profiles)
@@ -29,6 +24,8 @@
         - [Configuration](#configuration)
         - [Logs](#logs)
     - [Sample credentials file with all SBG platforms](#sample-credentials-file-with-all-sbg-platforms)
+    - [Experimental feature: Editing inlined steps](#experimental-feature-editing-inlined-steps)
+        - [Quirks](#quirks)
     - [Limitations/Quirks](#limitationsquirks)
         - [YAML flowstyle](#yaml-flowstyle)
         - [Synchronized editing and undo/redo](#synchronized-editing-and-undoredo)
@@ -36,32 +33,12 @@
         - [Opening CWL in JSON format](#opening-cwl-in-json-format)
         - [Modifying autocomplete templates](#modifying-autocomplete-templates)
         - [Editor options](#editor-options)
+    - [A note on the modular nature of CWL](#a-note-on-the-modular-nature-of-cwl)
+        - [To inline or not to inline](#to-inline-or-not-to-inline)
+            - [Use cases for in-lining](#use-cases-for-in-lining)
+            - [Use cases for linking](#use-cases-for-linking)
 
 <!-- /TOC -->
-
-# A note on the modular nature of CWL
-
-CWL has a very useful feature in that any CWL document (representing a unit of
-action) can be included in any CWL workflow as a step. In this manner CWL 
-workflows can be built up modularly from a library of tools, with workflows
-combining and nesting this library very elegantly to any depth needed.
-
-CWL allows you to either link to an external CWL document by reference (much 
-like an `include` or `import` statement in some languages) or to directly 
-include the code inline in the main document.
-
-## To inline or not to inline
-
-### Use cases for in-lining
-- You want to freeze all components of the workflow for reproducibility purposes
-- You want to share the complete CWL in a self contained form
-
-### Use cases for linking
-- You want to keep the parent workflow compact and easier to understand. You are
-  confident that changes to the linked documents are systematic and under control. 
-- You want your parent workflow to always reflect the current state of the linked 
-  workflows
-
 
 # General Tutorial
 
@@ -126,19 +103,6 @@ step appear in between the `Input` and `Output` nodes. It should indicate that
 there is an issue with the node. This is fine - we haven't defined what the
 node is with any code yet.
 
-## Editing inlined steps
-
-Double click on the node. This will open up the inline step in a new tab. This
-should show as an empty document, since there is no code in the node yet.
-Once again, you can type in the code yourself, or use some scaffolding assist.
-`create clt` will get us there.
-
-Now switch back to the original (first) tab. You should see that the appearance
-of the node has changed to indicate that it is a CommandLineTool. You can
-double-click it again to return to the second tab.
-
-You can also just stay in the command line and type `open <step_id>` to switch to
-or open a tab with a view of a step.
 
 Let's flesh out the Command Line Tool.
 
@@ -148,7 +112,8 @@ Let's flesh out the Command Line Tool.
 
 # Suggested git based workflow
 
-
+In order to maintain maximum flexibility - allowing you to change versions of
+tools and workflows in a manner not affecting other users, it is best to
 
 
 
@@ -326,6 +291,29 @@ api_endpoint = https://f4c-api.sbgenomics.com/v2
 auth_token   = 590872612825179551336102196593
 ```
 
+## Experimental feature: Editing inlined steps
+
+**This feature is experimental. It basically works, but the edit history 
+(ubdo/redo stack) is disrupted.** 
+
+By setting the `allow_inline_editing` option to `True` you can enable editing
+of inlined steps in a new tab just as you would edit linked steps - by double
+clicking on the node.
+
+```
+[editor]
+type_burst_window = 0.5
+allow_inline_editing = True # <----------
+```
+
+If you edit an inlined step in a new tab, these edits will be propagated 
+to all the related views just as if you had edited the original (base) document.
+
+
+### Quirks
+- The command history for the document is lost
+
+
 ## Limitations/Quirks
 
 ### YAML flowstyle
@@ -366,3 +354,32 @@ So you can use [whatever is allowed](https://github.com/ajaxorg/ace/wiki/Configu
 There are a few options you can not mess with, and these are over ridden.
 For example tabs are disabled - YAML does not allow tabs, it uses spaces.
 Also, tab spacing is fixed at 2 spaces, because that is the only correct answer.
+
+
+## A note on the modular nature of CWL
+
+CWL has a very useful feature in that any CWL document (representing a unit of
+action) can be included in any CWL workflow as a step. In this manner CWL 
+workflows can be built up modularly from a library of tools, with workflows
+combining and nesting this library very elegantly to any depth needed.
+
+CWL allows you to either link to an external CWL document by reference (much 
+like an `include` or `import` statement in some languages) or to directly 
+include the code inline in the main document.
+
+### To inline or not to inline
+
+#### Use cases for in-lining
+- You want to freeze all components of the workflow for reproducibility purposes
+- You want to share the complete CWL in a self contained form
+- You want to modify a sub-workflow without affecting other workflows that use
+  that step.
+  
+
+#### Use cases for linking
+- You want to keep the parent workflow compact and easier to understand. You are
+  confident that changes to the linked documents are systematic and under control. 
+- You want your parent workflow to always reflect the current state of the linked 
+  workflows
+- You have multiple copies of the same subworkflow in your parent workflow and
+  you want to ensure they remain in synch
