@@ -68,6 +68,13 @@ class YNone:
         for n in []:
             yield
 
+    # Pretend we are an empty iterable
+    def __next__(self):
+        raise StopIteration()
+
+    def __iter__(self):
+        return self
+
 
 class Yint(int):  # pragma: no cover
     def __new__(cls, value, node):
