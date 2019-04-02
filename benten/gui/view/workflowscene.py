@@ -1,3 +1,6 @@
+import pathlib
+
+import yaml
 import pygraphviz as pgv
 
 from PySide2.QtCore import Qt, Slot
@@ -180,3 +183,13 @@ class WorkflowScene(ProcessScene):
     @Slot(bool)
     def set_overlay_visible(self, visible=False):
         self.label_overlay.setVisible(visible)
+
+    def nodes_added(self, cwl_path_list):
+        step_scaffold = self.config.step_scaffold
+
+        for p in cwl_path_list:
+            self.workflow.add_step(step_scaffold=step_scaffold, path=p)
+        #
+        #     self.update_process_model_from_code()
+        #     self.code_editor.insert_text(self.process_model.add_step(p))
+        # self.programmatic_edit()

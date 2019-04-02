@@ -3,6 +3,8 @@ import shutil
 from pathlib import Path as P
 import configparser
 
+import yaml
+
 sbg_config_dir = P("sevenbridges", "benten")
 
 
@@ -44,6 +46,41 @@ class Configuration(configparser.ConfigParser):
         self.last_session_file = P(self.cfg_path, "last-session.ini")
         self.last_session = configparser.ConfigParser()
         self.load_last_session()
+
+        self._snippets = None
+
+    @property
+    def snippets(self):
+        if self._snippets is None:
+            snippet_file = self._resolve_path(P("snippets.yaml"))
+            if snippet_file.exists():
+                self._snippets = yaml.load(snippet_file.open("r").read())
+            else:
+                snippet_file = self._resolve_path(P(default_config_data_dir, "snippets.yaml"))
+                self._snippets = yaml.load(snippet_file.open("r").read())
+        return self._snippets
+
+    @property
+    def step_scaffold(self):
+        _step_scaffold = """
+id: {:id}
+label:
+doc: ''
+in: {:in}
+out: {:out}
+run: {:run}
+scatter:
+scatterMethod:
+hints: []
+requirements: []
+
+"""
+        if self.snippets:
+            for s in self.snippets:
+                if s.get("name") == "step":
+                    _step_scaffold = s.get("content") + "\n"
+
+        return _step_scaffold
 
     # https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
     def optionxform(self, optionstr):

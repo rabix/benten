@@ -172,7 +172,7 @@ class ViewWidget(QWidget):
             old_transform = self.process_view.transform()
         scene = WorkflowScene(config=self.config, parent=self)
         scene.selectionChanged.connect(self.something_selected)
-        scene.nodes_added.connect(self.nodes_added)
+        # scene.nodes_added.connect(self.nodes_added)
         scene.double_click.connect(self.something_double_clicked)
         scene.set_workflow(self.process_model)
 
@@ -246,18 +246,6 @@ class ViewWidget(QWidget):
         if len(items) == 1:
             info = items[0].data(0)
             self.wiring_table.step_selected(info)
-            # if isinstance(info, str):
-            #     self.highlight(info)
-            # elif isinstance(info, tuple):
-            #     self.highlight_connection_between_nodes(info)
-
-    @Slot(list)
-    def nodes_added(self, cwl_path_list):
-        # blk = QSignalBlocker(self.code_editor)
-        for p in cwl_path_list:
-            self.update_process_model_from_code()
-            self.code_editor.insert_text(self.process_model.add_step(p))
-        self.programmatic_edit()
 
     @Slot(QGraphicsSceneMouseEvent)
     def something_double_clicked(self, event):

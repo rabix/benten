@@ -42,6 +42,7 @@ A. We refuse to reload and warn the user that an external edit would result in a
    in the original external editor.
 """
 import pathlib
+import os
 from typing import Tuple, Dict, Callable
 from enum import IntEnum
 
@@ -265,7 +266,13 @@ class RootYamlView(YamlView):
 
     def _insert_into_lom(self, path: Tuple[str, ...], key: str, key_field: str, entry: str):
         """Will add new entry or replace existing one. If empty or missing, will prefer map.
-        Will create the last path element if needed"""
+        Will create the last path element if needed
+
+        key is the key to insert e.g. "my_new_step"
+        key_field is the name of the field used has a key when expressing as a list, eg. id or class
+
+        Currently just used for steps.
+        """
 
         if path in self:
             as_list = isinstance(self[path], LAM)
@@ -352,3 +359,7 @@ class RootYamlView(YamlView):
 
     def readable_path(self):
         return self.file_path.as_posix()
+
+    def get_rel_path(self, sub_path: pathlib.Path):
+        """Path relative to this document e.g. for linked steps"""
+        return os.path.relpath(sub_path.absolute(), self.file_path.absolute().parent)

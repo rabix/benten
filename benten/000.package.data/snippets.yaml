@@ -1,4 +1,17 @@
-- name: "CommandLineTool"
+# ACE handles the following fields
+
+# (Required)
+# name
+# tabTrigger
+# content
+
+# (Nice to have)
+# meta  (defaults to 'snippet')
+
+
+
+- name: "clt"
+  meta: "CommandLineTool"
   tabTrigger: "clt"
   content: |-
     class: CommandLineTool
@@ -12,7 +25,7 @@
     hints: []
     requirements: []
 
-- name: "ExpressionTool"
+- name: "et"
   tabTrigger: "et"
   content: |-
     class: ExpressionTool
@@ -29,7 +42,19 @@
     requirements:
       - class: InlineJavascriptRequirement
 
-- name: "Workflow"
+- name: "inp"
+  tabTrigger: "inp"
+  content: |-
+    type: $1
+    label: $2
+    default: $3
+    secondaryFiles:
+      - .fai
+    inputBinding:
+      position:
+      prefix:
+
+- name: "wf"
   tabTrigger: "wf"
   content: |-
     class: Workflow
@@ -39,42 +64,48 @@
     label: $2
     inputs: []
     outputs: []
-    steps: $3
+    steps: {}
     requirements: []
     hints: []
 
-- name: "Step"
+
+# This scaffold is special in that it's used by the workflow model to insert steps programmatically
+# The name "step" is fixed.
+# If this scaffold is missing or renamed, Benten will use a default step scaffold model
+# If this scaffold is incomplete or malformed programatically adding steps will be affected
+- name: "step"
   tabTrigger: "step"
   content: |-
-    id: $1
-    label: $2
+    id: {:id}
+    label:
     doc: ''
-    in: $3
-    out: $4
-    run: $5
+    in: {:in}
+    out: {:out}
+    run: {:run}
     scatter:
     scatterMethod:
     hints: []
     requirements: []
 
-- name: "Docker"
+- name: "dock"
   tabTrigger: "dock"
   content: |-
     DockerRequirement:
       dockerPull: $1
 
-- name: "ResourceRequirement"
+- name: "rr"
   tabTrigger: "resreq"
   content: |-
     ResourceRequirement:
       coresMin: $1
       ramMin: $2
 
-- name: "InitialWorkDir"
+- name: "iwd"
   tabTrigger: "initial"
   content: |-
     InitialWorkDirRequirement:
       listing:
+        - $(inputs.file_input)
         - entryname: $1
           entry: |-
             PREFIX='Bash variable'

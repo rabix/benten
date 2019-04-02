@@ -1,5 +1,5 @@
 from typing import Tuple, Dict, Callable
-from enum import IntEnum
+import pathlib
 
 from ..implementationerror import ImplementationError
 from .documentproblem import DocumentProblem
@@ -83,3 +83,6 @@ class YamlView(TextView):
     def get_parent_section(self, line, column):
         if self.yaml is not None:
             return
+
+    def get_rel_path(self, sub_path: pathlib.Path):
+        return self.root().get_rel_path(sub_path)

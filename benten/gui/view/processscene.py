@@ -19,7 +19,7 @@ def paths_to_drop(event: QGraphicsSceneDragDropEvent):
 class ProcessScene(QGraphicsScene):
     """We need to subclass this to handle dropping onto the scene"""
 
-    nodes_added = Signal(list)
+    # nodes_added = Signal(list)
     double_click = Signal(QGraphicsSceneMouseEvent)
 
     def __init__(self, parent):
