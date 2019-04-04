@@ -426,7 +426,7 @@ class Workflow(Base):
             if step_id is None:
                 if path.exists():
                     sub_process = load_yaml(path.open("r").read())
-                    base_step_id = sub_process.get("id", path.name.replace("-", "_").replace(" ", "_"))
+                    step_id = sub_process.get("id", path.name.replace("-", "_").replace(" ", "_"))
         else:
             rel_path = None
 
