@@ -76,12 +76,12 @@
 - name: "step"
   tabTrigger: "step"
   content: |-
-    id: {:id}
+    id: {id}
     label:
     doc: ''
-    in: {:in}
-    out: {:out}
-    run: {:run}
+    in: {in}
+    out: {out}
+    run: {run}
     scatter:
     scatterMethod:
     hints: []
