@@ -67,6 +67,7 @@ class EditorPane(QWidget):
         self.config = config
 
         self.code_editor: Editor = self._setup_code_editor()
+        self.setFocusProxy(self.code_editor)
         self.navbar = self._setup_navbar()
         self.problem_handler = ProblemHandler()
         self.problem_handler.goto.connect(self.goto)
