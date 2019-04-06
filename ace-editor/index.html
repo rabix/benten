@@ -83,10 +83,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 ipc.send_auto_completions.connect(function(compl) {
                     callback(null, compl)
                 })
-                ipc.get_auto_complete_options(pos, prefix)
+                ipc.get_auto_completions(pos, prefix)
             }
         }
-        langTools.addCompleter(customCompleter);
+        // https://stackoverflow.com/a/27010052/2512851
+        langTools.setCompleters([customCompleter])
 
         // This stuff we insist upon regardless of what the user sets
         editor.setOptions({
