@@ -457,20 +457,25 @@ class Workflow(Base):
         )
 
     def get_auto_completions(self, line, column, prefix):
-        _completions = []
+        _raw_lines = self.cwl_doc.raw_lines
+        if line > 0:
+            if _raw_lines[line - 1].startswith("outputs:"):
+                return [
+
+                ]
+
 
         if self.cwl_doc.raw_lines[line].lstrip().startswith("outputSource:"):
-            _completions = [
+            return [
                 {
-                    "caption": "example",
-                    "name": "Example",
-                    "value": step_id,
+                    "caption": step_id,
+                    #"name": "Example",
+                    # "value": step_id,
                     "snippet": step_id,
                     "score": 50,
                     "meta": "snippet"
                 }
                 for step_id in self.steps.keys()
             ]
-            print(_completions)
 
-        return _completions
+        return []

@@ -128,7 +128,6 @@ class MainWindow(QMainWindow):
 
         Base.prepare_auto_completions(config=self.config)
 
-
     def closeEvent(self, event: QCloseEvent):
         if self.tab_widget.ok_to_close_everything(event):
             self.settings.setValue("geometry", self.saveGeometry())

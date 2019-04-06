@@ -1,4 +1,5 @@
 from typing import List
+import yaml
 
 from ..configuration import Configuration
 from ..editing.documentproblem import DocumentProblem
@@ -9,7 +10,7 @@ from ..editing.yamlview import YamlView
 class Base:
     """We don't know what the user intends this to be"""
 
-    _auto_complete_snippets = []
+    _auto_complete_snippets = {}
 
     def __init__(self, cwl_doc: YamlView, config: Configuration):
         self.cwl_doc = cwl_doc
@@ -51,23 +52,37 @@ class Base:
             return
 
         return [
-            snip for snip in self._auto_complete_snippets
-            if snip["caption"] in ["CommandLineTool", "ExpressionTool", "Workflow"]
+            self._auto_complete_snippets[k]
+            for k in ["CommandLineTool", "ExpressionTool", "Workflow"]
         ]
 
     @staticmethod
     def prepare_auto_completions(config: Configuration):
-        Base._auto_complete_snippets = [
-            {
-                "caption": snip.get("name", "Unknown"),
-                # "name": "Example",
-                # "value": "value" + prefix,
-                "snippet": snip.get("content", None),
-                "score": 10,
-                "meta": snip.get("meta", "snippet")
-            }
-            for snip in config.snippets
-        ]
+
+        try:
+            raw_snippets = yaml.load(
+                config.getpath("editor", "snippets_file").open("r").read())
+        except FileNotFoundError as e:
+            Warning("Could not find snippets file. No auto completions available")
+            return
+
+        for k, v in raw_snippets.items():
+            v["caption"] = k
+            # v["snippet"] = v.get("snippet", k)
+            Base._auto_complete_snippets[k] = v
+
+
+        #Base._auto_complete_snippets = [
+            # {
+            #     "caption": snip.get("name", "Unknown"),
+            #     # "name": "Example",
+            #     # "value": "value" + prefix,
+            #     "snippet": snip.get("content", None),
+            #     "score": 10,
+            #     "meta": snip.get("meta", "snippet")
+            # }
+            #for snip in yaml.load(config.getpath("editor", "snippets_file").open("r").read())
+        #]
 
 
 # Some patterns we use a lot
