@@ -211,8 +211,8 @@ class WFConnectionError(Exception):
 class Workflow(Base):
     """This object carries the raw YAML and some housekeeping datastructures"""
 
-    def __init__(self, cwl_doc: YamlView):
-        super().__init__(cwl_doc=cwl_doc)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.id = (self.cwl_doc.yaml or {}).get("id", None)
 
         required_sections = ["cwlVersion", "class", "inputs", "outputs", "steps"]
@@ -236,7 +236,7 @@ class Workflow(Base):
         else:
             self.steps = OrderedDict(
                 (k, Step.from_doc(
-                    step_id=k, line=(v.start.line, v.end.line), cwl_doc=cwl_doc,
+                    step_id=k, line=(v.start.line, v.end.line), cwl_doc=self.cwl_doc,
                     wf_error_list=self.cwl_errors))
                 for k, v in cwl_dict.get("steps", {}).items()
             )
@@ -455,3 +455,22 @@ class Workflow(Base):
             key_field="id",
             entry=step_scaffold.format(**fill_out)
         )
+
+    def get_auto_completions(self, line, column, prefix):
+        _completions = []
+
+        if self.cwl_doc.raw_lines[line].lstrip().startswith("outputSource:"):
+            _completions = [
+                {
+                    "caption": "example",
+                    "name": "Example",
+                    "value": step_id,
+                    "snippet": step_id,
+                    "score": 50,
+                    "meta": "snippet"
+                }
+                for step_id in self.steps.keys()
+            ]
+            print(_completions)
+
+        return _completions

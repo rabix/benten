@@ -10,8 +10,8 @@
 
 
 
-- name: "clt"
-  meta: "CommandLineTool"
+- name: "CommandLineTool"
+  meta: "process"
   tabTrigger: "clt"
   content: |-
     class: CommandLineTool
@@ -25,7 +25,8 @@
     hints: []
     requirements: []
 
-- name: "et"
+- name: "ExpressionTool"
+  meta: "process"
   tabTrigger: "et"
   content: |-
     class: ExpressionTool
@@ -42,7 +43,8 @@
     requirements:
       - class: InlineJavascriptRequirement
 
-- name: "inp"
+- name: "InputScaffold"
+  meta: "snippet"
   tabTrigger: "inp"
   content: |-
     type: $1
@@ -54,7 +56,8 @@
       position:
       prefix:
 
-- name: "wf"
+- name: "Workflow"
+  meta: "process"
   tabTrigger: "wf"
   content: |-
     class: Workflow
@@ -74,6 +77,7 @@
 # If this scaffold is missing or renamed, Benten will use a default step scaffold model
 # If this scaffold is incomplete or malformed programatically adding steps will be affected
 - name: "step"
+  meta: "snippet"
   tabTrigger: "step"
   content: |-
     id: {id}
@@ -87,20 +91,29 @@
     hints: []
     requirements: []
 
-- name: "dock"
+
+- name: "WFOutput"
+  tabTrigger: "wfout"
+  content: |-
+    $1:
+      type: File
+      outputSource: $2
+
+
+- name: "DockerRequirement"
   tabTrigger: "dock"
   content: |-
     DockerRequirement:
       dockerPull: $1
 
-- name: "rr"
+- name: "ResourceRequirement"
   tabTrigger: "resreq"
   content: |-
     ResourceRequirement:
       coresMin: $1
       ramMin: $2
 
-- name: "iwd"
+- name: "InitialWorkDirRequirement"
   tabTrigger: "initial"
   content: |-
     InitialWorkDirRequirement:

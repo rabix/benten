@@ -49,6 +49,8 @@ class MainWindow(QMainWindow):
         # directly to it
         self._setup_main_menu()
 
+        self._initialize_autocomplete()
+
         self.setCentralWidget(self.tab_widget)
 
     def _setup_main_menu(self):
@@ -120,6 +122,12 @@ class MainWindow(QMainWindow):
         save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(self.tab_widget.save)
         file_menu.addAction(save_action)
+
+    def _initialize_autocomplete(self):
+        from ..models.base import Base
+
+        Base.prepare_auto_completions(config=self.config)
+
 
     def closeEvent(self, event: QCloseEvent):
         if self.tab_widget.ok_to_close_everything(event):

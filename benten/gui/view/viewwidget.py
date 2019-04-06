@@ -39,6 +39,10 @@ class ViewWidget(QWidget):
         self.process_view = ProcessView()
         self.wiring_table = WiringTable(config=config)
 
+        # self.wiring_up_widget = WiringUpWidget()
+        # self.wiring_toggle = QShortcut(QKeySequence("Ctrl+W"), self)
+        # self.wiring_toggle.activated.connect(self.toggle_wiring_up_widget)
+
         self.editor_pane = EditorPane(config=self.config)
         self.command_widget = CommandWidget(config=self.config)
         self.command_widget.setVisible(False)
@@ -72,6 +76,7 @@ class ViewWidget(QWidget):
         code_pane.setHandleWidth(1)
         code_pane.setOrientation(Qt.Vertical)
         code_pane.addWidget(self.editor_pane)
+        # code_pane.addWidget(self.wiring_up_widget)
         code_pane.addWidget(self.command_widget)
         code_pane.setStretchFactor(0, 1)
         code_pane.setStretchFactor(1, 1)
@@ -141,7 +146,7 @@ class ViewWidget(QWidget):
 
     # This only happens when we are in focus and the code has changed
     # It is only here that we do the (semi)expensive parsing computation
-    @Slot()
+    # @Slot()
     def update_from_code(self):
 
         if not self.is_active_window:
@@ -174,7 +179,6 @@ class ViewWidget(QWidget):
             old_transform = self.process_view.transform()
         scene = WorkflowScene(config=self.config, parent=self)
         scene.selectionChanged.connect(self.something_selected)
-        # scene.nodes_added.connect(self.nodes_added)
         scene.double_click.connect(self.something_double_clicked)
         scene.set_workflow(self.process_model)
 
@@ -219,8 +223,9 @@ class ViewWidget(QWidget):
             # can do is set the dict to the last known state
             logger.error("YAML parsing error! Leaving model in last known good state")
 
-        self.process_model = create_model(self.view)
+        self.process_model = create_model(self.view, config=self.config)
         self.wiring_table.process_model = self.process_model
+        self.editor_pane.code_editor.ipc.auto_completer = self.process_model.get_auto_completions
 
         if self.process_model.cwl_errors:
             logger.warning(self.process_model.cwl_errors)

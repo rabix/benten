@@ -1,5 +1,6 @@
 from typing import List
 
+from ..configuration import Configuration
 from ..editing.documentproblem import DocumentProblem
 from ..editing.edit import EditMark
 from ..editing.yamlview import YamlView
@@ -8,13 +9,14 @@ from ..editing.yamlview import YamlView
 class Base:
     """We don't know what the user intends this to be"""
 
-    autocomplete_dict = {}
+    _auto_complete_snippets = []
 
-    def __init__(self, cwl_doc: YamlView):
+    def __init__(self, cwl_doc: YamlView, config: Configuration):
         self.cwl_doc = cwl_doc
         self._original_raw_cwl = cwl_doc.raw_text
         self.section_lines = {}
         self.cwl_errors: List[DocumentProblem] = []
+        self.config = config
 
     def code_is_same_as(self, new_text):
         return self._original_raw_cwl == new_text
@@ -45,17 +47,28 @@ class Base:
                                     problem_class=DocumentProblem.Class.cwl)]
 
     def get_auto_completions(self, line, column, prefix):
-        return []
-        # return [
-        #     {
-        #         "caption": "example",
-        #         "name": "Example",
-        #         "value": "value" + prefix,
-        #         "snippet": "My my\nwhat a beautiful sky",
-        #         "score": 10,
-        #         "meta": "Metadata"
-        #     }
-        # ]
+        if len(self.cwl_doc.raw_lines) > 1:
+            return
+
+        return [
+            snip for snip in self._auto_complete_snippets
+            if snip["caption"] in ["CommandLineTool", "ExpressionTool", "Workflow"]
+        ]
+
+    @staticmethod
+    def prepare_auto_completions(config: Configuration):
+        Base._auto_complete_snippets = [
+            {
+                "caption": snip.get("name", "Unknown"),
+                # "name": "Example",
+                # "value": "value" + prefix,
+                "snippet": snip.get("content", None),
+                "score": 10,
+                "meta": snip.get("meta", "snippet")
+            }
+            for snip in config.snippets
+        ]
+
 
 # Some patterns we use a lot
 special_id_for_inputs = Base.special_id("inputs")

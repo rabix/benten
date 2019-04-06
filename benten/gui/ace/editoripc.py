@@ -33,6 +33,8 @@ class EditorIPC(QObject):
         self.manual_edit_throttler = ManualEditThrottler(self.editor.config.getfloat("editor", "type_burst_window"))
         self.manual_edit_throttler.timer.timeout.connect(lambda x=None: self.fetch_text.emit())
 
+        self.auto_completer = None
+
     def wait(self):
         while not self._setup_complete:
             QApplication.processEvents()
@@ -68,18 +70,25 @@ class EditorIPC(QObject):
             logger.debug("Received text from ACE is unchanged")
 
     @Slot(QJsonValue, str)
-    def get_auto_complete_options(self, pos, prefix):
-        # TODO: a cheap autocompleter with heuristics that doesn't need to parse the whole document to make suggestions
-        return [
-            {
-                "caption": "example",
-                "name": "Example",
-                "value": "value" + prefix,
-                "snippet": "My my\nwhat a beautiful sky",
-                "score": 10,
-                "meta": "Metadata"
-            }
-        ]
+    def get_auto_completions(self, pos, prefix):
+        if self.auto_completer is not None:
+            _pos = pos.toVariant()
+            self.send_auto_completions.emit(
+                self.auto_completer(int(_pos["row"]), int(_pos["column"]), prefix))
+
+        # print(pos, prefix)
+        #
+        # self.send_auto_completions.emit(
+        #     [
+        #         {
+        #             "caption": "example",
+        #             "name": "Example",
+        #             "value": "value" + prefix,
+        #             "snippet": "My my\nwhat a beautiful sky",
+        #             "score": 10,
+        #             "meta": "Metadata"
+        #         }
+        #     ])
         # _pos = pos.toVariant()
         # print(_pos, prefix)
         #
