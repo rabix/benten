@@ -68,21 +68,18 @@ class Base:
 
         for k, v in raw_snippets.items():
             v["caption"] = k
-            # v["snippet"] = v.get("snippet", k)
+            v["snippet"] = v.get("snippet", k)
             Base._auto_complete_snippets[k] = v
 
-
-        #Base._auto_complete_snippets = [
-            # {
-            #     "caption": snip.get("name", "Unknown"),
-            #     # "name": "Example",
-            #     # "value": "value" + prefix,
-            #     "snippet": snip.get("content", None),
-            #     "score": 10,
-            #     "meta": snip.get("meta", "snippet")
-            # }
-            #for snip in yaml.load(config.getpath("editor", "snippets_file").open("r").read())
-        #]
+        # The fields ACE expects
+        # {
+        #     "caption": snip.get("name", "Unknown"),
+        #     # "name": "Example",
+        #     # "value": "value" + prefix,
+        #     "snippet": snip.get("content", None),
+        #     "score": 10,
+        #     "meta": snip.get("meta", "snippet")
+        # }
 
 
 # Some patterns we use a lot

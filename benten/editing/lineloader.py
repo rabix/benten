@@ -266,6 +266,30 @@ def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False, errors=[]):
         raise DocumentError(e.problem_mark.line, e.problem_mark.column, str(e))
 
 
+# todo: This algorithm can be cleaned up
+def compute_path(doc: Union[Ydict, Ylist], line, path: Tuple[Union[str, int]]=()):
+
+    if not isinstance(doc, (dict, list)):
+        return path, doc
+
+    values = doc.items() if isinstance(doc, dict) else enumerate(doc)
+    k, v, k_1, v_1 = None, None, None, None
+    for k, v in values:
+
+        if v.start.line <= line <= v.end.line:
+            return compute_path(v, line, path + (k,))
+
+        if v.start.line > line:
+            break
+
+        k_1, v_1 = k, v
+    else:
+        # We've gone to the end of the document and we should point back to root
+        return path, doc
+
+    return compute_path(v_1, line, path + (k_1,))
+
+
 def lookup(doc: Union[Ydict, Ylist], path: Tuple[Union[str, int]]):
     sub_doc = doc
     for p in path or []:

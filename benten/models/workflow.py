@@ -35,7 +35,7 @@ from ..implementationerror import ImplementationError
 from .base import (DocumentProblem, EditMark, Base, YamlView,
                    special_id_for_inputs, special_id_for_outputs, special_ids_for_io)
 from ..editing.utils import dictify, iter_scalar_or_list
-from ..editing.lineloader import load_yaml, YNone, Ydict, LAM
+from ..editing.lineloader import load_yaml, YNone, Ydict, LAM, compute_path
 # from .workfloweditmixin import WorkflowEditMixin
 
 
@@ -457,25 +457,35 @@ class Workflow(Base):
         )
 
     def get_auto_completions(self, line, column, prefix):
-        _raw_lines = self.cwl_doc.raw_lines
-        if line > 0:
-            if _raw_lines[line - 1].startswith("outputs:"):
-                return [
 
-                ]
+        path, value = compute_path(self.cwl_doc.yaml, line)
+        logger.debug(f"Cursor at: {path}, value: {value}, prefix: {prefix}")
+        if not path:
+            return
 
+        if len(path) < 3:
+            if path[0] == "outputs":
+                return [Base._auto_complete_snippets.get("WFOutput")]
 
-        if self.cwl_doc.raw_lines[line].lstrip().startswith("outputSource:"):
+            if path[0] == "steps":
+                return [Base._auto_complete_snippets.get("step")]
+
+        if path[-1] == "outputSource":
             return [
                 {
-                    "caption": step_id,
-                    #"name": "Example",
-                    # "value": step_id,
-                    "snippet": step_id,
+                    "caption": f"{step_id}/{port_id}",
+                    "snippet": f"{step_id}/{port_id}",
                     "score": 50,
-                    "meta": "snippet"
+                    "meta": "connection"
                 }
                 for step_id in self.steps.keys()
+                for port_id in self.steps.get(step_id).available_sources.keys()
+            ]
+
+        if path[0] == "steps" and path[2] == "run":
+            return [
+                self._auto_complete_snippets[k]
+                for k in ["CommandLineTool", "ExpressionTool", "Workflow"]
             ]
 
         return []

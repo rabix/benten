@@ -1,12 +1,11 @@
-# ACE handles the following fields
-
-# (Required)
-# name
-# tabTrigger
-# content
-
-# (Nice to have)
-# meta  (defaults to 'snippet')
+# For auto-completions ACE uses the following fields
+#
+# look at: https://github.com/ajaxorg/ace/blob/51f53efa96ca2507bafb1c980d022953df6f35c6/lib/ace/snippets.js#L527
+#
+# caption: (required, in this file it is the key we supply)
+# snippet: (required, the text we wish to insert)
+# meta: (optional)
+# tabTrigger: (optional, if user is using tab to complete)
 
 
 
@@ -81,16 +80,16 @@ step:
   meta: "snippet"
   tabTrigger: "step"
   snippet: |-
-    id: {id}
-    label:
-    doc: ''
-    in: {in}
-    out: {out}
-    run: {run}
-    scatter:
-    scatterMethod:
-    hints: []
-    requirements: []
+    $1:
+      label:
+      doc: ''
+      in: $2
+      out: $3
+      run: $4
+      scatter:
+      scatterMethod:
+      hints: []
+      requirements: []
 
 
 WFOutput:
