@@ -17,13 +17,13 @@ def infer_type(yaml_doc: YamlView):
 
 
 # will extend to include expressions and docs
-def create_model(yaml_doc: YamlView, config: Configuration):
+def create_model(yaml_doc: YamlView):
     try:
         return {
             "unknown": Unk,
             "CommandLineTool": CommandLineTool,
             "Workflow": Workflow
-        }.get(infer_type(yaml_doc), Unk)(yaml_doc, config=config)
+        }.get(infer_type(yaml_doc), Unk)(yaml_doc)
     except Exception as e:
         raise e
         # # As a last resort, we write this out. Means we haven't hardened our constructors enough

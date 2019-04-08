@@ -3,8 +3,10 @@ import pytest
 import pathlib
 
 from benten.editing.lineloader import \
-    parse_yaml_with_line_info, coordinates, lookup, reverse_lookup, LAM, Ylist, Ydict, \
-    _recurse_extract_meta, y_construct, meta_node_key, DocumentError
+    parse_yaml_with_line_info, coordinates, lookup, reverse_lookup, \
+    LAM, Ylist, Ydict, \
+    _recurse_extract_meta, y_construct, meta_node_key, DocumentError, \
+    compute_path
 
 
 current_path = pathlib.Path(__file__).parent
@@ -315,3 +317,59 @@ def test_auto_switcher():
     res = _recurse_extract_meta(list_with_different_key, key="requirements", convert_to_lam=True, errors=errors)
     assert isinstance(res, LAM)
     assert len(errors) == 0
+
+
+def test_compute_path():
+
+    wf_path = pathlib.Path(current_path, "cwl/001.basic/wf-steps-as-dict.cwl")
+    c = parse_yaml_with_line_info(raw_cwl=wf_path.open("r").read())
+
+    pass
+
+
+def trace_path(doc, path=(), off=0):
+
+    if not isinstance(doc, (dict, list)):
+        # print("{}: ({}, {})".format(path, doc.start.line, doc.end.line))
+        return
+
+    values = doc.items() if isinstance(doc, dict) else enumerate(doc)
+    for k, v in values:
+        print("{}: ({}, {}) - ({}, {})".format(path + (k,),
+                                               v.start.line + off, v.start.column,
+                                               v.end.line + off, v.end.column))
+        trace_path(v, path + (k,), off)
+
+
+cwl = """cwlVersion: v1.0
+class: Workflow
+inputs:
+  inp: File
+  ex: string
+
+outputs:
+  classout:
+    type: File
+    outputSource: compile/classfile
+
+steps:
+  untar:
+    run: tar-param.cwl
+    in:
+      tarfile: inp
+      extractfile: ex
+    out: [example_out]
+
+  
+
+  compile:
+    run: arguments.cwl
+    in:
+      src: untar/example_out
+    out: [classfile]
+
+  
+"""
+
+c = parse_yaml_with_line_info(raw_cwl=cwl)
+trace_path(c, off=344)

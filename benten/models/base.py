@@ -12,12 +12,11 @@ class Base:
 
     _auto_complete_snippets = {}
 
-    def __init__(self, cwl_doc: YamlView, config: Configuration):
+    def __init__(self, cwl_doc: YamlView):
         self.cwl_doc = cwl_doc
         self._original_raw_cwl = cwl_doc.raw_text
         self.section_lines = {}
         self.cwl_errors: List[DocumentProblem] = []
-        self.config = config
 
     def code_is_same_as(self, new_text):
         return self._original_raw_cwl == new_text
@@ -49,12 +48,12 @@ class Base:
 
     def get_auto_completions(self, line, column, prefix):
         if len(self.cwl_doc.raw_lines) > 1:
-            return
-
-        return [
-            self._auto_complete_snippets[k]
-            for k in ["CommandLineTool", "ExpressionTool", "Workflow"]
-        ]
+            return []
+        else:
+            return [
+                self._auto_complete_snippets[k]
+                for k in ["CommandLineTool", "ExpressionTool", "Workflow"]
+            ]
 
     @staticmethod
     def prepare_auto_completions(config: Configuration):

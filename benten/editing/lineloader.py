@@ -36,7 +36,7 @@ In [9]: %timeit data = yaml.load(cwl, CSafeLoader)
 For now, this code only puts in meta information in lists, seq and strings. This is sufficient
 for the editing we need to do in CWL docs. We can extend as needed
 """
-from typing import Tuple, Union, List
+from typing import Tuple, Union, Any, List
 
 import yaml
 from yaml.parser import ParserError, ScannerError
@@ -267,27 +267,33 @@ def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False, errors=[]):
 
 
 # todo: This algorithm can be cleaned up
-def compute_path(doc: Union[Ydict, Ylist], line, path: Tuple[Union[str, int]]=()):
+# todo: consider column for the indent level - this will solve issues with appending sections
+def compute_path(
+        doc: Union[Ydict, Ylist], line, column,
+        path: Tuple[Union[str, int], ...]=()) -> Tuple[Union[str, int], ...]:
 
-    if not isinstance(doc, (dict, list)):
-        return path, doc
+    if not isinstance(doc, (Ydict, Ylist)):
+        return path
+
+    if doc.start.line != doc.end.line:
+        indent = doc.start.column
+    else:
+        indent = None
+
+    if column == indent:
+        return path
 
     values = doc.items() if isinstance(doc, dict) else enumerate(doc)
-    k, v, k_1, v_1 = None, None, None, None
     for k, v in values:
 
+        if v.start.line == v.end.line == line:
+            return path + (k,)
+
         if v.start.line <= line <= v.end.line:
-            return compute_path(v, line, path + (k,))
+            return compute_path(v, line, column, path + (k,))
 
-        if v.start.line > line:
-            break
-
-        k_1, v_1 = k, v
     else:
-        # We've gone to the end of the document and we should point back to root
-        return path, doc
-
-    return compute_path(v_1, line, path + (k_1,))
+        return path
 
 
 def lookup(doc: Union[Ydict, Ylist], path: Tuple[Union[str, int]]):

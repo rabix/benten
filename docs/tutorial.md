@@ -2,6 +2,10 @@
 
 - [General Tutorial](#general-tutorial)
     - [Starting out](#starting-out)
+    - [Autocomplete](#autocomplete)
+    - [Navigation](#navigation)
+        - [Navigation bar](#navigation-bar)
+        - [Workflow map](#workflow-map)
     - [Command line](#command-line)
     - [Scaffolding](#scaffolding)
 - [Suggested git based workflow](#suggested-git-based-workflow)
@@ -22,7 +26,7 @@
 - [Appendix](#appendix)
     - [Configuration and log files](#configuration-and-log-files)
         - [Configuration](#configuration)
-        - [Logs](#logs)
+        - [Logs and other user data](#logs-and-other-user-data)
     - [Sample credentials file with all SBG platforms](#sample-credentials-file-with-all-sbg-platforms)
     - [Experimental feature: Editing inlined steps](#experimental-feature-editing-inlined-steps)
         - [Quirks](#quirks)
@@ -79,6 +83,30 @@ Since `wf1.cwl` does not exist, _Benten_ will create an empty document.
 The `-v` flag simply turns on debugging messages and is not really needed, 
 but is helpful if you run into an issue and 
 want to [report it](https://github.com/rabix/benten/issues)
+
+## Autocomplete
+
+Several CWL constructs are available as code auto-completions. Once you begin
+typing these completions will be made available to you. The completions are
+stored in the file `snippets.yaml` in the _Benten_ configuration directory in
+an easy to understand format.
+
+Since we decided to start out with a workflow, either manually type in a 
+workflow or use the workflow template snippet.
+
+## Navigation
+
+As soon as Benten realizes this document is a workflow, it will open a second
+pane and display a map of the workflow.
+
+
+
+
+### Navigation bar
+
+### Workflow map
+
+
 
 ## Command line
 
@@ -258,7 +286,7 @@ On first startup benten will create a default configuration file for you. The co
 file is in the `.ini` format and is fairly self-explanatory. The default file can be
 found [here](https://github.com/rabix/benten/tree/master/benten/000.package.data/config.ini)
 
-### Logs
+### Logs and other user data
 Log files are found under `$XDG_DATA_HOME/sevenbridges/benten/`
 (If not set, `$HOME/.local/share/sevenbridges/benten/` is used)
 

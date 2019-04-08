@@ -223,7 +223,7 @@ class ViewWidget(QWidget):
             # can do is set the dict to the last known state
             logger.error("YAML parsing error! Leaving model in last known good state")
 
-        self.process_model = create_model(self.view, config=self.config)
+        self.process_model = create_model(self.view)
         self.wiring_table.process_model = self.process_model
         self.editor_pane.code_editor.ipc.auto_completer = self.process_model.get_auto_completions
 

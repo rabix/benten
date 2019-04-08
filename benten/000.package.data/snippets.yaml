@@ -43,7 +43,7 @@ ExpressionTool:
       - class: InlineJavascriptRequirement
 
 
-InputScaffold:
+Input:
   meta: "snippet"
   tabTrigger: "inp"
   snippet: |-
@@ -66,8 +66,8 @@ Workflow:
     id: $1
     label: $2
     inputs: []
-    outputs: []
     steps: {}
+    outputs: []
     requirements: []
     hints: []
 

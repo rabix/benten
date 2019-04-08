@@ -1,5 +1,8 @@
-from ..editing.lineloader import reverse_lookup
+from ..editing.lineloader import compute_path
 from .base import Base
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class CommandLineTool(Base):
@@ -14,18 +17,30 @@ class CommandLineTool(Base):
         self.parse_sections(required_sections)
 
     def get_auto_completions(self, line, column, prefix):
-        completions = [
-            {
-                "caption": "Docker",
-                #"name": "Example",
-                #"value": "Hello!",
-                "snippet": "Black velvet and that little boy smile\nBlack velvet and that slow southern style",
-                # "score": 10,
-                # "meta": "snippet"
-            }
-        ]
+        path = compute_path(self.cwl_doc.yaml, line, column)
+        logger.debug(f"Cursor at: ({line}, {column}): {path}, prefix: {prefix}")
+        trace_path(self.cwl_doc.yaml)
+        if not path:
+            return []
 
-        if self.cwl_doc.yaml is not None:
-            inline_path, val = reverse_lookup(line, column, self.cwl_doc.yaml)
+        if len(path) < 3:
+            if path[0] == "inputs":
+                return [Base._auto_complete_snippets.get("Input")]
 
-        return completions
+            if path[0] == "requirements":
+                return [Base._auto_complete_snippets.get("DockerRequirement")]
+
+        return []
+
+
+def trace_path(doc, path=(), off=0):
+
+    if not isinstance(doc, (dict, list)):
+        return
+
+    values = doc.items() if isinstance(doc, dict) else enumerate(doc)
+    for k, v in values:
+        print("{}: ({}, {}) - ({}, {})".format(path + (k,),
+                                               v.start.line + off, v.start.column,
+                                               v.end.line + off, v.end.column))
+        trace_path(v, path + (k,), off)
