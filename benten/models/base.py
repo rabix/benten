@@ -3,8 +3,6 @@ import yaml
 
 from ..configuration import Configuration
 from ..editing.documentproblem import DocumentProblem
-from ..editing.edit import EditMark
-from ..editing.yamlview import YamlView
 
 
 class Base:
@@ -12,14 +10,13 @@ class Base:
 
     _auto_complete_snippets = {}
 
-    def __init__(self, cwl_doc: YamlView):
-        self.cwl_doc = cwl_doc
-        self._original_raw_cwl = cwl_doc.raw_text
+    def __init__(self, ydict: (dict, str), existing_issues: List[DocumentProblem]=None):
+        self.ydict = ydict
         self.section_lines = {}
-        self.cwl_errors: List[DocumentProblem] = []
+        self.cwl_errors: List[DocumentProblem] = existing_issues or []
 
-    def code_is_same_as(self, new_text):
-        return self._original_raw_cwl == new_text
+    # def code_is_same_as(self, new_text):
+    #     return self._original_raw_cwl == new_text
 
     @staticmethod
     def special_id(name):
@@ -27,7 +24,7 @@ class Base:
         return "- {} -".format(name)
 
     def parse_sections(self, required_sections: list):
-        cwl_dict = self.cwl_doc.yaml
+        cwl_dict = self.ydict
 
         for section, doc in cwl_dict.items():
             if section in required_sections:
@@ -46,14 +43,14 @@ class Base:
                                     problem_type=DocumentProblem.Type.warning,
                                     problem_class=DocumentProblem.Class.cwl)]
 
-    def get_auto_completions(self, line, column, prefix):
-        if len(self.cwl_doc.raw_lines) > 1:
-            return []
-        else:
+    def get_auto_completions(self, params):
+        if isinstance(self.ydict, str):
             return [
                 self._auto_complete_snippets[k]
                 for k in ["CommandLineTool", "ExpressionTool", "Workflow"]
             ]
+        else:
+            return []
 
     @staticmethod
     def prepare_auto_completions(config: Configuration):

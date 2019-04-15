@@ -35,6 +35,7 @@ import benten.langserver.cwldocument as cwldoc
 from ..editing.document import Document
 from .base import CWLLangServerBase, JSONRPC2Error, ServerError, LSPErrCode
 from .didopen import DidOpen
+from .definition import Definition
 
 import logging
 
@@ -45,6 +46,7 @@ logging.getLogger("benten.langserver.jsonrpc").propagate = False
 
 
 class LangServer(
+        Definition,
         DidOpen,
         CWLLangServerBase):
 
@@ -179,10 +181,16 @@ class LangServer(
                 "documentSymbolProvider": True,
                 "workspaceSymbolProvider": True,
                 "streaming": True,
+                "codeActionProvider": {
+                    "codeActionKinds": ["source"]
+                },
                 "xdefinitionProvider": True,
                 "xworkspaceReferencesProvider": True,
             }
         }
+
+    def serve_initialized(self, client_query):
+        return {}
 
     def serve_doc_did_change(self, client_query):
         params = client_query["params"]

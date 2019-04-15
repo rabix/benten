@@ -32,7 +32,7 @@ from collections import OrderedDict
 import logging
 
 from ..implementationerror import ImplementationError
-from .base import (DocumentProblem, EditMark, Base, YamlView,
+from .base import (DocumentProblem, Base,
                    special_id_for_inputs, special_id_for_outputs, special_ids_for_io)
 from ..editing.utils import dictify, iter_scalar_or_list
 from ..editing.lineloader import load_yaml, YNone, Ydict, LAM, compute_path
@@ -112,9 +112,9 @@ class Step:
         return str(self.available_sinks.keys()) + "->" + self.id + "->" + str(self.available_sources.keys())
 
     @classmethod
-    def from_doc(cls, step_id: str, line: (int, int), cwl_doc: YamlView, wf_error_list: List):
+    def from_doc(cls, step_id: str, line: (int, int), ydict: dict, wf_error_list: List):
 
-        step_doc = cwl_doc.yaml["steps"][step_id]
+        step_doc = ydict["steps"][step_id]
         root = pathlib.Path(cwl_doc.root().file_path)
         sub_workflow = InvalidSub()
 

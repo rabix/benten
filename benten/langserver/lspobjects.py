@@ -46,6 +46,16 @@ class TextEdit(LSPObject):
         self.newText = new_text
 
 
+class CodeActionKind:
+    QuickFix = 'quickfix'
+    CodeActionKind = 'refactor'
+    RefactorExtract = 'refactor.extract'
+    RefactorInline = 'refactor.inline'
+    RefactorRewrite = 'refactor.rewrite'
+    Source = 'source'
+    SourceOrganizeImports = 'source.organizeImports'
+
+
 class CompletionItemKind(IntEnum):
     Text = 1
     Method = 2
@@ -82,12 +92,12 @@ class InsertTextFormat(IntEnum):
 class CompletionItem(LSPObject):
     def __init__(self,
                  label: str,
-                 insert_text: str=None,
-                 text_edit: TextEdit=None, additional_text_edits: [TextEdit]=[],
-                 kind: CompletionItemKind=CompletionItemKind.Text,
-                 insert_text_format: InsertTextFormat=None,
-                 detail: str=None, documentation: str=None, preselect: bool=None,
-                 sort_text: str=None, filter_text:str=None):
+                 insert_text: str = None,
+                 text_edit: TextEdit = None, additional_text_edits: [TextEdit] = [],
+                 kind: CompletionItemKind = CompletionItemKind.Text,
+                 insert_text_format: InsertTextFormat = None,
+                 detail: str = None, documentation: str = None, preselect: bool = None,
+                 sort_text: str = None, filter_text: str = None):
         self.label = label
         self.kind = kind
         self.detail = detail
@@ -114,6 +124,6 @@ class CompletionItem(LSPObject):
 
 
 class CompletionList(LSPObject):
-    def __init__(self, is_incomplete: bool=True, items: [CompletionItem]=None):
+    def __init__(self, is_incomplete: bool = True, items: [CompletionItem] = None):
         self.isIncomplete = is_incomplete
         self.items = items or []

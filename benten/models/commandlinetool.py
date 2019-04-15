@@ -11,15 +11,15 @@ class CommandLineTool(Base):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = (self.cwl_doc.yaml or {}).get("id", None)
+        self.id = (self.ydict or {}).get("id", None)
 
         required_sections = ["cwlVersion", "class", "inputs", "outputs"]
         self.parse_sections(required_sections)
 
     def get_auto_completions(self, line, column, prefix):
-        path = compute_path(self.cwl_doc.yaml, line, column)
+        path = compute_path(self.ydict, line, column)
         logger.debug(f"Cursor at: ({line}, {column}): {path}, prefix: {prefix}")
-        trace_path(self.cwl_doc.yaml)
+        trace_path(self.ydict)
         if not path:
             return []
 
