@@ -1,6 +1,10 @@
-from .base import Base
+from typing import List
+
+from .documentproblem import DocumentProblem
 
 
-class Unk(Base):
-    """We don't know what the user intends this to be"""
-    pass
+class Base:
+    def __init__(self, ydict: (dict, str), existing_issues: List[DocumentProblem]=None):
+        self.ydict = ydict
+        self.problems: List[DocumentProblem] = existing_issues or []
+

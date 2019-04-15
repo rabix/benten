@@ -32,7 +32,7 @@ import benten
 import benten.langserver.configuration as cfg
 import benten.langserver.cwldocument as cwldoc
 
-from ..editing.document import Document
+from ..models.document import Document
 from .base import CWLLangServerBase, JSONRPC2Error, ServerError, LSPErrCode
 from .didopen import DidOpen
 from .definition import Definition

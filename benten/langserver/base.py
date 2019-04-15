@@ -1,7 +1,7 @@
 from typing import Dict
 from enum import IntEnum
 
-from ..editing.document import Document
+from ..models.document import Document
 
 import logging
 

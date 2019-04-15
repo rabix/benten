@@ -5,8 +5,8 @@ import pathlib
 
 from .lspobjects import Position
 from .base import CWLLangServerBase
-from ..editing.document import Document
-from ..editing.lineloader import compute_path
+from ..models.document import Document
+from ..models.lineloader import compute_path
 from ..models.workflow import Workflow
 
 import logging

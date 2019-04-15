@@ -40,7 +40,7 @@ interface TextDocumentItem {
 import pathlib
 
 from .base import CWLLangServerBase
-from ..editing.document import Document
+from ..models.document import Document
 
 
 class DidOpen(CWLLangServerBase):
