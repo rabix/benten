@@ -1,0 +1,43 @@
+{
+	"name": "benten-vscode",
+	"description": "VSCode client for Benten: A language server for CWL",
+	"author": "Seven Bridges Genomics",
+	"license": "Apache 2.0",
+	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rabix/benten"
+	},
+	"publisher": "SBG",
+	"categories": [
+		"Programming Languages"
+	],
+	"keywords": [
+		"multi-root ready",
+		"CWL",
+		"common workflow language",
+		"bioinformatics"
+	],
+	"engines": {
+		"vscode": "^1.23.0"
+	},
+	"activationEvents": [
+		"onLanguage:cwl"
+	],
+	"main": "./out/extension",
+	"scripts": {
+		"vscode:prepublish": "vscode-install && npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
+		"update-vscode": "node ./node_modules/vscode/bin/install"
+	},
+	"dependencies": {
+		"vscode-languageclient": "^4.1.4"
+	},
+	"devDependencies": {
+		"@types/node": "^6.0.40",
+		"mocha": "^2.3.3",
+		"typescript": "^2.3.4",
+		"vscode": "^1.1.33"
+	}
+}
