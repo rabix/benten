@@ -1,5 +1,5 @@
 from .process import Process
 
 
-class CommandLineTool:
+class CommandLineTool(Process):
     pass

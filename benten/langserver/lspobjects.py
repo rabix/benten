@@ -46,6 +46,12 @@ class TextEdit(LSPObject):
         self.newText = new_text
 
 
+class Location(LSPObject):
+    def __init__(self, uri, _range: Range=Range(Position(0, 0), Position(0, 0))):
+        self.uri = uri
+        self.range = _range
+
+
 class CodeActionKind:
     QuickFix = 'quickfix'
     CodeActionKind = 'refactor'

@@ -33,6 +33,7 @@ import benten.langserver.configuration as cfg
 import benten.langserver.cwldocument as cwldoc
 
 from ..models.document import Document
+from .lspobjects import to_dict
 from .base import CWLLangServerBase, JSONRPC2Error, ServerError, LSPErrCode
 from .didopen import DidOpen
 from .definition import Definition
@@ -84,7 +85,7 @@ class LangServer(
             return
 
         try:
-            response = self._dispatch(client_query)
+            response = to_dict(self._dispatch(client_query))
 
             if is_a_request:
                 self.conn.write_response(client_query["id"], response)
