@@ -35,7 +35,7 @@ import benten.langserver.cwldocument as cwldoc
 from ..models.document import Document
 from .lspobjects import to_dict
 from .base import CWLLangServerBase, JSONRPC2Error, ServerError, LSPErrCode
-from .didopen import DidOpen
+from .fileoperation import FileOperation
 from .definition import Definition
 
 import logging
@@ -54,7 +54,7 @@ class TextDocumentSyncKind(IntEnum):
 
 class LangServer(
         Definition,
-        DidOpen,
+        FileOperation,
         CWLLangServerBase):
 
     def run(self):

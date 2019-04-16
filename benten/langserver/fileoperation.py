@@ -47,7 +47,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DidOpen(CWLLangServerBase):
+class FileOperation(CWLLangServerBase):
 
     def serve_textDocument_didOpen(self, client_query):
         params = client_query["params"]
