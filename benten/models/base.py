@@ -1,10 +1,9 @@
 from typing import List
 
-from .documentproblem import DocumentProblem
+from ..langserver.lspobjects import Diagnostic
 
 
 class Base:
-    def __init__(self, ydict: (dict, str), existing_issues: List[DocumentProblem]=None):
+    def __init__(self, ydict: (dict, str), existing_issues: List[Diagnostic]=None):
         self.ydict = ydict
-        self.problems: List[DocumentProblem] = existing_issues or []
-
+        self.problems: List[Diagnostic] = existing_issues or []

@@ -1,4 +1,5 @@
 """Collection of common LSP objects"""
+from typing import List
 from enum import IntEnum
 
 
@@ -50,6 +51,32 @@ class Location(LSPObject):
     def __init__(self, uri, _range: Range=Range(Position(0, 0), Position(0, 0))):
         self.uri = uri
         self.range = _range
+
+
+class DiagnosticSeverity(IntEnum):
+    Error = 1
+    Warning = 2
+    Information = 3
+    Hint = 4
+
+
+class Diagnostic(LSPObject):
+    def __init__(self,
+                 _range: Range, message: str,
+                 severity: DiagnosticSeverity=None,
+                 code: str=None,
+                 source: str=None):
+        self.range = _range
+        self.message = message
+        self.severity = severity
+        self.code = code
+        self.source = source
+
+
+class PublishDiagnosticsParams(LSPObject):
+    def __init__(self, uri, diagnostics: List[Diagnostic]):
+        self.uri = uri
+        self.diagnostics = diagnostics
 
 
 class CodeActionKind:

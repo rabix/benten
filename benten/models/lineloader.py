@@ -49,7 +49,7 @@ except ImportError:
                   ImportWarning)
     from yaml import SafeLoader as Loader
 
-from .documentproblem import DocumentProblem
+from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
 
 
 def load_yaml(raw_cwl: str):
@@ -162,17 +162,25 @@ class LAM(dict):
         def _get_key(x, _errors):
             if not isinstance(x, dict):
                 _errors += [
-                    DocumentProblem(line=node.start_mark.line, column=node.start_mark.column,
-                                    message="Expecting a dictionary here",
-                                    problem_type=DocumentProblem.Type.error,
-                                    problem_class=DocumentProblem.Class.cwl)]
+                    Diagnostic(
+                        _range=Range(
+                            start=Position(line=node.start_mark.line, character=node.start_mark.column),
+                            end=Position(line=node.start_mark.line, character=node.start_mark.column)),
+                        message="Expecting a dictionary here",
+                        severity=DiagnosticSeverity.Error,
+                        code="CWL err",
+                        source="Benten")]
                 return None
             elif key_field not in x:
                 _errors += [
-                    DocumentProblem(line=node.start_mark.line, column=node.start_mark.column,
-                                    message="Expecting a dictionary here",
-                                    problem_type=DocumentProblem.Type.error,
-                                    problem_class=DocumentProblem.Class.cwl)]
+                    Diagnostic(
+                        _range=Range(
+                            start=Position(line=node.start_mark.line, character=node.start_mark.column),
+                            end=Position(line=node.start_mark.line, character=node.start_mark.column)),
+                        message=f"Expecting a field '{key_field}' here",
+                        severity=DiagnosticSeverity.Error,
+                        code="CWL err",
+                        source="Benten")]
                 return None
             else:
                 return x[key_field]

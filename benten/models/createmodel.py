@@ -2,7 +2,7 @@
 from typing import List, Tuple
 
 from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentError, LAM
-from .documentproblem import DocumentProblem
+from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
 from .base import Base
 from .commandlinetool import CommandLineTool
 from .workflow import Workflow
@@ -35,7 +35,7 @@ def create_model(text: str):
         # return Unk(yaml_doc)
 
 
-def _parse_yaml(text) -> Tuple[dict, List[DocumentProblem]]:
+def _parse_yaml(text) -> Tuple[dict, List[Diagnostic]]:
     problems = []
     try:
         yaml = parse_yaml_with_line_info(
@@ -43,8 +43,11 @@ def _parse_yaml(text) -> Tuple[dict, List[DocumentProblem]]:
     except DocumentError as e:
         yaml = None
         problems = [
-            DocumentProblem(line=e.line, column=e.column, message=e.message,
-                            problem_type=DocumentProblem.Type.error,
-                            problem_class=DocumentProblem.Class.yaml)]
+            Diagnostic(
+                _range=Range(start=Position(e.line, e.column), end=Position(e.line, e.column)),
+                message=e.message,
+                severity=DiagnosticSeverity.Error,
+                code="YAML err",
+                source="Benten")]
 
     return yaml, problems

@@ -39,6 +39,7 @@ interface TextDocumentItem {
 """
 import pathlib
 
+from .lspobjects import to_dict, PublishDiagnosticsParams
 from .base import CWLLangServerBase
 from ..models.document import Document
 
@@ -49,7 +50,16 @@ class DidOpen(CWLLangServerBase):
         params = client_query["params"]
         doc_uri = params["textDocument"]["uri"]
 
-        self.open_documents[doc_uri] = Document(
+        document = Document(
             base_path=pathlib.Path(doc_uri),
             text=params["textDocument"]["text"],
             version=params["textDocument"]["version"])
+
+        self.open_documents[doc_uri] = document
+
+        self.conn.send_notification(
+            method="textDocument/publishDiagnostics",
+            params=to_dict(
+                PublishDiagnosticsParams(
+                    uri=doc_uri,
+                    diagnostics=document.model.problems)))
