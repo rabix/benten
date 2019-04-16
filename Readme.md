@@ -1,18 +1,22 @@
 # Benten (pre-alpha) 
 
-This is a workflow helper for [Common Workflow Language](https://www.commonwl.org/) documents.
+This is a [language server] for [Common Workflow Language](https://www.commonwl.org/) documents.
 
 <img align="right" height="150px" src="media/benten-icon.png"></img>
 Many advanced CWL users are comfortable creating tools and workflows "by hand"
 using a plain text editor. When creating complex enough workflows navigating 
 and editing the resultant document and sub-documents can get tedious. Keeping
 track of the bigger picture (what components have been added, what connections
-have been set) can also get hard. _Benten_ is a CWL development tool that 
-helps with navigating, visualizing and editing workflows. 
+have been set) can also get hard. 
 
-_Benten_ is written using Python and [Pyside2] (QT for Python)
+_Benten_ is a language server that offers help with code snippets, 
+navigation and syntax checking of CWL documents.
 
-[Pyside2]: https://doc.qt.io/qtforpython/
+_Benten_ is written using Python3 and developed against VS Code. The language
+server component will work with any editor/IDE that offers language server
+support. Code snippets are currently only available for VS Code.
+
+[language server]: https://langserver.org/
 
 [![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
@@ -27,11 +31,12 @@ python3 -m virtualenv ~/.venvs/benten   # Create virtual env - I prefer this
 . ~/.venvs/benten/bin/activate          # Activate virtual env
 pip3 install git+https://github.com/rabix/benten.git            # Install from github master branch
 # pip3 install git+https://github.com/rabix/benten.git@develop  # Install from github develop branch
-benten -v <your-workflow-name.cwl>      # Open your-workflow-name.cwl in Benten with debug logging
 ```
 
-# [Tutorial](docs/tutorial.md)
-![2019.03.24](https://lh3.googleusercontent.com/i5mDr9WSKWg9c38XhIpzR6d3BmxvfmKlaWBAheh36A5Wuk7ZaNxDf_vm5nEitWSF0wNQn1937OqqA-BOkmhgDldfp1fm-A_pUKMDIJRAvb1OHDPwQtQRcwpvrroVGsUDFtuFqqzsoSZKz9H7Ra71QM8VTjz1yfBFI1Eqjg_cKN-UxPpjErGxhAEduzvg1Eq61u_B_f_sdmBRG6ZIOyapMZSuQPbrQY6FHShJTfR8meS8WqVC8hE4DS4Zi9fgq5FHSHWT2y4vJFvzy1b06XMwKSvDr1s8TrXseAtDxvvgomaFAxWgJmWPbKANN3V5xp4ILSVVeAjuSkGtBIOogIdF4QRGp2flviXfOPh2nFzUjeZ5btBiXbIYlXSQWJRdR84ROrXh8i-kKsrn5NusRIta8aH0yTv6MTKNfxtWC8GVGaN-l9T-wdOh4Xejyre8shl4R9HatEozKg7M53AgaewpDzUvecnksyMqDNnn3f023_4EE6A93k67VuU_aewOUFoYAqvm7VLYJRmy-pmv5sdkHuwzOHxJpWnqn1-q7zYa7ZbYyk-A9yvmPGRmU3t8GDRXQ-cso6HXWKamasMW8UuhAek6MvP1Y7NTAnLknTG6L7k_yG7kv0NQZ40eZwc43QdUNDmgMpT2Lf94sOZY4KuKrJPtz5XvyQ9tFVRqEkFWE9zeYEojVPIeLCwRgGW_so_Mc3Q6Q5AO-iuj4Z_qvBmZA10P=w800-h464-no)
+# Features Implemented (release 2019.04.16)
+- Code snippets for process types, inputs, requirements
+- Error squiggles indicating YAML and CWL issues
+- Navigate to linked sub-workflows via "Goto Definition": Right-click on `run` field, or hit F12
 
 
 # License
@@ -40,17 +45,11 @@ benten -v <your-workflow-name.cwl>      # Open your-workflow-name.cwl in Benten 
 
 # Acknowledgments
 
-**QT**: I've been using QT for C++ projects since 2001. It is awesome to be still 
-using this tool-kit two decades later and via Python. Many thanks to the
-great [QT](https://www.qt.io/) team, and the [Pyside2](https://wiki.qt.io/Qt_for_Python) 
-(QT for Python) team. Pyside2 is distributed under the LGPL.
+The low level client-server communication [code][jsonrpc-code] is taken from [Sourcegraph's
+(now defunct) Python Language Server][sourcegraph-python]
 
-**QT dark theme**: From https://github.com/ColinDuquesnoy/QDarkStyleSheet
-
-**[ACE editor]**: It's still amazing to me that I can run a javascript app in my
-Python desktop app. ACE is distributed under the BSD license.
-
-[Ace editor]: https://ace.c9.io/
+[jsonrpc-code]: https://github.com/sourcegraph/python-langserver/blob/master/langserver/jsonrpc.py
+[sourcegraph-python]: https://github.com/sourcegraph/python-langserver
 
 
 # What's in a name? 
