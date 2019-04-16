@@ -31,7 +31,7 @@ setup(
     maintainer='Seven Bridges Genomics Inc.',
     maintainer_email='kaushik.ghose@sbgenomics.com',
     author_email='kaushik.ghose@sbgenomics.com',
-    description='CWL power editor developed by Seven Bridges',
+    description='CWL language server developed by Seven Bridges',
     long_description=long_description,
     long_description_content_type="text/markdown",
     include_package_data=True,
