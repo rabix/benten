@@ -4,6 +4,8 @@ from typing import List, Tuple
 from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentError, LAM
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
 from .base import Base
+from .undefined import Undefined
+from .plaintext import PlainText
 from .commandlinetool import CommandLineTool
 from .workflow import Workflow
 
@@ -11,8 +13,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def infer_type(ydict: (str, dict)):
-    if isinstance(ydict, dict):
+def infer_type(ydict: (None, str, dict)):
+    if ydict is None:
+        return "undefined"
+    elif isinstance(ydict, str):
+        return "text"
+    elif isinstance(ydict, dict):
         return (ydict or {}).get("class", "unknown")
     else:
         return "unknown"
@@ -23,10 +29,12 @@ def create_model(text: str):
     yaml, problems = _parse_yaml(text)
     try:
         return {
+            "undefined": Undefined,
+            "text": PlainText,
             "unknown": Base,
             "CommandLineTool": CommandLineTool,
             "Workflow": Workflow
-        }.get(infer_type(yaml), Base)(yaml, problems)
+        }.get(infer_type(yaml), PlainText)(yaml, problems)
     except Exception as e:
         raise e
         # # As a last resort, we write this out. Means we haven't hardened our constructors enough

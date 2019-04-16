@@ -74,14 +74,7 @@ class FileOperation(CWLLangServerBase):
         if "range" in content_change or "rangeLength" in content_change:
             logger.error("Server can currently only handle full text updates")
 
-        document = Document(
-            base_path=pathlib.Path(doc_uri),
-            text=content_change["text"],
-            version=params["textDocument"]["version"])
-        # For now. Later we will update the document so we can hold last good state
-        # in case of errors
-
-        self.open_documents[doc_uri] = document
+        self.open_documents[doc_uri].update(new_text=content_change["text"])
         self._mark_document_issues(doc_uri)
 
     def serve_textDocument_didClose(self, client_query):

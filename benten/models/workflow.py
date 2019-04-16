@@ -6,4 +6,3 @@ class Workflow(Process):
         super().__init__(*args, **kwargs)
         required_sections = ["cwlVersion", "class", "inputs", "outputs"]
         self.parse_sections(required_sections)
-
