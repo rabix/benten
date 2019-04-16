@@ -84,6 +84,11 @@ class FileOperation(CWLLangServerBase):
         self.open_documents[doc_uri] = document
         self._mark_document_issues(doc_uri)
 
+    def serve_textDocument_didClose(self, client_query):
+        params = client_query["params"]
+        doc_uri = params["textDocument"]["uri"]
+        self.open_documents.pop(doc_uri)
+
     def _mark_document_issues(self, doc_uri):
         document = self.open_documents[doc_uri]
         self.conn.send_notification(
