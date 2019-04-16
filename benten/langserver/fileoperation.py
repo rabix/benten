@@ -43,6 +43,9 @@ from .lspobjects import to_dict, PublishDiagnosticsParams
 from .base import CWLLangServerBase
 from ..models.document import Document
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class DidOpen(CWLLangServerBase):
 
@@ -56,7 +59,33 @@ class DidOpen(CWLLangServerBase):
             version=params["textDocument"]["version"])
 
         self.open_documents[doc_uri] = document
+        self._mark_document_issues(doc_uri)
 
+    def serve_textDocument_didChange(self, client_query):
+        params = client_query["params"]
+        doc_uri = params["textDocument"]["uri"]
+
+        content_changes = params["contentChanges"]
+
+        if len(content_changes) > 1:
+            logger.error("Server can currently only handle full text updates")
+
+        content_change = content_changes[0]
+        if "range" in content_change or "rangeLength" in content_change:
+            logger.error("Server can currently only handle full text updates")
+
+        document = Document(
+            base_path=pathlib.Path(doc_uri),
+            text=content_change["text"],
+            version=params["textDocument"]["version"])
+        # For now. Later we will update the document so we can hold last good state
+        # in case of errors
+
+        self.open_documents[doc_uri] = document
+        self._mark_document_issues(doc_uri)
+
+    def _mark_document_issues(self, doc_uri):
+        document = self.open_documents[doc_uri]
         self.conn.send_notification(
             method="textDocument/publishDiagnostics",
             params=to_dict(
