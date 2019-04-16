@@ -26,8 +26,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'benten = benten.guimain:main',
-            'benten-cwl-ls = benten.__ '
+            'benten-ls = benten.__main__'
         ],
     },
 

@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
-. /Users/kghose/.venvs/benten/bin/activate
+set -e
+. ~/.venvs/benten/bin/activate
 python -m benten --debug

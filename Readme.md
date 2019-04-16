@@ -38,6 +38,10 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 - Error squiggles indicating YAML and CWL issues
 - Navigate to linked sub-workflows via "Goto Definition": Right-click on `run` field, or hit F12
 
+# Run with VS Code
+
+Please see the instructions [here](vscode-client/Readme.md)
+
 
 # License
 [Apache 2.0](LICENSE)
@@ -46,7 +50,8 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 # Acknowledgments
 
 The low level client-server communication [code][jsonrpc-code] is taken from [Sourcegraph's
-(now defunct) Python Language Server][sourcegraph-python]
+(now defunct) Python Language Server][sourcegraph-python] as is the VS Code client code (which
+was based originally off Microsoft's example code)
 
 [jsonrpc-code]: https://github.com/sourcegraph/python-langserver/blob/master/langserver/jsonrpc.py
 [sourcegraph-python]: https://github.com/sourcegraph/python-langserver

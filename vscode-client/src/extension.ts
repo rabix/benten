@@ -45,10 +45,8 @@ function startLangServerTCP(addr: number, documentSelector: string[]): Disposabl
 }
 
 export function activate(context: ExtensionContext) {
-    // const executable = workspace.getConfiguration("pyls").get<string>("executable");
-	// const executable = ". ~/.venvs/benten/bin/activate && python -m benten"
-	const executable = "sh"
-	const args = ["/Users/kghose/Work/code/benten/vscode-client/start.sh"]
+	const executable = "benten-ls.sh"
+	const args = ["--debug"]
 	context.subscriptions.push(startLangServer(executable, args, ["cwl"]));
     // For TCP server needs to be started seperately
     // context.subscriptions.push(startLangServerTCP(2087, ["python"]));
