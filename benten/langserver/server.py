@@ -46,6 +46,12 @@ logger.propagate = True
 logging.getLogger("benten.langserver.jsonrpc").propagate = False
 
 
+class TextDocumentSyncKind(IntEnum):
+    _None = 0
+    Full = 1
+    Incremental = 2
+
+
 class LangServer(
         Definition,
         DidOpen,
@@ -171,7 +177,8 @@ class LangServer(
 
         return {
             "capabilities": {
-                "textDocumentSync": 2,  # Incremental
+                "textDocumentSync": TextDocumentSyncKind.Full,
+                #  Avoid complexity of incremental updates for now
                 "completionProvider": {
                     "resolveProvider": True,
                     "triggerCharacters": []
