@@ -22,17 +22,8 @@ Expected requests
     "exit": self.serve_exit,
 
 """
-
-from typing import Dict
-import pathlib
 from enum import IntEnum
 
-
-import benten
-import benten.langserver.configuration as cfg
-import benten.langserver.cwldocument as cwldoc
-
-from ..models.document import Document
 from .lspobjects import to_dict
 from .base import CWLLangServerBase, JSONRPC2Error, ServerError, LSPErrCode
 from .fileoperation import FileOperation
