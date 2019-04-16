@@ -24,6 +24,13 @@
 	"activationEvents": [
 		"onLanguage:cwl"
 	],
+	"contributes": {
+    "languages": [{
+        "id": "cwl",
+        "extensions": [ ".cwl" ],
+        "aliases": [ "CWL", "cwl", "CommonWorkflowLanguage", "CommonWL" ]
+    }]
+	},
 	"main": "./out/extension",
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
