@@ -154,7 +154,7 @@ class LangServer(
                 code=LSPErrCode.MethodNotFound,
                 message=msg))
 
-    def serve_exit(self, client_query):
+    def serve_shutdown(self, client_query):
         logging.shutdown()
         self.running = False
 
