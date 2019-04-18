@@ -2,13 +2,22 @@
 
 
 CommandLineTool:
-  meta: "process"
-  tabTrigger: "clt"
-  snippet: |-
+  kind: Class
+  label: CommandLineTool
+  detail: Process
+  documentation: >
+    A Command Line Tool is a non-interactive executable program that reads some input,
+    performs a computation, and terminates after producing some output. Command line
+    programs are a flexible unit of code sharing and reuse, unfortunately the
+    syntax and input/output semantics among command line programs is extremely
+    heterogeneous. A common layer for describing the syntax and semantics of
+    programs can reduce this incidental complexity by providing a consistent way
+    to connect programs together.
+  text_edit: |-
     class: CommandLineTool
-    cwlVersion: v1.0
+    cwlVersion: ${1:v1.0|v1.1}
     doc: ''
-    id: $1
+    id: $2
     label: $2
     inputs: []
     outputs: []
@@ -17,11 +26,12 @@ CommandLineTool:
     requirements: []
 
 ExpressionTool:
-  meta: "process"
-  tabTrigger: "et"
-  snippet: |-
+  kind: Class
+  label: ExpressionTool
+  documentation: Execute an expression as a Workflow step.
+  text_edit: |-
     class: ExpressionTool
-    cwlVersion: v1.0
+    cwlVersion: ${1:v1.0|v1.1}
     id: ''
     label: ''
     doc: ''
@@ -36,9 +46,12 @@ ExpressionTool:
 
 
 Input:
-  meta: "snippet"
-  tabTrigger: "inp"
-  snippet: |-
+  kind: Interface
+  label: CommandLineTool Input
+  detail: inputs
+  documentation: >
+    An input parameter for a CommandLineTool.
+  text_edit: |-
     type: $1
     label: $2
     default: $3
@@ -49,11 +62,23 @@ Input:
       prefix:
 
 Workflow:
-  meta: "process"
-  tabTrigger: "wf"
-  snippet: |-
+  kind: Class
+  label: Workflow
+  detail: Process
+  documentation: >
+    A workflow describes a set of steps and the dependencies between those steps.
+    When a step produces output that will be consumed by a second step, the first
+    step is a dependency of the second step.
+
+    When there is a dependency, the workflow engine must execute the preceeding
+    step and wait for it to successfully produce output before executing the
+    dependent step. If two steps are defined in the workflow graph that are not
+    directly or indirectly dependent, these steps are independent, and may
+    execute in any order or execute concurrently. A workflow is complete when
+    all steps have been executed.
+  text_edit: |-
     class: Workflow
-    cwlVersion: v1.0
+    cwlVersion: ${1:v1.0|v1.1}
     doc: ''
     id: $1
     label: $2
@@ -64,14 +89,16 @@ Workflow:
     hints: []
 
 
-# This scaffold is special in that it's used by the workflow model to insert steps programmatically
-# The name "step" is fixed.
-# If this scaffold is missing or renamed, Benten will use a default step scaffold model
-# If this scaffold is incomplete or malformed programatically adding steps will be affected
 step:
-  meta: "snippet"
-  tabTrigger: "step"
-  snippet: |-
+  kind: Module
+  label: Step
+  detail: Workflow Step
+  documentation: >
+    A workflow step is an executable element of a workflow. It specifies the underlying
+    process implementation (such as CommandLineTool or another Workflow) in the
+    run field and connects the input and output parameters of the underlying process
+    to workflow parameters.
+  text_edit: |-
     $1:
       label:
       doc: ''
@@ -85,31 +112,73 @@ step:
 
 
 WFOutput:
-  tabTrigger: "wfout"
-  snippet: |-
+  kind: Interface
+  label: Workflow Output
+  detail: Workflow Output
+  documentation: >
+    Describe an output parameter of a workflow. The parameter must be connected to one
+    or more parameters defined in the workflow that will provide the value of the
+    output parameter.
+  text_edit: |-
     $1:
       type: File
       outputSource: $2
 
 
 DockerRequirement:
-  tabTrigger: "dock"
-  snippet: |-
+  kind: Property
+  label: DockerRequirement
+  detail: Docker Requirement
+  documentation: >
+    Indicates that a workflow component should be run in a Docker container,
+    and specifies how to fetch or build the image.
+
+    If a CommandLineTool lists DockerRequirement under hints (or requirements),
+    it must be run in the specified Docker container.
+  text_edit: |-
     DockerRequirement:
       dockerPull: $1
 
 
 ResourceRequirement:
-  tabTrigger: "resreq"
-  snippet: |-
+  kind: Property
+  label: ResourceRequirement
+  detail: ResourceRequirement
+  documentation: >
+    Specify basic hardware resource requirements.
+
+    "min" is the minimum amount of a resource that must be reserved to schedule a job.
+    If "min" cannot be satisfied, the job should not be run.
+
+    "max" is the maximum amount of a resource that the job shall be permitted to use.
+    If a node has sufficient resources, multiple jobs may be scheduled on a single
+    node provided each job's "max" resource requirements are met. If a job attempts
+    to exceed its "max" resource allocation, an implementation may deny additional
+    resources, which may result in job failure.
+
+    If "min" is specified but "max" is not, then "max" == "min" If "max" is
+    specified by "min" is not, then "min" == "max".
+
+    It is an error if max < min.
+
+    It is an error if the value of any of these fields is negative.
+
+    If neither "min" nor "max" is specified for a resource, an implementation
+    may provide a default.
+  text_edit: |-
     ResourceRequirement:
       coresMin: $1
       ramMin: $2
 
 
 InitialWorkDirRequirement:
-  tabTrigger: "initial"
-  snippet: |-
+  kind: Module
+  label: InitialWorkDirRequirement
+  detail: InitialWorkDirRequirement
+  documentation: >
+    Define a list of files and subdirectories that must be created by the workflow platform
+    in the designated output directory prior to executing the command line tool.
+  text_edit: |-
     InitialWorkDirRequirement:
       listing:
         - $(inputs.file_input)

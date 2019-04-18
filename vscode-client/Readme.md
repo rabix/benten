@@ -1,6 +1,6 @@
 # How to setup and develop with VS Code
 
-- Install 
+- Install benten
 - Make sure the `benten-ls.sh` script is executable and in a location in the path
   e.g. /usr/local/bin
 - Run `npm install` in this folder. This installs all the npm modules needed to
@@ -12,7 +12,7 @@
 - Select `Launch Client` from the drop down.
 - Run the launch config.
 - In the [Extension Development Host] instance of VSCode, open a CWL document
-- In the [Extension Development Host] in the `output` tab, select "sh"
+- In the [Extension Development Host] in the `output` tab, select "benten"
 
 
 ## Restart server

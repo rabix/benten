@@ -12,6 +12,7 @@
 - [ ] Error/warning checking
 - [ ] Outline view
   - [ ] Steps
+- [ ] Code formatting (CMD + K, F)
 - [ ] syntax coloring - perhaps using the: https://wordsandbuttons
 .online/lexical_differential_highlighting_instead_of_syntax_highlighting.html
 - [ ] Evaluate JS on hover over a JS field

@@ -40,10 +40,8 @@ class Range(LSPObject):
 
 
 class TextEdit(LSPObject):
-    def __init__(self, line: int, character: int, new_text: str):
-        self.range = Range(
-            start=Position(line=line, character=character),
-            end=Position(line=line, character=character + len(new_text)))
+    def __init__(self, _range: Range, new_text: str):
+        self.range = _range
         self.newText = new_text
 
 
@@ -125,8 +123,7 @@ class InsertTextFormat(IntEnum):
 class CompletionItem(LSPObject):
     def __init__(self,
                  label: str,
-                 insert_text: str = None,
-                 text_edit: TextEdit = None, additional_text_edits: [TextEdit] = [],
+                 text_edit: TextEdit = None, additional_text_edits: [TextEdit] = None,
                  kind: CompletionItemKind = CompletionItemKind.Text,
                  insert_text_format: InsertTextFormat = None,
                  detail: str = None, documentation: str = None, preselect: bool = None,
@@ -138,25 +135,36 @@ class CompletionItem(LSPObject):
         self.preselect = preselect
         self.sortText = sort_text
         self.filterText = filter_text
-        self.insertText = insert_text
         self.insertTextFormat = insert_text_format
         self.textEdit = text_edit
         self.additionalTextEdits = additional_text_edits
 
     @classmethod
-    def from_snippet(cls, snippet: dict):
-        ci = CompletionItem(label=label)
-        cwl = tpl["cwl"]
-        cwl_lines = cwl.split("\n")
-        ci.textEdit = TextEdit(line=0, character=0, new_text=cwl_lines[0])
-        ci.additionalTextEdits = [
-            TextEdit(line=n, character=0, new_text=cwl_lines[n])
-            for n in range(1, len(cwl_lines))
-        ]
-        ci.documentation = tpl["doc"]
+    def from_snippet(
+            cls,
+            snippet: dict):
+
+        if "label" not in snippet:
+            snippet["label"] = "Unknown"
+
+        try:
+            snippet["kind"] = CompletionItemKind[snippet["kind"]]
+        except KeyError:
+            snippet["kind"] = CompletionItemKind.Text
+
+        snippet["insert_text_format"] = InsertTextFormat.Snippet
+        # snippet["insert_text"] = snippet.get("snippet")
+        snippet["text_edit"] = TextEdit(
+            _range=Range(
+                start=Position(line=0, character=0),
+                end=Position(line=0, character=0)
+            ),
+            new_text=snippet.get("text_edit"))
+
+        return cls(**snippet)
 
 
 class CompletionList(LSPObject):
-    def __init__(self, is_incomplete: bool = True, items: [CompletionItem] = None):
+    def __init__(self, is_incomplete: bool = False, items: [CompletionItem] = None):
         self.isIncomplete = is_incomplete
         self.items = items or []
