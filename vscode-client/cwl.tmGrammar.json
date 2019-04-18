@@ -5,7 +5,8 @@
 		{"include": "#keywords"},
 		{"include": "#strings"},
 		{"include": "#comments"},
-		{"include": "#js-expression"}
+		{"include": "#js-expression"},
+		{"include": "#parameter-reference"}
 	],
 	"repository": {
 		"comments": {
@@ -55,7 +56,20 @@
       "endCaptures": {
         "0": { "name": "meta.embedded.block.javascript.close" }
       },
-      "name": "meta.embedded.block.javascript"
-    }
+			"name": "meta.embedded.block.javascript",
+			"patterns": [{"include": "source.js"}]
+		},
+		"parameter-reference": {
+      "begin": "\\$\\(",
+      "end": "\\)",
+      "beginCaptures": {
+        "0": { "name": "meta.embedded.block.javascript.open" }
+      },
+      "endCaptures": {
+        "0": { "name": "meta.embedded.block.javascript.close" }
+      },
+			"name": "meta.embedded.block.javascript",
+			"patterns": [{"include": "source.js"}]
+		}
 	}
 }
