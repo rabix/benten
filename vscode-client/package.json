@@ -28,8 +28,17 @@
     "languages": [{
         "id": "cwl",
         "extensions": [ ".cwl" ],
-        "aliases": [ "CWL", "cwl", "CommonWorkflowLanguage", "CommonWL" ]
-    }]
+				"aliases": [ "CWL", "cwl", "CommonWorkflowLanguage", "CommonWL" ],
+				"configuration": "./language-configuration.json"
+		}],
+		"grammars": [{
+			"language": "cwl",
+			"scopeName": "source.cwl",
+			"path": "./cwl.tmGrammar.json",
+			"embeddedLanguages": {
+				"meta.embedded.block.javascript": "javascript"
+			}
+		}]		
 	},
 	"main": "./out/extension",
 	"scripts": {
