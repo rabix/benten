@@ -17,6 +17,7 @@ class CommandLineTool(Process):
             "label": False,
             "inputs": True,
             "outputs": True,
+            "stdout": False,
             "baseCommand": False,
             "arguments": False,
             "requirements": False,
