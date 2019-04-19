@@ -10,3 +10,6 @@ class Base:
 
     def completions(self, position: Position, snippets: dict):
         return CompletionList()
+
+    def symbols(self):
+        return []

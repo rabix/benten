@@ -1,5 +1,42 @@
-from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
+from ..langserver.lspobjects import (
+    Diagnostic, DiagnosticSeverity, Range, Position, DocumentSymbol, SymbolKind)
 from .base import Base
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+CWLSymbol = {
+    "class": {
+        "kind": SymbolKind.Constant,
+        "name": lambda k, v: v
+    },
+    "cwlVersion": {
+        "kind": SymbolKind.Constant,
+        "name": lambda k, v: v
+    },
+    "inputs": {
+        "kind": SymbolKind.Interface,
+        "name": lambda k, v: k
+    },
+    "outputs": {
+        "kind": SymbolKind.Interface,
+        "name": lambda k, v: k
+    },
+    "requirements": {
+        "kind": SymbolKind.Array,
+        "name": lambda k, v: k
+    },
+    "steps": {
+        "kind": SymbolKind.Class,
+        "name": lambda k, v: k
+    }
+}
+
+CWLSymbolDefault = {
+        "kind": SymbolKind.Field,
+        "name": lambda k, v: k
+}
 
 
 class Process(Base):
@@ -10,7 +47,11 @@ class Process(Base):
 
     def parse_sections(self, fields):
         for k, v in self.ydict.items():
-            self.outline_info[k] = {"range": (v.start, v.end)}
+            self.outline_info[k] = {
+                "kind": CWLSymbol.get(k, CWLSymbolDefault)["kind"],
+                "name": CWLSymbol.get(k, CWLSymbolDefault)["name"](k, v),
+                "range": (v.start, v.end)
+            }
 
         for k in self.outline_info.keys():
             if k not in fields:
@@ -34,3 +75,21 @@ class Process(Base):
                             severity=DiagnosticSeverity.Error,
                             code="CWL err",
                             source="Benten")]
+
+    def symbols(self):
+        return [
+            DocumentSymbol(
+                name=v["name"],
+                detail=k,
+                kind=v["kind"],
+                _range=Range(
+                    start=Position(v["range"][0].line, v["range"][0].column),
+                    end=Position(v["range"][1].line, v["range"][1].column)
+                ),
+                selection_range=Range(
+                    start=Position(v["range"][0].line, v["range"][0].column),
+                    end=Position(v["range"][1].line, v["range"][1].column)
+                )
+            )
+            for k, v in self.outline_info.items()
+        ]

@@ -29,6 +29,7 @@ from .base import CWLLangServerBase, JSONRPC2Error, ServerError, LSPErrCode
 from .fileoperation import FileOperation
 from .definition import Definition
 from .completion import Completion
+from .documentsymbol import DocumentSymbol
 
 import logging
 
@@ -45,6 +46,7 @@ class TextDocumentSyncKind(IntEnum):
 
 
 class LangServer(
+        DocumentSymbol,
         Completion,
         Definition,
         FileOperation,

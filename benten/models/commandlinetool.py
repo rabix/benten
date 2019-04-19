@@ -18,6 +18,7 @@ class CommandLineTool(Process):
             "inputs": True,
             "outputs": True,
             "baseCommand": False,
+            "arguments": False,
             "requirements": False,
             "hints": False
         }
