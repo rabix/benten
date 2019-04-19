@@ -7,6 +7,7 @@ from .base import Base
 from .undefined import Undefined
 from .plaintext import PlainText
 from .commandlinetool import CommandLineTool
+from .expressiontool import ExpressionTool
 from .workflow import Workflow
 
 import logging
@@ -33,6 +34,7 @@ def create_model(text: str):
             "text": PlainText,
             "unknown": Base,
             "CommandLineTool": CommandLineTool,
+            "ExpressionTool": ExpressionTool,
             "Workflow": Workflow
         }.get(infer_type(yaml), PlainText)(yaml, problems)
     except Exception as e:
