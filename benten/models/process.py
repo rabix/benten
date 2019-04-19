@@ -1,9 +1,18 @@
+import textwrap
+
 from ..langserver.lspobjects import (
     Diagnostic, DiagnosticSeverity, Range, Position, DocumentSymbol, SymbolKind)
 from .base import Base
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def truncate(text):
+    if len(text):
+        return textwrap.shorten(text, 20, placeholder="...")
+    else:
+        return "-"
 
 
 CWLSymbol = {
@@ -15,21 +24,37 @@ CWLSymbol = {
         "kind": SymbolKind.Constant,
         "name": lambda k, v: v
     },
+    "id": {
+        "kind": SymbolKind.Field,
+        "name": lambda k, v: truncate(v)
+    },
+    "label": {
+        "kind": SymbolKind.Field,
+        "name": lambda k, v: truncate(v)
+    },
     "inputs": {
         "kind": SymbolKind.Interface,
-        "name": lambda k, v: k
+        "name": lambda k, v: "-"
     },
     "outputs": {
         "kind": SymbolKind.Interface,
-        "name": lambda k, v: k
+        "name": lambda k, v: "-"
+    },
+    "expression": {
+        "kind": SymbolKind.Function,
+        "name": lambda k, v: "{}"
     },
     "requirements": {
         "kind": SymbolKind.Array,
-        "name": lambda k, v: k
+        "name": lambda k, v: "-"
+    },
+    "hints": {
+        "kind": SymbolKind.Array,
+        "name": lambda k, v: "-"
     },
     "steps": {
         "kind": SymbolKind.Class,
-        "name": lambda k, v: k
+        "name": lambda k, v: "-"
     }
 }
 
