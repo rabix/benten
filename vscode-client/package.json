@@ -25,20 +25,31 @@
 		"onLanguage:cwl"
 	],
 	"contributes": {
-    "languages": [{
-        "id": "cwl",
-        "extensions": [ ".cwl" ],
-				"aliases": [ "CWL", "cwl", "CommonWorkflowLanguage", "CommonWL" ],
+		"languages": [
+			{
+				"id": "cwl",
+				"extensions": [
+					".cwl"
+				],
+				"aliases": [
+					"CWL",
+					"cwl",
+					"CommonWorkflowLanguage",
+					"CommonWL"
+				],
 				"configuration": "./language-configuration.json"
-		}],
-		"grammars": [{
-			"language": "cwl",
-			"scopeName": "source.cwl",
-			"path": "./cwl.tmGrammar.json",
-			"embeddedLanguages": {
-				"meta.embedded.block.javascript": "javascript"
 			}
-		}]		
+		],
+		"grammars": [
+			{
+				"language": "cwl",
+				"scopeName": "source.cwl",
+				"path": "./cwl.tmGrammar.json",
+				"embeddedLanguages": {
+					"meta.embedded.block.javascript": "javascript"
+				}
+			}
+		]
 	},
 	"main": "./out/extension",
 	"scripts": {
@@ -48,7 +59,7 @@
 		"update-vscode": "node ./node_modules/vscode/bin/install"
 	},
 	"dependencies": {
-		"vscode-languageclient": "^4.1.4"
+		"vscode-languageclient": "^5.2.1"
 	},
 	"devDependencies": {
 		"@types/node": "^6.0.40",
