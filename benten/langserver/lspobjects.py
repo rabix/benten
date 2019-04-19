@@ -7,7 +7,7 @@ def to_dict(v):
     if isinstance(v, LSPObject):
         return {
             k: to_dict(_v)
-            for k, _v in v.__dict__.items() if v is not None
+            for k, _v in v.__dict__.items() if _v is not None
         }
     elif isinstance(v, dict):
         return {
@@ -168,3 +168,42 @@ class CompletionList(LSPObject):
     def __init__(self, is_incomplete: bool = False, items: [CompletionItem] = None):
         self.isIncomplete = is_incomplete
         self.items = items or []
+
+
+class SymbolKind(IntEnum):
+    File = 1
+    Module = 2
+    Namespace = 3
+    Package = 4
+    Class = 5
+    Method = 6
+    Property = 7
+    Field = 8
+    Constructor = 9
+    Enum = 10
+    Interface = 11
+    Function = 12
+    Variable = 13
+    Constant = 14
+    String = 15
+    Number = 16
+    Boolean = 17
+    Array = 18
+    Object = 19
+    Key = 20
+    Null = 21
+    EnumMember = 22
+    Struct = 23
+    Event = 24
+    Operator = 25
+    TypeParameter = 26
+
+
+class DocumentSymbol(LSPObject):
+    def __init__(self, name, detail, kind, _range, selection_range, children=None):
+        self.name = name
+        self.detail = detail
+        self.kind: SymbolKind = kind
+        self.range: Range = _range
+        self.selectionRange: Range = selection_range
+        self.children: List[DocumentSymbol] = children
