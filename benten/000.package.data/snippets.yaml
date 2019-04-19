@@ -1,5 +1,4 @@
-
-
+# Basic process classes
 
 CommandLineTool:
   kind: Class
@@ -15,7 +14,7 @@ CommandLineTool:
     to connect programs together.
   text_edit: |-
     class: CommandLineTool
-    cwlVersion: ${1:v1.0|v1.1}
+    cwlVersion: ${1|v1.0,v1.1|}
     doc: ''
     id: $2
     label: $2
@@ -31,7 +30,7 @@ ExpressionTool:
   documentation: Execute an expression as a Workflow step.
   text_edit: |-
     class: ExpressionTool
-    cwlVersion: ${1:v1.0|v1.1}
+    cwlVersion: ${1|v1.0,v1.1|}
     id: ''
     label: ''
     doc: ''
@@ -44,22 +43,6 @@ ExpressionTool:
     requirements:
       - class: InlineJavascriptRequirement
 
-
-Input:
-  kind: Interface
-  label: CommandLineTool Input
-  detail: inputs
-  documentation: >
-    An input parameter for a CommandLineTool.
-  text_edit: |-
-    type: $1
-    label: $2
-    default: $3
-    secondaryFiles:
-      - .fai
-    inputBinding:
-      position:
-      prefix:
 
 Workflow:
   kind: Class
@@ -78,67 +61,18 @@ Workflow:
     all steps have been executed.
   text_edit: |-
     class: Workflow
-    cwlVersion: ${1:v1.0|v1.1}
+    cwlVersion: ${1|v1.0,v1.1|}
     doc: ''
-    id: $1
-    label: $2
-    inputs: []
-    steps: {}
-    outputs: []
-    requirements: []
-    hints: []
+    id: $2
+    label: $3
+    inputs: $4
+    steps: $5
+    outputs: $6
+    requirements: $7
+    hints: $8
 
 
-step:
-  kind: Module
-  label: Step
-  detail: Workflow Step
-  documentation: >
-    A workflow step is an executable element of a workflow. It specifies the underlying
-    process implementation (such as CommandLineTool or another Workflow) in the
-    run field and connects the input and output parameters of the underlying process
-    to workflow parameters.
-  text_edit: |-
-    $1:
-      label:
-      doc: ''
-      in: $2
-      out: $3
-      run: $4
-      scatter:
-      scatterMethod:
-      hints: []
-      requirements: []
-
-
-WFOutput:
-  kind: Interface
-  label: Workflow Output
-  detail: Workflow Output
-  documentation: >
-    Describe an output parameter of a workflow. The parameter must be connected to one
-    or more parameters defined in the workflow that will provide the value of the
-    output parameter.
-  text_edit: |-
-    $1:
-      type: File
-      outputSource: $2
-
-
-DockerRequirement:
-  kind: Property
-  label: DockerRequirement
-  detail: Docker Requirement
-  documentation: >
-    Indicates that a workflow component should be run in a Docker container,
-    and specifies how to fetch or build the image.
-
-    If a CommandLineTool lists DockerRequirement under hints (or requirements),
-    it must be run in the specified Docker container.
-  text_edit: |-
-    DockerRequirement:
-      dockerPull: $1
-
+# Common sections
 
 ResourceRequirement:
   kind: Property
@@ -171,6 +105,25 @@ ResourceRequirement:
       ramMin: $2
 
 
+# CommandLineTool specific sections
+
+Input:
+  kind: Interface
+  label: CommandLineTool Input
+  detail: inputs
+  documentation: >
+    An input parameter for a CommandLineTool.
+  text_edit: |-
+    type: $1
+    label: $2
+    default: $3
+    secondaryFiles:
+      - .fai
+    inputBinding:
+      position:
+      prefix:
+
+
 InitialWorkDirRequirement:
   kind: Module
   label: InitialWorkDirRequirement
@@ -187,3 +140,57 @@ InitialWorkDirRequirement:
             PREFIX='Bash variable'
             MSG="\${PREFIX} $(inputs.cwl_variable)"
             echo \${MSG}
+
+
+DockerRequirement:
+  kind: Property
+  label: DockerRequirement
+  detail: Docker Requirement
+  documentation: >
+    Indicates that a workflow component should be run in a Docker container,
+    and specifies how to fetch or build the image.
+
+    If a CommandLineTool lists DockerRequirement under hints (or requirements),
+    it must be run in the specified Docker container.
+  text_edit: |-
+    DockerRequirement:
+      dockerPull: $1
+
+
+
+# Workflow specific sections
+
+WFOutput:
+  kind: Interface
+  label: Workflow Output
+  detail: Workflow Output
+  documentation: >
+    Describe an output parameter of a workflow. The parameter must be connected to one
+    or more parameters defined in the workflow that will provide the value of the
+    output parameter.
+  text_edit: |-
+    $1:
+      type: File
+      outputSource: $2
+
+
+step:
+  kind: Module
+  label: Step
+  detail: Workflow Step
+  documentation: >
+    A workflow step is an executable element of a workflow. It specifies the underlying
+    process implementation (such as CommandLineTool or another Workflow) in the
+    run field and connects the input and output parameters of the underlying process
+    to workflow parameters.
+  text_edit: |-
+    $1:
+      label:
+      doc: ''
+      in: $2
+      out: $3
+      run: $4
+      scatter:
+      scatterMethod:
+      hints: []
+      requirements: []
