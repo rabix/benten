@@ -35,7 +35,7 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 
 # Features Implemented (version 2019.04.19)
 
-![2019.04.19](https://imgur.com/LWip9ro)
+![2019.04.19](https://imgur.com/LWip9ro.png)
 
 - Code snippets for process types, inputs, requirements
 - Error squiggles indicating YAML and CWL issues
