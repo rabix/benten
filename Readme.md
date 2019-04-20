@@ -33,9 +33,10 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 # pip3 install git+https://github.com/rabix/benten.git@develop  # Install from github develop branch
 ```
 
-![2019.04.19](https://lh3.googleusercontent.com/QImy3KC4zmx98C5ek6vvKWxO0_e19bRCzSz6p_aDo-SI2mNGtk9KQl0L4iwD8q8YIxkYEKqt3A4nLFtabbIjbbiel_WbLONNZGgcEVXJk35xJ_yHyDmEB2PLtQeQm_B_YOSGrddBXQ=w1918-h1384-no)
+# Features Implemented (version 2019.04.19)
 
-# Features Implemented (release 2019.04.19)
+![2019.04.19](https://imgur.com/LWip9ro)
+
 - Code snippets for process types, inputs, requirements
 - Error squiggles indicating YAML and CWL issues
 - Navigate to linked sub-workflows via "Goto Definition": Right-click on `run` field, hit F12 or ALT + Click
