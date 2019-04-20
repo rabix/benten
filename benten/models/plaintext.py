@@ -11,6 +11,7 @@ class PlainText(Base):
             is_incomplete=False,
             items=[
                 snip for k, snip in snippets.items()
-                if k in ["CommandLineTool", "ExpressionTool", "Workflow"]
+                if k in ["CommandLineTool", "ExpressionTool", "Workflow",
+                         "CommandLineTool with script"]
             ]
         )

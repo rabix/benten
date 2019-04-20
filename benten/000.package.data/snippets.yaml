@@ -18,11 +18,12 @@ CommandLineTool:
     doc: ''
     id: $2
     label: $2
-    inputs: []
-    outputs: []
-    baseCommand: ''
-    hints: []
-    requirements: []
+    inputs: $3
+    baseCommand: $4
+    outputs: $5
+    hints: $6
+    requirements: $7
+
 
 ExpressionTool:
   kind: Class
@@ -72,6 +73,33 @@ Workflow:
     outputs: $6
     requirements: $7
     hints: $8
+
+
+# Commonly used patterns
+
+"CommandLineTool with script":
+  kind: Class
+  label: CommandLineTool with script
+  detail: Process
+  documentation: >
+    Scaffold for setting up a CommandLineTool with an
+    inline script
+  text_edit: |-
+    class: CommandLineTool
+    cwlVersion: ${1|v1.0,v1.1|}
+    inputs: []
+    baseCommand: [sh, script.sh]
+    requirements:
+      InitialWorkDirRequirement:
+        listing:
+          - entryname: script.sh
+            entry: |-
+              $2
+              PREFIX='Bash variable'
+              MSG="\\\${PREFIX} $(inputs.cwl_variable)"
+              echo \\\${MSG}
+    outputs: []
+    hints: []
 
 
 # Common sections
@@ -140,8 +168,8 @@ InitialWorkDirRequirement:
         - entryname: $1
           entry: |-
             PREFIX='Bash variable'
-            MSG="\${PREFIX} $(inputs.cwl_variable)"
-            echo \${MSG}
+            MSG="\\${PREFIX} $(inputs.cwl_variable)"
+            echo \\${MSG}
 
 
 DockerRequirement:
