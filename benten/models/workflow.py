@@ -5,7 +5,7 @@ from ..langserver.lspobjects import DocumentSymbol, Range, Position, SymbolKind
 class Workflow(Process):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        fields = {
+        self.fields = {
             "class": True,
             "cwlVersion": True,
             "id": False,
@@ -17,15 +17,18 @@ class Workflow(Process):
             "requirements": False,
             "hints": False
         }
-        self.parse_sections(fields)
+        self.parse_sections(self.fields)
 
     def symbols(self):
         symb = super().symbols()
-        steps = next((sy for sy in symb if sy.detail == "steps"), None)
-        if steps is None:
+        symb_steps = next((sy for sy in symb if sy.detail == "steps"), None)
+        if symb_steps is None:
             return symb
 
-        steps.children = [
+        _steps = self.ydict.get("steps", {})
+        if not isinstance(_steps, dict):
+            _steps = {}
+        symb_steps.children = [
             DocumentSymbol(
                 name=k,
                 detail="step",
@@ -39,7 +42,7 @@ class Workflow(Process):
                     end=Position(v.end.line, v.end.column)
                 )
             )
-            for k, v in self.ydict["steps"].items()
+            for k, v in _steps.items()
         ]
 
         return symb
