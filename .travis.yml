@@ -10,9 +10,9 @@ install:
 
 # We need to cd into tests in order for coverage to work
 # (it searches for .coverage in the cwd)
-script:
-  - cd tests
-  - py.test --cov=benten
-
-after_success:
-  - codecov
+#script:
+#  - cd tests
+#  - py.test --cov=benten
+#
+#after_success:
+#  - codecov
