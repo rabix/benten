@@ -31,15 +31,17 @@ ExpressionTool:
   text_edit: |-
     class: ExpressionTool
     cwlVersion: ${1|v1.0,v1.1|}
-    id: ''
-    label: ''
-    doc: ''
-    expression: '$\{
+    id: $2
+    label: $3
+    doc: $4
+    expression: |-
+      ${
         // Expression
-        \}'
-    inputs: []
-    outputs: []
-    hints: []
+        $5
+      }
+    inputs: $6
+    outputs: $7
+    hints: $8
     requirements:
       - class: InlineJavascriptRequirement
 
