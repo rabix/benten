@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 def truncate(text):
-    if len(text):
-        return textwrap.shorten(text, 20, placeholder="...")
-    else:
-        return "-"
+    if isinstance(text, str):
+        if len(text):
+            return textwrap.shorten(text, 20, placeholder="...")
+    return "-"
 
 
 CWLSymbol = {
