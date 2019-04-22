@@ -37,11 +37,13 @@ setup(
     include_package_data=True,
     license='Copyright (c) {} Seven Bridges Genomics'.format(now.year),
     classifiers=[
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3 :: Only'
     ],
     keywords='seven bridges cwl common workflow language'
 )
