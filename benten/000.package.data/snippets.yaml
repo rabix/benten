@@ -1,7 +1,7 @@
 # Basic process classes
 
 CommandLineTool:
-  kind: Class
+  kind: Function
   label: CommandLineTool
   detail: Process
   documentation: >
@@ -26,7 +26,7 @@ CommandLineTool:
 
 
 ExpressionTool:
-  kind: Class
+  kind: Module
   label: ExpressionTool
   documentation: Execute an expression as a Workflow step.
   text_edit: |-
@@ -78,7 +78,7 @@ Workflow:
 # Commonly used patterns
 
 "CommandLineTool with script":
-  kind: Class
+  kind: Function
   label: CommandLineTool with script
   detail: Process
   documentation: >
@@ -204,10 +204,10 @@ WFOutput:
       outputSource: $2
 
 
-step:
+WFStep:
   kind: Module
   label: Step
-  detail: Workflow Step
+  detail: Workflow Step Scaffold
   documentation: >
     A workflow step is an executable element of a workflow. It specifies the underlying
     process implementation (such as CommandLineTool or another Workflow) in the
