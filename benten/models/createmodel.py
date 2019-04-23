@@ -28,6 +28,7 @@ def infer_type(ydict: (None, str, dict)):
 # will extend to include expressions and docs
 def create_model(text: str):
     yaml, problems = _parse_yaml(text)
+    lines = text.splitlines(keepends=True)
     try:
         return {
             "undefined": Undefined,
@@ -36,7 +37,7 @@ def create_model(text: str):
             "CommandLineTool": CommandLineTool,
             "ExpressionTool": ExpressionTool,
             "Workflow": Workflow
-        }.get(infer_type(yaml), PlainText)(yaml, problems)
+        }.get(infer_type(yaml), PlainText)(lines, yaml, problems)
     except Exception as e:
         raise e
         # # As a last resort, we write this out. Means we haven't hardened our constructors enough

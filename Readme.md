@@ -33,16 +33,16 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 # pip3 install git+https://github.com/rabix/benten.git@develop  # Install from github develop branch
 ```
 
-# Features Implemented (version 2019.04.19)
+# Features Implemented (version 2019.04.23)
 
-![2019.04.19](https://imgur.com/LWip9ro.png)
+![2019.04.23](https://i.imgur.com/fgJOXum.png)
 
+- CWL syntax highlighting, CWL grammar parsing _(1)_
+- Embedded JS expression highlighting _(2)_
+- Navigate to linked sub-workflows _(3)_
+- Outline view (Symbols) + Step symbols _(4)_
 - Code snippets for process types, inputs, requirements
 - Error squiggles indicating YAML and CWL issues
-- Navigate to linked sub-workflows via "Goto Definition": Right-click on `run` field, hit F12 or ALT + Click
-- CWL syntax highlighting, CWL grammar parsing
-- JS expression highlighting
-- Outline view (Symbols) + Step symbols
 
 # Run with VS Code
 
