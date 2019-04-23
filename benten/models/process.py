@@ -1,5 +1,6 @@
 import textwrap
 
+from .lineloader import compute_path
 from ..langserver.lspobjects import (
     Diagnostic, DiagnosticSeverity, Range, Position, DocumentSymbol, SymbolKind)
 from .base import Base
@@ -118,3 +119,12 @@ class Process(Base):
             )
             for k, v in self.outline_info.items()
         ]
+
+    def _compute_path(self, position: Position):
+        p = compute_path(
+            doc=self.ydict,
+            line=position.line,
+            column=position.character
+        )
+        logger.debug(f"Path at cursor: {p}")
+        return p

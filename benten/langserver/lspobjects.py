@@ -139,6 +139,9 @@ class CompletionItem(LSPObject):
         self.textEdit = text_edit
         self.additionalTextEdits = additional_text_edits
 
+    def set_range(self, _range: Range):
+        self.textEdit.range = _range
+
     @classmethod
     def from_snippet(
             cls,

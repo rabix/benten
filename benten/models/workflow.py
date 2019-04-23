@@ -1,5 +1,8 @@
 from .process import Process
-from ..langserver.lspobjects import DocumentSymbol, Range, Position, SymbolKind
+from ..langserver.lspobjects import DocumentSymbol, Range, Position, SymbolKind, CompletionList
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Workflow(Process):
@@ -46,3 +49,10 @@ class Workflow(Process):
         ]
 
         return symb
+
+    def completions(self, position: Position, snippets: dict):
+        p = self._compute_path(position=position)
+        if p[0] == "steps":
+            return super()._quick_completions(
+                position=position, snippets=snippets,
+                snippet_keys=["WFStep"])

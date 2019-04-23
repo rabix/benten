@@ -26,11 +26,4 @@ class CommandLineTool(Process):
         self.parse_sections(fields)
 
     def completions(self, position: Position, snippets: dict):
-        p = compute_path(
-            doc=self.ydict,
-            line=position.line,
-            column=position.character
-        )
-        logger.debug(f"Path at cursor: {p}")
-
         return CompletionList()
