@@ -9,9 +9,10 @@
   - [ ] CLT sub-templates
   - [ ] WF sub-templates
   - [ ] WF connection smart completion
+  - [ ] Help for individual CWL sections
 - [ ] Error/warning checking
-- [ ] Outline view
-  - [ ] Steps
+- [x] Outline view
+  - [x] Steps
 - [ ] Code formatting (CMD + K, F)
 - [ ] syntax coloring - perhaps using the: https://wordsandbuttons
 .online/lexical_differential_highlighting_instead_of_syntax_highlighting.html
