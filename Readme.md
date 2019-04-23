@@ -33,9 +33,9 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 # pip3 install git+https://github.com/rabix/benten.git@develop  # Install from github develop branch
 ```
 
-# Features Implemented (version 2019.04.19)
+# Features Implemented (version 2019.04.23)
 
-![2019.04.19](https://i.imgur.com/fgJOXum.png)
+![2019.04.23](https://i.imgur.com/fgJOXum.png)
 
 - CWL syntax highlighting, CWL grammar parsing _(1)_
 - Embedded JS expression highlighting _(2)_
