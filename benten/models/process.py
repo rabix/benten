@@ -16,70 +16,87 @@ def truncate(text):
     return "-"
 
 
-CWLSymbol = {
-    "class": {
-        "kind": SymbolKind.Constant,
-        "name": lambda k, v: v
-    },
-    "cwlVersion": {
-        "kind": SymbolKind.Constant,
-        "name": lambda k, v: v
-    },
-    "id": {
-        "kind": SymbolKind.Field,
-        "name": lambda k, v: truncate(v)
-    },
-    "label": {
-        "kind": SymbolKind.Field,
-        "name": lambda k, v: truncate(v)
-    },
-    "inputs": {
-        "kind": SymbolKind.Interface,
-        "name": lambda k, v: "-"
-    },
-    "outputs": {
-        "kind": SymbolKind.Interface,
-        "name": lambda k, v: "-"
-    },
-    "expression": {
-        "kind": SymbolKind.Function,
-        "name": lambda k, v: "{}"
-    },
-    "requirements": {
-        "kind": SymbolKind.Array,
-        "name": lambda k, v: "-"
-    },
-    "hints": {
-        "kind": SymbolKind.Array,
-        "name": lambda k, v: "-"
-    },
-    "steps": {
-        "kind": SymbolKind.Class,
-        "name": lambda k, v: "-"
-    }
-}
-
-CWLSymbolDefault = {
-        "kind": SymbolKind.Field,
-        "name": lambda k, v: k
-}
-
-
 class Process(Base):
+    Symbols = {
+        "class": lambda k, v: {
+            "kind": SymbolKind.File,
+            "name": k,
+            "detail": v
+        },
+        "cwlVersion": lambda k, v: {
+            "kind": SymbolKind.Constant,
+            "name": k,
+            "detail": v
+        },
+        "id": lambda k, v: {
+            "kind": SymbolKind.Variable,
+            "name": truncate(v)
+        },
+        "label": lambda k, v: {
+            "kind": SymbolKind.Variable,
+            "name": truncate(v)
+        },
+        "inputs": lambda k, v: {
+            "kind": SymbolKind.Interface,
+            "name": k
+        },
+        "outputs": lambda k, v: {
+            "kind": SymbolKind.Interface,
+            "name": k
+        },
+        "baseCommand": lambda k, v: {
+            "kind": SymbolKind.Operator,
+            "name": k
+        },
+        "expression": lambda k, v: {
+            "kind": SymbolKind.Function,
+            "name": "{}"
+        },
+        "requirements": lambda k, v: {
+            "kind": SymbolKind.Array,
+            "name": k
+        },
+        "hints": lambda k, v: {
+            "kind": SymbolKind.Array,
+            "name": k
+        },
+        "steps": lambda k, v: {
+            "kind": SymbolKind.Class,
+            "name": k
+        }
+    }
+
+    @staticmethod
+    def SymbolDefault(k, v):
+        return {
+            "kind": SymbolKind.Field,
+            "name": k,
+            "detail": "Unknown field"
+        }
+
+    def _create_document_symbol(self, k, v):
+        _start_pos = Position(v.start.line, v.start.column)
+        _end_pos = Position(v.end.line, v.end.column)
+        return DocumentSymbol(
+            _range=Range(
+                start=_start_pos,
+                end=_end_pos
+            ),
+            selection_range=Range(
+                start=_start_pos,
+                end=_end_pos
+            ),
+            **self.Symbols.get(k, self.SymbolDefault)(k, v)
+        )
 
     def __init__(self, *args, **kwargs):
+        self._symbols = {}
         super().__init__(*args, **kwargs)
-        self.outline_info = {}
 
     def parse_sections(self, fields):
-        for k, v in self.ydict.items():
-            self.outline_info[k] = {
-                "kind": CWLSymbol.get(k, CWLSymbolDefault)["kind"],
-                "name": CWLSymbol.get(k, CWLSymbolDefault)["name"](k, v),
-                "range": (v.start, v.end)
-            }
+        self._symbols = {k: self._create_document_symbol(k, v) for k, v in self.ydict.items()}
 
-        for k in self.outline_info.keys():
+        for k in self._symbols.keys():
             if k not in fields:
                 self.problems += [
                     Diagnostic(
@@ -93,7 +110,7 @@ class Process(Base):
 
         for k, _required in fields.items():
             if _required:
-                if k not in self.outline_info:
+                if k not in self._symbols:
                     self.problems += [
                         Diagnostic(
                             _range=Range(start=Position(0, 0), end=Position(0, 1)),
@@ -103,22 +120,7 @@ class Process(Base):
                             source="Benten")]
 
     def symbols(self):
-        return [
-            DocumentSymbol(
-                name=v["name"],
-                detail=k,
-                kind=v["kind"],
-                _range=Range(
-                    start=Position(v["range"][0].line, v["range"][0].column),
-                    end=Position(v["range"][1].line, v["range"][1].column)
-                ),
-                selection_range=Range(
-                    start=Position(v["range"][0].line, v["range"][0].column),
-                    end=Position(v["range"][1].line, v["range"][1].column)
-                )
-            )
-            for k, v in self.outline_info.items()
-        ]
+        return list(self._symbols.values())
 
     def _compute_path(self, position: Position):
         p = compute_path(

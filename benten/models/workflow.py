@@ -23,10 +23,9 @@ class Workflow(Process):
         self.parse_sections(self.fields)
 
     def symbols(self):
-        symb = super().symbols()
-        symb_steps = next((sy for sy in symb if sy.detail == "steps"), None)
+        symb_steps = self._symbols.get("steps", None)
         if symb_steps is None:
-            return symb
+            return list(self._symbols.values())
 
         _steps = self.ydict.get("steps", {})
         if not isinstance(_steps, dict):
@@ -34,7 +33,6 @@ class Workflow(Process):
         symb_steps.children = [
             DocumentSymbol(
                 name=k,
-                detail="step",
                 kind=SymbolKind.Field,
                 _range=Range(
                     start=Position(v.start.line, v.start.column),
@@ -48,11 +46,11 @@ class Workflow(Process):
             for k, v in _steps.items()
         ]
 
-        return symb
+        return list(self._symbols.values())
 
     def completions(self, position: Position, snippets: dict):
         p = self._compute_path(position=position)
-        if p[0] == "steps":
+        if len(p) and p[-1] == "steps":
             return super()._quick_completions(
                 position=position, snippets=snippets,
                 snippet_keys=["WFStep"])

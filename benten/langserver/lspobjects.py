@@ -203,7 +203,7 @@ class SymbolKind(IntEnum):
 
 
 class DocumentSymbol(LSPObject):
-    def __init__(self, name, detail, kind, _range, selection_range, children=None):
+    def __init__(self, name, kind, _range, selection_range, detail=None, children=None):
         self.name = name
         self.detail = detail
         self.kind: SymbolKind = kind
