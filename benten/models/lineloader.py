@@ -199,23 +199,6 @@ class LAM(dict):
         self.flow_style = node.flow_style
 
 
-def y_construct(v, node):  # pragma: no cover
-    if isinstance(v, str):
-        return Ystr(v, node)
-    elif isinstance(v, int):
-        return Yint(v, node)
-    elif isinstance(v, float):
-        return Yfloat(v, node)
-    elif isinstance(v, bool):
-        return Ybool(v, node)
-    elif isinstance(v, dict):
-        return Ydict(v, node)
-    elif isinstance(v, list):
-        return Ylist(v, node)
-    else:
-        return v
-
-
 meta_node_key = "_lineloader_secret_key_"
 
 
@@ -274,34 +257,34 @@ def parse_yaml_with_line_info(raw_cwl: str, convert_to_lam=False, errors=[]):
         raise DocumentError(e.problem_mark.line, e.problem_mark.column, str(e))
 
 
-# todo: This algorithm can be cleaned up
-# todo: consider column for the indent level - this will solve issues with appending sections
 def compute_path(
         doc: Union[Ydict, Ylist], line, column,
-        path: Tuple[Union[str, int], ...]=()) -> Tuple[Union[str, int], ...]:
+        path: Tuple[Union[str, int], ...] = (),
+        indent=0) -> Union[None, Tuple[Union[str, int], ...]]:
 
-    if not isinstance(doc, (Ydict, Ylist)):
-        return path
-
-    if doc.start.line != doc.end.line:
-        indent = doc.start.column
-    else:
-        indent = None
-
-    if column == indent:
+    if not isinstance(doc, (Ydict, Ylist)):  # Leaf node
         return path
 
     values = doc.items() if isinstance(doc, dict) else enumerate(doc)
+    new_path = None
     for k, v in values:
+        try:
+            if (v.start.line <= line <= v.end.line) \
+                    and (v.start.line == line and v.start.column <= column) \
+                    or (v.end.line == line and v.end.column >= column) \
+                    or (v.start.line < line < v.end.line):
+                new_path = compute_path(v, line, column, path + (k,), v.start.column)
+                break
+        except AttributeError:
+            pass
 
-        if v.start.line == v.end.line == line:
-            return path + (k,)
-
-        if v.start.line <= line <= v.end.line:
-            return compute_path(v, line, column, path + (k,))
-
+    if new_path is None:
+        if column >= indent:
+            return path
+        else:
+            return None
     else:
-        return path
+        return new_path
 
 
 def lookup(doc: Union[Ydict, Ylist], path: Tuple[Union[str, int]]):
