@@ -14,7 +14,7 @@ navigation and syntax checking of CWL documents.
 
 _Benten_ is written using Python3 and developed against VS Code. The language
 server component will work with any editor/IDE that offers language server
-support. Code snippets are currently only available for VS Code.
+support. Syntax highlighting is currently only available for VS Code.
 
 [language server]: https://langserver.org/
 
