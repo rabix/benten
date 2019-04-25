@@ -262,7 +262,7 @@ def compute_path(
         path: Tuple[Union[str, int], ...] = (),
         indent=0) -> Union[None, Tuple[Union[str, int], ...]]:
 
-    if not isinstance(doc, (Ydict, Ylist)):  # Leaf node
+    if not isinstance(doc, (dict, list)):  # Leaf node
         return path
 
     values = doc.items() if isinstance(doc, dict) else enumerate(doc)
