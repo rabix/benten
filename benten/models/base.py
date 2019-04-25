@@ -16,6 +16,12 @@ class Base:
             snippets=snippets,
             snippet_keys=None)
 
+    def definition(self, position: Position, base_uri: str):
+        return None
+
+    def symbols(self):
+        return []
+
     def _quick_completions(self, position: Position, snippets: dict, snippet_keys=None):
         return self._completions_with_range(
             _range=self._range_to_delete_prefix(position),
@@ -47,6 +53,3 @@ class Base:
             start=Position(line=position.line, character=idx),
             end=position
         )
-
-    def symbols(self):
-        return []

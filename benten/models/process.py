@@ -1,8 +1,10 @@
 import textwrap
+import pathlib
+import urllib.parse
 
-from .lineloader import compute_path
+from .lineloader import compute_path, lookup
 from ..langserver.lspobjects import (
-    Diagnostic, DiagnosticSeverity, Range, Position, DocumentSymbol, SymbolKind)
+    Diagnostic, DiagnosticSeverity, Range, Position, Location, DocumentSymbol, SymbolKind)
 from .base import Base
 
 import logging
@@ -29,11 +31,15 @@ class Process(Base):
             "detail": v
         },
         "id": lambda k, v: {
-            "kind": SymbolKind.Variable,
+            "kind": SymbolKind.String,
             "name": truncate(v)
         },
         "label": lambda k, v: {
-            "kind": SymbolKind.Variable,
+            "kind": SymbolKind.String,
+            "name": truncate(v)
+        },
+        "doc": lambda k, v: {
+            "kind": SymbolKind.String,
             "name": truncate(v)
         },
         "inputs": lambda k, v: {
@@ -119,6 +125,10 @@ class Process(Base):
                             code="CWL err",
                             source="Benten")]
 
+    def definition(self, position: Position, base_uri: str):
+        p = self._compute_path(position)
+        return self._definition(p, base_uri)
+
     def symbols(self):
         return list(self._symbols.values())
 
@@ -130,3 +140,21 @@ class Process(Base):
         )
         logger.debug(f"Path at cursor: {p}")
         return p
+
+    def _lookup(self, path):
+        return lookup(self.ydict, path)
+
+    @staticmethod
+    def _resolve_path(base_uri, uri):
+        _path = pathlib.Path(urllib.parse.urlparse(uri).path)
+        if not _path.is_absolute():
+            base_path = pathlib.Path(urllib.parse.urlparse(base_uri).path)
+            _path = pathlib.Path(base_path.parent, _path).absolute()
+        logger.debug(f"Resolved URI: {_path.as_uri()}")
+        return _path
+
+    def _definition(self, p, base_uri):
+        if len(p) and p[-1] == "$import":
+            uri = self._lookup(p)
+            if isinstance(uri, str):
+                return Location(self._resolve_path(base_uri, uri).as_uri())

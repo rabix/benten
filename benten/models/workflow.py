@@ -1,5 +1,6 @@
 from .process import Process
-from ..langserver.lspobjects import DocumentSymbol, Range, Position, SymbolKind, CompletionList
+from ..langserver.lspobjects import (
+    DocumentSymbol, Range, Position, SymbolKind, CompletionList, Location)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -21,6 +22,20 @@ class Workflow(Process):
             "hints": False
         }
         self.parse_sections(self.fields)
+
+    def completions(self, position: Position, snippets: dict):
+        p = self._compute_path(position=position)
+        if len(p) and p[-1] == "steps":
+            return super()._quick_completions(
+                position=position, snippets=snippets,
+                snippet_keys=["WFStep"])
+
+    def definition(self, position: Position, base_uri: str):
+        p = self._compute_path(position)
+        _location = super()._definition(p, base_uri)
+        if _location is None:
+            _location = self._definition(p, base_uri)
+        return _location
 
     def symbols(self):
         symb_steps = self._symbols.get("steps", None)
@@ -48,9 +63,8 @@ class Workflow(Process):
 
         return list(self._symbols.values())
 
-    def completions(self, position: Position, snippets: dict):
-        p = self._compute_path(position=position)
-        if len(p) and p[-1] == "steps":
-            return super()._quick_completions(
-                position=position, snippets=snippets,
-                snippet_keys=["WFStep"])
+    def _definition(self, p, base_uri):
+        if p[-1] == "run" and p[-3] == "steps":
+            step_uri = self._lookup(p)
+            if isinstance(step_uri, str):
+                return Location(self._resolve_path(base_uri, step_uri).as_uri())
