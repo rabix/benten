@@ -269,12 +269,17 @@ def compute_path(
     new_path = None
     for k, v in values:
         try:
-            if (v.start.line <= line <= v.end.line) \
-                    and (v.start.line == line and v.start.column <= column) \
-                    or (v.end.line == line and v.end.column >= column) \
-                    or (v.start.line < line < v.end.line):
-                new_path = compute_path(v, line, column, path + (k,), v.start.column)
-                break
+            if line < v.start.line:
+                continue
+            if line > v.end.line:
+                continue
+            if v.start.line == line and column < v.start.column:
+                continue
+            if v.end.line == line and column >= v.end.column:
+                continue
+
+            new_path = compute_path(v, line, column, path + (k,), v.start.column)
+            break
         except AttributeError:
             pass
 
