@@ -30,6 +30,7 @@ from .fileoperation import FileOperation
 from .definition import Definition
 from .completion import Completion
 from .documentsymbol import DocumentSymbol
+from .hover import Hover
 
 import logging
 
@@ -46,6 +47,7 @@ class TextDocumentSyncKind(IntEnum):
 
 
 class LangServer(
+        Hover,
         DocumentSymbol,
         Completion,
         Definition,
@@ -158,11 +160,6 @@ class LangServer(
     def serve_shutdown(self, client_query):
         logging.shutdown()
         self.running = False
-
-    def _initialize_autocomplete(self):
-        from ..models.base import Base
-        logger.debug("Loading auto-complete snippets")
-        Base.prepare_auto_completions(config=self.config)
 
     # https://microsoft.github.io/language-server-protocol/specification#initialize
     def serve_initialize(self, client_query):

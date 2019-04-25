@@ -129,6 +129,16 @@ class Process(Base):
         p = self._compute_path(position)
         return self._definition(p, base_uri)
 
+    def hover(self, position: Position, base_uri: str):
+        return {
+            "contents": {
+                "kind": "markdown",
+                "value": str(self._compute_path(position))
+            },
+            "range": Range(
+                start=position, end=Position(position.line, position.character + 1))
+        }
+
     def symbols(self):
         return list(self._symbols.values())
 

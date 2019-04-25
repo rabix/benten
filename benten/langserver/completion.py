@@ -17,7 +17,4 @@ class Completion(CWLLangServerBase):
         position = Position(**params["position"])
 
         doc = self.open_documents[doc_uri]
-        compl = doc.model.completions(position, self.config.snippets)
-        logger.debug(len(compl.items))
-        return compl
-
+        return doc.model.completions(position, self.config.snippets)

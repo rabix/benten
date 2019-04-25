@@ -19,6 +19,9 @@ class Base:
     def definition(self, position: Position, base_uri: str):
         return None
 
+    def hover(self, position: Position, base_uri: str):
+        return None
+
     def symbols(self):
         return []
 
