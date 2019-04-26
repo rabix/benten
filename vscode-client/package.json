@@ -63,7 +63,28 @@
 					"meta.embedded.block.javascript": "javascript"
 				}
 			}
-		]
+		],
+		"commands": [
+			{
+				"command": "cwl.show_graph",
+				"title": "CWL preview",
+				"category": "Benten",
+				"icon": {
+					"light": "./include/PreviewOnRightPane_16x.svg",
+					"dark": "./include/PreviewOnRightPane_16x_dark.svg"
+				}
+			}
+		],
+		"menus": {
+			"editor/title": [
+				{
+					"command": "cwl.show_graph",
+					"when": "editorLangId == cwl",
+					"alt": "cwl.show_graph",
+					"group": "navigation"
+				}
+			]
+		}
 	},
 	"main": "./out/extension",
 	"scripts": {
