@@ -1,34 +1,24 @@
-# How to setup and develop with VS Code
+# CWL for Visual Studio Code
 
-- Install benten
-- Make sure the `benten-ls.sh` script is executable and in a location in the path
-  e.g. /usr/local/bin
-- Run `npm install` in this folder. This installs all the npm modules needed to
-  compile the VS Code client extension.
-- Run `tsc -b`
-- Open VS Code on this folder.
-- Press Ctrl+Shift+B to compile the client and server.
-- Switch to the Debug viewlet.
-- Select `Launch Client` from the drop down.
-- Run the launch config.
-- In the [Extension Development Host] instance of VSCode, open a CWL document
-- In the [Extension Development Host] in the `output` tab, select "benten"
+This is an alpha release of CWL support in VS Code via the Benten CWL
+[language server].
 
+[language server]: https://langserver.org/
 
-## Restart server
+# Features
 
-The development cycle is to modify the server code and then restart the server. 
-Currently (04.2019) the only way to do this in VS Code is to use the 
-"Reload Window" command:
-CMD + Shift + P to bring up the command bar and then type "Reload Window".
+![2019.04.23 screenshot](./benten-demo-1000px.png)
+
+- CWL syntax highlighting, CWL grammar parsing _(1)_
+- Embedded JS expression highlighting _(2)_
+- Navigate to linked sub-workflows and `$include`s _(3)_
+- Outline view (Symbols) + Step symbols _(4)_
+- Code snippets for process types, inputs, requirements
+- Error squiggles indicating YAML and CWL issues
 
 
-# Code organization
+<div align="right">
+<sub>(c) 2019 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
+</div>
 
-```
-|-- .vscode
-|    |-- cwl.code-snippets  - Code snippets under development
-|    |-- launch.json  - Creates a launch task for debugging
-|-- src
-|    |-- extension.ts
-```
+

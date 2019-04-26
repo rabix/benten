@@ -22,17 +22,6 @@ support. Syntax highlighting is currently only available for VS Code.
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 
 
-# Installation
-
-Benten requires Python 3.7. (I prefer to set up a Python 3.7 virtual env)
-```
-python3 --version  # -> Python 3.7.1      (Verify python version)
-python3 -m virtualenv ~/.venvs/benten   # Create virtual env - I prefer this
-. ~/.venvs/benten/bin/activate          # Activate virtual env
-pip3 install git+https://github.com/rabix/benten.git            # Install from github master branch
-# pip3 install git+https://github.com/rabix/benten.git@develop  # Install from github develop branch
-```
-
 # Features Implemented (version 2019.04.23)
 
 ![2019.04.23](https://i.imgur.com/fgJOXum.png)
@@ -44,10 +33,60 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 - Code snippets for process types, inputs, requirements
 - Error squiggles indicating YAML and CWL issues
 
-# Run with VS Code
 
-Please see the instructions [here](vscode-client/Readme.md)
+# Server installation
 
+Benten requires Python 3.7. (I prefer to set up a Python 3.7 virtual env)
+```
+python3 --version  # -> Python 3.7.1      (Verify python version)
+python3 -m virtualenv ~/.venvs/benten   # Create virtual env - I prefer this
+. ~/.venvs/benten/bin/activate          # Activate virtual env
+pip3 install git+https://github.com/rabix/benten.git            # Install from github master branch
+# pip3 install git+https://github.com/rabix/benten.git@develop  # Install from github develop branch
+```
+
+# Install VS Code extension
+
+- Make sure the `benten-ls.sh` script is executable and in a location in the path
+  e.g. /usr/local/bin
+- Download the VS Code extension file (.vsix) from the releases page
+- In the extensions pane on VS Code use "Install from VSIX..." to install this .vsix file
+
+
+# How to setup and develop with VS Code
+
+- Install benten
+- Make sure the `benten-ls.sh` script is executable and in a location in the path
+  e.g. /usr/local/bin
+- Run `npm install` in this folder. This installs all the npm modules needed to
+  compile the VS Code client extension.
+- Run `tsc -b`
+- Open VS Code on this folder.
+- Press Ctrl+Shift+B to compile the client and server.
+- Switch to the Debug viewlet.
+- Select `Launch Client` from the drop down.
+- Run the launch config.
+- In the [Extension Development Host] instance of VSCode, open a CWL document
+- In the [Extension Development Host] in the `output` tab, select "benten"
+
+
+## Restart server
+
+The development cycle is to modify the server code and then restart the server. 
+Currently (04.2019) the only way to do this in VS Code is to use the 
+"Reload Window" command:
+CMD + Shift + P to bring up the command bar and then type "Reload Window".
+
+## Code organization
+
+```
+|-- .vscode
+|    |-- launch.json  - Creates a launch task for debugging
+|     \- tasks.json
+|-- src
+|    \-- extension.ts - Client code for VS Code
+|-- package.json      - declares entry points etc.
+```
 
 # License
 [Apache 2.0](LICENSE)
