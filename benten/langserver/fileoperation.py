@@ -37,8 +37,6 @@ interface TextDocumentItem {
     text: string;
 }
 """
-import pathlib
-
 from .lspobjects import to_dict, PublishDiagnosticsParams
 from .base import CWLLangServerBase
 from ..models.document import Document
@@ -54,7 +52,7 @@ class FileOperation(CWLLangServerBase):
         doc_uri = params["textDocument"]["uri"]
 
         document = Document(
-            base_path=pathlib.Path(doc_uri),
+            doc_uri=doc_uri,
             text=params["textDocument"]["text"],
             version=params["textDocument"]["version"])
 

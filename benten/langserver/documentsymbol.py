@@ -1,6 +1,8 @@
 """
 textDocument/documentSymbol
 """
+import pathlib
+import json
 
 from .base import CWLLangServerBase
 
@@ -16,4 +18,11 @@ class DocumentSymbol(CWLLangServerBase):
 
         doc = self.open_documents[doc_uri]
         logger.debug(type(doc.model))
+
+        self._write_out_graph(doc)
         return doc.model.symbols()
+
+    def _write_out_graph(self, doc):
+        graph_data_file = pathlib.Path(self.config.scratch_path, "test.json")
+        with graph_data_file.open("w") as f:
+            json.dump(doc.model.graph(), f, indent=2)

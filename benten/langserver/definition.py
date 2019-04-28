@@ -17,5 +17,5 @@ class Definition(CWLLangServerBase):
         position = Position(**params["position"])
 
         doc = self.open_documents[doc_uri]
-        return doc.model.definition(position, doc_uri)
+        return doc.model.definition(position)
 
