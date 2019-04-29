@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 class Document:
 
     def __init__(self,
-                 base_path: pathlib.Path,
+                 doc_uri: str,
                  text: str,
                  version: int):
-        self.base_path = base_path
+        self.doc_uri = doc_uri
         self.text = text
         self.version = version
 
@@ -29,7 +29,7 @@ class Document:
 
     def update(self, new_text):
         self.text = new_text
-        self._current_parsed_model = create_model(self.text)
+        self._current_parsed_model = create_model(self.doc_uri, self.text)
 
         if self._last_good_model is None or not isinstance(self._current_parsed_model, Undefined):
             self._last_good_model = self._current_parsed_model

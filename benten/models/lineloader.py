@@ -52,8 +52,32 @@ except ImportError:
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
 
 
-def load_yaml(raw_cwl: str):
-    return yaml.load(raw_cwl, Loader)
+def load_cwl_resolve_lams(raw_cwl: str):
+
+    def _recurse_cwl(x, key=None):
+
+        def _get_key(_v_):
+            if isinstance(_v_, dict):
+                return _v_.get(key)
+            else:
+                return None
+
+        if isinstance(x, dict):
+            return {k: _recurse_cwl(v, k) for k, v in x.items()}
+        elif isinstance(x, list):
+            _data = [_recurse_cwl(v, None) for v in x]
+            if key in allowed_loms:
+                return {
+                            _k: _v
+                            for _k, _v in ((_get_key(v), v) for v in _data)
+                            if _k is not None
+                        }
+            else:
+                return _data
+        else:
+            return x
+
+    return _recurse_cwl(yaml.load(raw_cwl, Loader))
 
 
 class YNone:

@@ -5,7 +5,11 @@ from ..langserver.lspobjects import Diagnostic, CompletionList, CompletionItem, 
 
 class Base:
     def __init__(
-            self, lines: List[str], ydict: (dict, str), existing_issues: List[Diagnostic]=None):
+            self,
+            doc_uri: str,
+            lines: List[str], ydict: (dict, str),
+            existing_issues: List[Diagnostic]=None):
+        self.doc_uri = doc_uri
         self.lines = lines
         self.ydict = ydict
         self.problems: List[Diagnostic] = existing_issues or []
@@ -16,7 +20,7 @@ class Base:
             snippets=snippets,
             snippet_keys=None)
 
-    def definition(self, position: Position, base_uri: str):
+    def definition(self, position: Position):
         return None
 
     def hover(self, position: Position, base_uri: str):
@@ -24,6 +28,12 @@ class Base:
 
     def symbols(self):
         return []
+
+    def graph(self):
+        return {
+            "nodes": [],
+            "edges": []
+        }
 
     def _quick_completions(self, position: Position, snippets: dict, snippet_keys=None):
         return self._completions_with_range(

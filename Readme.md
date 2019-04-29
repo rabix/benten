@@ -14,7 +14,8 @@ navigation and syntax checking of CWL documents.
 
 _Benten_ is written using Python3 and developed against VS Code. The language
 server component will work with any editor/IDE that offers language server
-support. Syntax highlighting is currently only available for VS Code.
+support. Syntax highlighting is currently only available for the VS Code
+extension. The VS Code extension is written in Typescript.
 
 [language server]: https://langserver.org/
 
@@ -53,40 +54,9 @@ pip3 install git+https://github.com/rabix/benten.git            # Install from g
 - In the extensions pane on VS Code use "Install from VSIX..." to install this .vsix file
 
 
-# How to setup and develop with VS Code
+# For developers
+See the [development documentation](docs/developer.md)
 
-- Install benten
-- Make sure the `benten-ls.sh` script is executable and in a location in the path
-  e.g. /usr/local/bin
-- Run `npm install` in this folder. This installs all the npm modules needed to
-  compile the VS Code client extension.
-- Run `tsc -b`
-- Open VS Code on this folder.
-- Press Ctrl+Shift+B to compile the client and server.
-- Switch to the Debug viewlet.
-- Select `Launch Client` from the drop down.
-- Run the launch config.
-- In the [Extension Development Host] instance of VSCode, open a CWL document
-- In the [Extension Development Host] in the `output` tab, select "benten"
-
-
-## Restart server
-
-The development cycle is to modify the server code and then restart the server. 
-Currently (04.2019) the only way to do this in VS Code is to use the 
-"Reload Window" command:
-CMD + Shift + P to bring up the command bar and then type "Reload Window".
-
-## Code organization
-
-```
-|-- .vscode
-|    |-- launch.json  - Creates a launch task for debugging
-|     \- tasks.json
-|-- src
-|    \-- extension.ts - Client code for VS Code
-|-- package.json      - declares entry points etc.
-```
 
 # License
 [Apache 2.0](LICENSE)
@@ -96,11 +66,11 @@ CMD + Shift + P to bring up the command bar and then type "Reload Window".
 
 The low level client-server communication [code][jsonrpc-code] is taken from [Sourcegraph's
 (now defunct) Python Language Server][sourcegraph-python] as is the VS Code client code (which
-was based originally off Microsoft's example code)
+was based originally off Microsoft's example code). The CWL preview uses [vis.js]
 
 [jsonrpc-code]: https://github.com/sourcegraph/python-langserver/blob/master/langserver/jsonrpc.py
 [sourcegraph-python]: https://github.com/sourcegraph/python-langserver
-
+[vis.js]: http://visjs.org/
 
 # What's in a name? 
 

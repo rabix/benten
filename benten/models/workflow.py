@@ -1,4 +1,5 @@
-from .process import Process
+from .process import Process, resolve_file_path
+from .workflowstructure import WorkflowStructure
 from ..langserver.lspobjects import (
     DocumentSymbol, Range, Position, SymbolKind, CompletionList, Location)
 
@@ -6,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Workflow(Process):
+class Workflow(WorkflowStructure, Process):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields = {
@@ -21,7 +22,8 @@ class Workflow(Process):
             "requirements": False,
             "hints": False
         }
-        self.parse_sections(self.fields)
+        super().parse_sections(self.fields)
+        self._add_steps_to_symbol_list()
 
     def completions(self, position: Position, snippets: dict):
         p = self._compute_path(position=position)
@@ -30,14 +32,11 @@ class Workflow(Process):
                 position=position, snippets=snippets,
                 snippet_keys=["WFStep"])
 
-    def definition(self, position: Position, base_uri: str):
+    def definition(self, position: Position):
         p = self._compute_path(position)
-        _location = super()._definition(p, base_uri)
-        if _location is None:
-            _location = self._definition(p, base_uri)
-        return _location
+        return super()._definition(p) or self._definition(p)
 
-    def symbols(self):
+    def _add_steps_to_symbol_list(self):
         symb_steps = self._symbols.get("steps", None)
         if symb_steps is None:
             return list(self._symbols.values())
@@ -61,10 +60,8 @@ class Workflow(Process):
             for k, v in _steps.items()
         ]
 
-        return list(self._symbols.values())
-
-    def _definition(self, p, base_uri):
+    def _definition(self, p):
         if p[-1] == "run" and p[-3] == "steps":
             step_uri = self._lookup(p)
             if isinstance(step_uri, str):
-                return Location(self._resolve_path(base_uri, step_uri).as_uri())
+                return Location(resolve_file_path(self.doc_uri, step_uri).as_uri())

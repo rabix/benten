@@ -18,6 +18,15 @@ def truncate(text):
     return "-"
 
 
+def resolve_file_path(doc_uri, uri):
+    _path = pathlib.Path(urllib.parse.urlparse(uri).path)
+    if not _path.is_absolute():
+        base_path = pathlib.Path(urllib.parse.urlparse(doc_uri).path)
+        _path = pathlib.Path(base_path.parent, _path).absolute()
+    logger.debug(f"Resolved URI: {_path.as_uri()}")
+    return _path
+
+
 class Process(Base):
     Symbols = {
         "class": lambda k, v: {
@@ -125,9 +134,9 @@ class Process(Base):
                             code="CWL err",
                             source="Benten")]
 
-    def definition(self, position: Position, base_uri: str):
+    def definition(self, position: Position):
         p = self._compute_path(position)
-        return self._definition(p, base_uri)
+        return self._definition(p)
 
     def hover(self, position: Position, base_uri: str):
         return {
@@ -154,17 +163,16 @@ class Process(Base):
     def _lookup(self, path):
         return lookup(self.ydict, path)
 
-    @staticmethod
-    def _resolve_path(base_uri, uri):
-        _path = pathlib.Path(urllib.parse.urlparse(uri).path)
-        if not _path.is_absolute():
-            base_path = pathlib.Path(urllib.parse.urlparse(base_uri).path)
-            _path = pathlib.Path(base_path.parent, _path).absolute()
-        logger.debug(f"Resolved URI: {_path.as_uri()}")
-        return _path
+    # def _resolve_file_path(self, uri):
+    #     _path = pathlib.Path(urllib.parse.urlparse(uri).path)
+    #     if not _path.is_absolute():
+    #         base_path = pathlib.Path(urllib.parse.urlparse(self.doc_uri).path)
+    #         _path = pathlib.Path(base_path.parent, _path).absolute()
+    #     logger.debug(f"Resolved URI: {_path.as_uri()}")
+    #     return _path
 
-    def _definition(self, p, base_uri):
+    def _definition(self, p):
         if len(p) and p[-1] == "$import":
             uri = self._lookup(p)
             if isinstance(uri, str):
-                return Location(self._resolve_path(base_uri, uri).as_uri())
+                return Location(resolve_file_path(self.doc_uri, uri).as_uri())
