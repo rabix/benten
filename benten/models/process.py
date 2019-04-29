@@ -18,6 +18,15 @@ def truncate(text):
     return "-"
 
 
+def resolve_file_path(doc_uri, uri):
+    _path = pathlib.Path(urllib.parse.urlparse(uri).path)
+    if not _path.is_absolute():
+        base_path = pathlib.Path(urllib.parse.urlparse(doc_uri).path)
+        _path = pathlib.Path(base_path.parent, _path).absolute()
+    logger.debug(f"Resolved URI: {_path.as_uri()}")
+    return _path
+
+
 class Process(Base):
     Symbols = {
         "class": lambda k, v: {
@@ -154,16 +163,16 @@ class Process(Base):
     def _lookup(self, path):
         return lookup(self.ydict, path)
 
-    def _resolve_path(self, uri):
-        _path = pathlib.Path(urllib.parse.urlparse(uri).path)
-        if not _path.is_absolute():
-            base_path = pathlib.Path(urllib.parse.urlparse(self.doc_uri).path)
-            _path = pathlib.Path(base_path.parent, _path).absolute()
-        logger.debug(f"Resolved URI: {_path.as_uri()}")
-        return _path
+    # def _resolve_file_path(self, uri):
+    #     _path = pathlib.Path(urllib.parse.urlparse(uri).path)
+    #     if not _path.is_absolute():
+    #         base_path = pathlib.Path(urllib.parse.urlparse(self.doc_uri).path)
+    #         _path = pathlib.Path(base_path.parent, _path).absolute()
+    #     logger.debug(f"Resolved URI: {_path.as_uri()}")
+    #     return _path
 
     def _definition(self, p):
         if len(p) and p[-1] == "$import":
             uri = self._lookup(p)
             if isinstance(uri, str):
-                return Location(self._resolve_path(uri).as_uri())
+                return Location(resolve_file_path(self.doc_uri, uri).as_uri())

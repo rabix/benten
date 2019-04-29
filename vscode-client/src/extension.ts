@@ -28,6 +28,9 @@ import {
 	ErrorAction, ErrorHandler, CloseAction, TransportKind 
 } from 'vscode-languageclient';
 
+import {Md5} from 'ts-md5'
+import * as fs from 'fs'
+
 
 function startLangServer(command: string, args: string[], documentSelector: string[]): Disposable {
 	const serverOptions: ServerOptions = {
@@ -36,9 +39,7 @@ function startLangServer(command: string, args: string[], documentSelector: stri
 	};
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: documentSelector,
-        synchronize: {
-            configurationSection: "cwl"
-        }
+    synchronize: { configurationSection: "cwl" }
 	}
 	return new LanguageClient(command, serverOptions, clientOptions).start();
 }
@@ -63,6 +64,19 @@ function startLangServerTCP(addr: number, documentSelector: string[]): Disposabl
 	return new LanguageClient(`tcp lang server (port ${addr})`, serverOptions, clientOptions).start();
 }
 
+const preview_scratch_directory = get_scratch_dir()
+
+function get_scratch_dir() {
+	const homedir = require('os').homedir()
+	const scratch_directory = 
+		process.env.XDG_DATA_HOME ? 
+				process.env.XDG_DATA_HOME 
+			: path.join(homedir, ".local", "share", "sevenbridges", "benten", "scratch") 
+	console.log(`scratch directory: ${scratch_directory}`)
+	return scratch_directory
+}
+
+
 export function activate(context: ExtensionContext) {
 	
 	// For the language server
@@ -83,9 +97,13 @@ export function activate(context: ExtensionContext) {
 			const panel = window.createWebviewPanel(
 				'preview',
 				'CWL Preview',
-				ViewColumn.One,
+				ViewColumn.Two,
 				{
-					enableScripts: true
+					enableScripts: true,
+					localResourceRoots: [
+						Uri.file(path.join(context.extensionPath, 'include')),
+						Uri.file(preview_scratch_directory)
+					]
 				}
 			);
 
@@ -133,13 +151,16 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
   if (!activeEditor) {
     return;
 	}
-	const text = activeEditor.document.getText()
+	const graph_name = Md5.hashStr(activeEditor.document.uri.toString()) + ".json"
+
+	const data_uri = path.join(preview_scratch_directory, graph_name)
+	var json_as_text = fs.readFileSync(data_uri, "utf8")
 
   panel.webview.html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Benten: CWL preview</title>
 		
 		<script type="text/javascript" src="${on_disk_files["vis.js"]}"></script>
@@ -147,8 +168,8 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 
 		<style type="text/css">
     #cwl-graph {
-      width: 600px;
-      height: 400px;
+      width: 100%;
+      height: 1000px;
       border: 1px solid lightgray;
     }
   </style>
@@ -159,28 +180,18 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 	<div id="cwl-graph"></div>
 
 	<script type="text/javascript">
-  // create an array with nodes
-  var nodes = new vis.DataSet([
-    {id: 1, label: 'Node 1'},
-    {id: 2, label: 'Node 2'},
-    {id: 3, label: 'Node 3'},
-    {id: 4, label: 'Node 4'},
-    {id: 5, label: 'Node 5'},
-    {id: 6, label: 'Node 6'},
-    {id: 7, label: 'Node 7'},
-    {id: 8, label: 'Node 8'}
-  ]);
 
-  // create an array with edges
-  var edges = new vis.DataSet([
-    {from: 1, to: 8, arrows:'to', dashes:true},
-    {from: 1, to: 3, arrows:'to'},
-    {from: 1, to: 2, arrows:'to, from'},
-    {from: 2, to: 4, arrows:'to, middle'},
-    {from: 2, to: 5, arrows:'to, middle, from'},
-    {from: 5, to: 6, arrows:{to:{scaleFactor:2}}},
-    {from: 6, to: 7, arrows:{middle:{scaleFactor:0.5},from:true}}
-  ]);
+	var graph_data = JSON.parse(\`${json_as_text}\`)
+
+  // create an array with nodes
+  var nodes = new vis.DataSet(graph_data["nodes"])
+
+	// create an array with edges
+	function _extract_edges(e) {
+		return {from: e[0], to: e[1], arrows: 'to'}
+	}
+	var edges = new vis.DataSet(graph_data["edges"].map(_extract_edges))
+	// var edges = new vis.DataSet([])
 
   // create a network
   var container = document.getElementById('cwl-graph');
@@ -188,13 +199,36 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
     nodes: nodes,
     edges: edges
   };
-  var options = {};
+	var options = {
+		nodes: {
+			shape: 'dot',
+			// scaling: {
+			// 	customScalingFunction: function (min,max,total,value) {
+			// 		return value/total;
+			// 	},
+			// 	min:5,
+			// 	max:150
+			// }
+		},
+		edges: {
+			smooth: {
+					type: 'cubicBezier',
+					forceDirection: 'vertical',
+					roundness: 0.9
+			}
+		},
+		layout: {
+			hierarchical: {
+				direction: "UD",
+				sortMethod: "hubsize",
+				nodeSpacing: 10
+			}
+		},
+		physics: true
+	}
   var network = new vis.Network(container, data, options);
 </script>
 
-		<pre>
-			${text}
-		</pre>
 </body>
 </html>`;
 }

@@ -3,6 +3,7 @@ textDocument/documentSymbol
 """
 import pathlib
 import json
+import hashlib
 
 from .base import CWLLangServerBase
 
@@ -23,6 +24,8 @@ class DocumentSymbol(CWLLangServerBase):
         return doc.model.symbols()
 
     def _write_out_graph(self, doc):
-        graph_data_file = pathlib.Path(self.config.scratch_path, "test.json")
+        graph_data_file = pathlib.Path(
+            self.config.scratch_path,
+            hashlib.md5(doc.doc_uri.encode()).hexdigest() + ".json")
         with graph_data_file.open("w") as f:
             json.dump(doc.model.graph(), f, indent=2)

@@ -19,7 +19,7 @@ xdg_config_dir = {
 
 # There is a raging debate on this and people want to add a new field to the XDG spec
 # Me, I think logs are user data ...
-xdg_log_dir = {
+xdg_data_home = {
     "env": "XDG_DATA_HOME",
     "default": P(P.home(), ".local", "share")
 }
@@ -32,11 +32,15 @@ class Configuration(configparser.ConfigParser):
         super().__init__()
 
         self.cfg_path = P(os.getenv(xdg_config_dir["env"], xdg_config_dir["default"]), sbg_config_dir)
-        self.log_path = P(os.getenv(xdg_log_dir["env"], xdg_log_dir["default"]), sbg_config_dir, "logs")
+        self.log_path = P(os.getenv(xdg_data_home["env"], xdg_data_home["default"]), sbg_config_dir, "logs")
+        self.scratch_path = P(os.getenv(xdg_data_home["env"], xdg_data_home["default"]), sbg_config_dir, "scratch")
         self.path = P(self.cfg_path, "config.ini")
 
         if not self.log_path.exists():
             self.log_path.mkdir(parents=True)
+
+        if not self.scratch_path.exists():
+            self.scratch_path.mkdir(parents=True)
 
         if not self.path.exists():
             self.path.parent.mkdir(parents=True, exist_ok=True)

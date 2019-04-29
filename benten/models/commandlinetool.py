@@ -27,3 +27,18 @@ class CommandLineTool(Process):
 
     def completions(self, position: Position, snippets: dict):
         return CompletionList()
+
+    def graph(self):
+        _id = self._symbols.get("id")
+        _label = self._symbols.get("label")
+        if _label is not None:
+            label = _label.name
+        elif _id is not None:
+            label = _id
+        else:
+            label = "CommandLineTool"
+
+        return {
+            "nodes": [{"id": 1, "label": label}],
+            "edges": []
+        }
