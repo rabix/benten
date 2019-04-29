@@ -165,7 +165,7 @@ class WorkflowStructure(Base):
         for _id, _step in _steps.items():
             _step_interface: StepInterface = self._structure["steps"].get(_id)
             for _port_id, _input in _step.get("in", {}).items():
-                if isinstance(_input, str):
+                if isinstance(_input, (str, list)):
                     _src = _input
                 elif isinstance(_input, dict):
                     _src = _input.get("source", [])
@@ -184,7 +184,15 @@ class WorkflowStructure(Base):
                     try:
                         source = self._get_source(_conn)
                     except WFConnectionError as e:
-                        # todo: enter diagnostic
+                        self.problems += [
+                            Diagnostic(
+                                _range=Range(
+                                    start=Position(_conn.start.line, 0),
+                                    end=Position(_conn.end.line, _conn.end.column)),
+                                message=str(e),
+                                severity=DiagnosticSeverity.Error,
+                                code="CWL err",
+                                source="Benten")]
                         continue
                     _connections += [Connection(source, sink)]
 
@@ -213,7 +221,15 @@ class WorkflowStructure(Base):
                 try:
                     source = self._get_source(_conn)
                 except WFConnectionError as e:
-                    # todo: enter diagnostic
+                    self.problems += [
+                        Diagnostic(
+                            _range=Range(
+                                start=Position(_conn.start.line, 0),
+                                end=Position(_conn.end.line, _conn.end.column)),
+                            message=str(e),
+                            severity=DiagnosticSeverity.Error,
+                            code="CWL err",
+                            source="Benten")]
                     continue
                 _connections += [Connection(source, sink)]
 
