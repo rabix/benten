@@ -1,5 +1,6 @@
 from .process import Process, resolve_file_path
 from .workflowstructure import WorkflowStructure
+from .workflowcompletions import WorkflowCompletions
 from ..langserver.lspobjects import (
     DocumentSymbol, Range, Position, SymbolKind, CompletionList, Location)
 
@@ -7,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Workflow(WorkflowStructure, Process):
+class Workflow(WorkflowCompletions, WorkflowStructure, Process):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields = {
@@ -24,13 +25,6 @@ class Workflow(WorkflowStructure, Process):
         }
         super().parse_sections(self.fields)
         self._add_steps_to_symbol_list()
-
-    def completions(self, position: Position, snippets: dict):
-        p = self._compute_path(position=position)
-        if len(p) and p[-1] == "steps":
-            return super()._quick_completions(
-                position=position, snippets=snippets,
-                snippet_keys=["WFStep"])
 
     def definition(self, position: Position):
         p = self._compute_path(position)
