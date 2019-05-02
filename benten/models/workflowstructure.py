@@ -164,6 +164,21 @@ class WorkflowStructure(Base):
         # todo: refactor and merge the step connection and output connection code
         for _id, _step in _steps.items():
             _step_interface: StepInterface = self._structure["steps"].get(_id)
+
+            # This only validates the exposed outputs. Does not contribute to the connection list
+            for _outp in _step.get("out", []):
+                if _outp not in _step_interface.available_outputs:
+                    self.problems += [
+                        Diagnostic(
+                            _range=Range(
+                                start=Position(_outp.start.line, 0),
+                                end=Position(_outp.start.line, 80)),
+                            message=f"{_id} has no output port {_outp}.\n"
+                            f"Available ports are {list(_step_interface.available_outputs.keys())}",
+                            severity=DiagnosticSeverity.Error,
+                            code="CWL err",
+                            source="Benten")]
+
             for _port_id, _input in _step.get("in", {}).items():
                 if isinstance(_input, (str, list)):
                     _src = _input
@@ -179,7 +194,21 @@ class WorkflowStructure(Base):
                 else:
                     continue
 
-                sink = Port(node_id=_id, port_id=_port_id)
+                try:
+                    sink = _step_interface.available_inputs[_port_id]
+                except KeyError:
+                    self.problems += [
+                        Diagnostic(
+                            _range=Range(
+                                start=Position(_input.start.line, 0),
+                                end=Position(_input.start.line, 80)),
+                            message=f"{_id} has no input port {_port_id}.\n"
+                            f"Available ports are {list(_step_interface.available_inputs.keys())}",
+                            severity=DiagnosticSeverity.Error,
+                            code="CWL err",
+                            source="Benten")]
+                    continue
+
                 for _conn in _src_v:
                     try:
                         source = self._get_source(_conn)
