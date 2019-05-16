@@ -56,7 +56,7 @@ class Configuration(configparser.ConfigParser):
         snippet_file = self.getpath("editor", "snippets_file")
         self.snippets = {
             k: CompletionItem.from_snippet(v)
-            for k, v in yaml.load(snippet_file.open("r").read()).items()
+            for k, v in yaml.load(snippet_file.open("r").read(), Loader=yaml.SafeLoader).items()
         }
 
     # https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
