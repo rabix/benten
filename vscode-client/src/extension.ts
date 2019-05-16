@@ -80,7 +80,7 @@ function get_scratch_dir() {
 export function activate(context: ExtensionContext) {
 	
 	// For the language server
-	const executable = "benten-ls.sh"
+	const executable = "benten-ls"
 	const args = ["--debug"]
 	context.subscriptions.push(startLangServer(executable, args, ["cwl"]));
     // For TCP server needs to be started separately
@@ -191,7 +191,6 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 		return {from: e[0], to: e[1], arrows: 'to'}
 	}
 	var edges = new vis.DataSet(graph_data["edges"].map(_extract_edges))
-	// var edges = new vis.DataSet([])
 
   // create a network
   var container = document.getElementById('cwl-graph');
@@ -202,6 +201,7 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 	var options = {
 		nodes: {
 			shape: 'dot',
+			// shape: 'box',
 			// scaling: {
 			// 	customScalingFunction: function (min,max,total,value) {
 			// 		return value/total;
@@ -220,11 +220,15 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 		layout: {
 			hierarchical: {
 				direction: "UD",
-				sortMethod: "hubsize",
+				// sortMethod: "hubsize",
 				nodeSpacing: 10
 			}
 		},
-		physics: true
+		physics: {
+			barnesHut: {
+				avoidOverlap: 1
+			}
+		}
 	}
   var network = new vis.Network(container, data, options);
 </script>
