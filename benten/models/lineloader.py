@@ -157,6 +157,26 @@ class Ydict(dict):
 
         return cls({}, DummyNode())
 
+    def contains(self, patterns, in_fields):
+
+        def _recur_contain(obj):
+            if isinstance(obj, dict):
+                for field in in_fields:
+                    v = obj.get(field)
+                    if isinstance(v, str):
+                        for pattern in patterns:
+                            if pattern in v:
+                               return True
+                values = obj.values()
+            elif isinstance(obj, list):
+                values = obj
+            else:
+                values = []
+
+            return any([_recur_contain(v) for v in values])
+
+        return _recur_contain(self)
+
 
 class Ylist(list):
     def __init__(self, value, node):

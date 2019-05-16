@@ -107,6 +107,7 @@ class Process(Base):
     def __init__(self, *args, **kwargs):
         self._symbols = {}
         super().__init__(*args, **kwargs)
+        self._run_validations()
 
     def parse_sections(self, fields):
         self._symbols = {k: self._create_document_symbol(k, v) for k, v in self.ydict.items()}
@@ -145,7 +146,7 @@ class Process(Base):
                 "value": str(self._compute_path(position))
             },
             "range": Range(
-                start=position, end=Position(position.line, position.character + 1))
+                start=position, end=Position(position.line, position.character + 100))
         }
 
     def symbols(self):
@@ -176,3 +177,23 @@ class Process(Base):
             uri = self._lookup(p)
             if isinstance(uri, str):
                 return Location(resolve_file_path(self.doc_uri, uri).as_uri())
+
+    def _run_validations(self):
+        if not self._validate_inline_js():
+            self.problems += [
+                Diagnostic(
+                    _range=Range(start=Position(0, 0), end=Position(0, 1)),
+                    message="Javascript detected but missing InlineJavascriptRequirement",
+                    severity=DiagnosticSeverity.Error,
+                    code="CWL err",
+                    source="Benten")]
+
+    def _validate_inline_js(self):
+        if self.ydict.contains(patterns=("${",), in_fields=("valueFrom", "outputEval")):
+            req = self.ydict.get("requirements")
+            if req is not None:
+                return "InlineJavascriptRequirement" in req
+            else:
+                return False
+        else:
+            return True
