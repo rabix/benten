@@ -63,7 +63,7 @@ class WorkflowCompletions(Process):
 
         return (pre + str(p.relative_to(path))
                 for p in path.iterdir()
-                if p.is_dir() or str(p).endswith(".cwl"))
+                if p.is_dir() or p.suffix == ".cwl")
 
     def _step_input_completion(self, path, position: Position, snippets: dict):
         return None
