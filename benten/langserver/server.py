@@ -174,7 +174,7 @@ class LangServer(
                 #  Avoid complexity of incremental updates for now
                 "completionProvider": {
                     "resolveProvider": True,
-                    "triggerCharacters": []
+                    "triggerCharacters": ["."]
                 },
                 "hoverProvider": True,
                 "definitionProvider": True,
