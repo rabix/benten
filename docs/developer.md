@@ -47,13 +47,13 @@ The VS Code documentation is extremely good.
 
 ## Distributing the server
 ```
-pip install cx_freeze
+pip install cx_Freeze
 ```
 
 ## Distributing VS Code extension
 
 https://code.visualstudio.com/api/working-with-extensions/publishing-extension
-
+https://docs.microsoft.com/en-us/visualstudio/extensibility/adding-an-lsp-extension?view=vs-2019
 https://code.visualstudio.com/api/references/extension-manifest
 
 For local or test distribution we can use 

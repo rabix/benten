@@ -23,7 +23,7 @@ extension. The VS Code extension is written in Typescript.
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 
 
-# Features Implemented (version 2019.04.23)
+# Features Implemented (version 2019.05.31)
 
 ![2019.04.23](https://i.imgur.com/fgJOXum.png)
 
@@ -33,25 +33,47 @@ extension. The VS Code extension is written in Typescript.
 - Outline view (Symbols) + Step symbols _(4)_
 - Code snippets for process types, inputs, requirements
 - Error squiggles indicating YAML and CWL issues
+- File path autocomplete for linked files in `run` field
 
 
 # Server installation
 
-Benten requires Python 3.7. (I prefer to set up a Python 3.7 virtual env)
+Benten requires Python 3.7.
+
+A neat way to install `benten` in a virtual env (isolating it from your
+system python) is to use `pipx`
+
 ```
-python3 --version  # -> Python 3.7.1      (Verify python version)
-python3 -m virtualenv ~/.venvs/benten   # Create virtual env - I prefer this
-. ~/.venvs/benten/bin/activate          # Activate virtual env
-pip3 install git+https://github.com/rabix/benten.git            # Install from github master branch
-# pip3 install git+https://github.com/rabix/benten.git@develop  # Install from github develop branch
+pip3 install pipx  # in case you don't have pipx
+pipx install git+https://github.com/rabix/benten.git
 ```
+
+To install from develop branch (or some other branch): 
+```
+pipx install git+https://github.com/rabix/benten.git@develop
+```
+
+Or, if you have cloned the repository and want to play with the server
+code itself:
+
+```
+pipx install -e benten
+```
+
 
 # Install VS Code extension
 
-- Make sure the `benten-ls.sh` script is executable and in a location in the path
-  e.g. /usr/local/bin
 - Download the VS Code extension file (.vsix) from the releases page
 - In the extensions pane on VS Code use "Install from VSIX..." to install this .vsix file
+
+
+# Tips and Tricks
+
+Benten attaches onto your regular text editor and offers help by
+way of autocompletions and document validations, so most of its
+functionality is exposed naturally as you write the CWL, and a 
+specialized tutorial is not necessary, but some helpful 
+[tips and tricks](docs/tips.md) are listed in this page.
 
 
 # For developers
