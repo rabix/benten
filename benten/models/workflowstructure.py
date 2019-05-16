@@ -25,6 +25,10 @@ class Port:
     def __eq__(self, other: 'Port'):
         return self.node_id == other.node_id and self.port_id == other.port_id
 
+    def __str__(self):
+        _s = self.node_id + "/" if self.node_id else ""
+        return f"{_s}{self.port_id}"
+
 
 class Connection:
     def __init__(self, src: Port, dst: Port, line: (None, int) = None):
@@ -126,7 +130,7 @@ class WorkflowStructure(Base):
                     step_structures[_id] = StepInterface(
                         _id,
                         resolve_file_path(self.doc_uri, _run).read_text())
-                except FileNotFoundError:
+                except (FileNotFoundError, IsADirectoryError):
                     self.problems += [
                         Diagnostic(
                             _range=Range(
@@ -140,15 +144,6 @@ class WorkflowStructure(Base):
             elif isinstance(_run, dict):
                 step_structures[_id] = StepInterface(_id, _run)
             else:
-                self.problems += [
-                    Diagnostic(
-                        _range=Range(
-                            start=Position(_run.start.line, 0),
-                            end=Position(_run.end.line, _run.end.column)),
-                        message=f"Step must be String or Process",
-                        severity=DiagnosticSeverity.Error,
-                        code="CWL err",
-                        source="Benten")]
                 continue
 
             if step_structures[_id].label is None:
@@ -159,11 +154,18 @@ class WorkflowStructure(Base):
 
         _steps = self.ydict.get("steps", {})
         if not isinstance(_steps, dict):
-            _steps = {}
+            return
 
         # todo: refactor and merge the step connection and output connection code
         for _id, _step in _steps.items():
+
+            if not isinstance(_step, dict):
+                continue
+
             _step_interface: StepInterface = self._structure["steps"].get(_id)
+
+            if _step_interface is None:
+                continue
 
             # This only validates the exposed outputs. Does not contribute to the connection list
             for _outp in _step.get("out", []):
