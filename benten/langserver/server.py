@@ -174,7 +174,7 @@ class LangServer(
                 #  Avoid complexity of incremental updates for now
                 "completionProvider": {
                     "resolveProvider": True,
-                    "triggerCharacters": ["."]
+                    "triggerCharacters": [".", "/"]
                 },
                 "hoverProvider": True,
                 "definitionProvider": True,
@@ -185,8 +185,15 @@ class LangServer(
                 "codeActionProvider": {
                     "codeActionKinds": ["source"]
                 },
-                "xdefinitionProvider": True,
-                "xworkspaceReferencesProvider": True,
+                "workspace": {
+                    "workspaceFolders": {
+                        "supported": True,
+                        "changeNotifications": True
+                    }
+                },
+                # https://github.com/sourcegraph/language-server-protocol/blob/master/extension-files.md#files-extensions-to-lsp
+                # This is not in the spec yet
+                "xfilesProvider": True
             }
         }
 
