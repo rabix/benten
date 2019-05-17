@@ -4,7 +4,7 @@ import pathlib
 
 from .configuration import Configuration
 
-import benten
+from benten.version import __version__
 from benten.langserver.jsonrpc import JSONRPC2Connection, ReadWriter, TCPReadWriter
 from benten.langserver.server import LangServer
 
@@ -58,6 +58,8 @@ def main():
 
     logging.basicConfig(level=(logging.DEBUG if args.debug else logging.WARNING))
     logger.addHandler(handler)
+
+    logger.info(f"Benten {__version__}: CWL Language Server from Rabix (Seven Bridges)")
 
     if args.mode == "stdio":
         logger.info("Reading on stdin, writing on stdout")
