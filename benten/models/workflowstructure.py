@@ -267,12 +267,15 @@ class WorkflowStructure(Base):
     def _get_source(self, _conn) -> (None, Port):
 
         if isinstance(_conn, YNone) or _conn == "":
-            return None
+            raise WFConnectionError("No source")
 
         if "/" in _conn:
             return self._get_step_source(_conn)
         else:
-            return self._structure.get("inputs", {}).get(_conn)
+            _src = self._structure.get("inputs", {}).get(_conn)
+            if _src is None:
+                raise WFConnectionError(f"No input called '{_conn}'")
+            return _src
 
     def _get_step_source(self, _conn) -> Port:
         src_step_id, src_port_id = _conn.split("/")
