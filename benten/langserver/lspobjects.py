@@ -70,6 +70,29 @@ class Diagnostic(LSPObject):
         self.code = code
         self.source = source
 
+    def __hash__(self):
+        return hash((self.range, self.message))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)): return NotImplemented
+        return self.range == other.range and self.message == other.message
+
+
+def mark_problem(message, severity, value=None):
+    if value is None:
+        start = Position(0, 0)
+        end = Position(0, 1)
+    else:
+        start = Position(value.start.line, value.start.column)
+        end = Position(value.end.line, value.end.column)
+
+    return Diagnostic(
+        _range=Range(start=start, end=end),
+        message=message,
+        severity=severity,
+        code="CWL err",
+        source="Benten")
+
 
 class PublishDiagnosticsParams(LSPObject):
     def __init__(self, uri, diagnostics: List[Diagnostic]):
