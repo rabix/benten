@@ -54,7 +54,8 @@ class FileOperation(CWLLangServerBase):
         document = Document(
             doc_uri=doc_uri,
             text=params["textDocument"]["text"],
-            version=params["textDocument"]["version"])
+            version=params["textDocument"]["version"],
+            language_models=self.config.lang_models)
 
         self.open_documents[doc_uri] = document
         self._mark_document_issues(doc_uri)

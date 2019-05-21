@@ -8,10 +8,12 @@ class Base:
             self,
             doc_uri: str,
             lines: List[str], ydict: (dict, str),
-            existing_issues: List[Diagnostic]=None):
+            language_models: dict,
+            existing_issues: List[Diagnostic] = None):
         self.doc_uri = doc_uri
         self.lines = lines
         self.ydict = ydict
+        self.language_models = language_models
         self.problems: List[Diagnostic] = existing_issues or []
 
     def completions(self, position: Position, snippets: dict):

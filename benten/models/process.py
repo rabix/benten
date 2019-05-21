@@ -1,8 +1,10 @@
 import textwrap
 import pathlib
 import urllib.parse
+import time
 
 from .lineloader import compute_path, lookup
+from .languagemodel import select_language_model, infer_model_from_type
 from ..langserver.lspobjects import (
     Diagnostic, DiagnosticSeverity, Range, Position, Location, DocumentSymbol, SymbolKind)
 from .base import Base
@@ -140,14 +142,15 @@ class Process(Base):
         return self._definition(p)
 
     def hover(self, position: Position, base_uri: str):
-        return {
-            "contents": {
-                "kind": "markdown",
-                "value": str(self._compute_path(position))
-            },
-            "range": Range(
-                start=position, end=Position(position.line, position.character + 100))
-        }
+        return None
+        # return {
+        #     "contents": {
+        #         "kind": "markdown",
+        #         "value": str(self._compute_path(position))
+        #     },
+        #     "range": Range(
+        #         start=position, end=Position(position.line, position.character + 100))
+        # }
 
     def symbols(self):
         return list(self._symbols.values())
@@ -179,6 +182,14 @@ class Process(Base):
                 return Location(resolve_file_path(self.doc_uri, uri).as_uri())
 
     def _run_validations(self):
+
+        t0 = time.time()
+        lang_model = infer_model_from_type(
+            self.ydict,
+            select_language_model(self.ydict, self.language_models))
+        lang_model.validate(self.ydict, self.problems)
+        logger.info(f"Validated document in {time.time() - t0}s")
+
         if not self._validate_inline_js():
             self.problems += [
                 Diagnostic(

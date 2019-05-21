@@ -26,6 +26,7 @@ class CommandLineTool(Process):
         self.parse_sections(fields)
 
     def completions(self, position: Position, snippets: dict):
+        p = self._compute_path(position=position)
         return CompletionList()
 
     def graph(self):

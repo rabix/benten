@@ -1,4 +1,5 @@
-from typing import Dict, List
+# Copyright (C) 2019 Seven Bridges
+
 import time
 
 from .lineloader import YNone, Ydict, load_cwl_resolve_lams
@@ -281,10 +282,10 @@ class WorkflowStructure(Base):
         src_step_id, src_port_id = _conn.split("/")
 
         if src_step_id not in self._structure["steps"]:
-            raise WFConnectionError("No such source step {}".format(src_step_id))
+            raise WFConnectionError(f"No such source step {src_step_id}")
 
         if src_port_id not in self._structure["steps"][src_step_id].available_outputs:
-            raise WFConnectionError("No such source port {}.{}".format(src_step_id, src_port_id))
+            raise WFConnectionError(f"No such source port {src_step_id}.{src_port_id}")
 
         return self._structure["steps"][src_step_id].available_outputs[src_port_id]
 

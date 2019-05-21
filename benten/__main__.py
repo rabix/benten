@@ -61,6 +61,8 @@ def main():
 
     logger.info(f"Benten {__version__}: CWL Language Server from Rabix (Seven Bridges)")
 
+    config.initialize()
+
     if args.mode == "stdio":
         logger.info("Reading on stdin, writing on stdout")
         s = LangServer(

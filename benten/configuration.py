@@ -5,7 +5,12 @@ import configparser
 
 import yaml
 
+from .models.languagemodel import load_languagemodel
 from .langserver.lspobjects import CompletionItem
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 sbg_config_dir = P("sevenbridges", "benten")
 
@@ -46,13 +51,30 @@ class Configuration(configparser.ConfigParser):
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self.create_default_config_file()
 
+        self.lang_models = {}
+        self.last_session_file = None
+        self.last_session = None
+        self.snippets = {}
+
+    # We do this separately to give the caller a chance to set up logging
+    def initialize(self):
+
+        logging.info("Loading config ...")
         self.load()
+
+        logging.info("Copying data files ...")
         self._copy_missing_config_files()
 
+        # TODO: allow multiple language specifications
+        logging.info("Loading language model ...")
+        self._load_language_files()
+
+        logging.info("Loading last session ...")
         self.last_session_file = P(self.cfg_path, "last-session.ini")
         self.last_session = configparser.ConfigParser()
         self.load_last_session()
 
+        logging.info("Loading snippets ...")
         snippet_file = self.getpath("editor", "snippets_file")
         self.snippets = {
             k: CompletionItem.from_snippet(v)
@@ -95,9 +117,15 @@ class Configuration(configparser.ConfigParser):
     #     self.write(self.path.open("w"))
 
     def _copy_missing_config_files(self):
-        for fn in ["snippets.yaml", "autocomplete.yaml", "aliases.yaml"]:
+        for fn in ["snippets.yaml", "autocomplete.yaml", "aliases.yaml", "schema-v1.0.json"]:
             src_file = P(default_config_data_dir, fn)
             dst_file = P(self.cfg_path, fn)
             if not dst_file.exists():
                 # os.makedirs(os.path.dirname(dst_file.parent), exist_ok=True)
                 shutil.copy(src_file, dst_file)
+
+    def _load_language_files(self):
+        for fname in self.cfg_path.glob("schema-*.json"):
+            version = fname.name[7:-5]
+            self.lang_models[version] = load_languagemodel(fname)
+            logger.info(f"Loaded language schema {version}")

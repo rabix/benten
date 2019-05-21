@@ -32,11 +32,25 @@ class Position(LSPObject):
         self.line = line
         self.character = character
 
+    def __hash__(self):
+        return hash((self.line, self.character))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)): return NotImplemented
+        return self.line == other.line and self.character == other.character
+
 
 class Range(LSPObject):
     def __init__(self, start: Position, end: Position):
         self.start = start
         self.end = end
+
+    def __hash__(self):
+        return hash((self.start, self.end))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)): return NotImplemented
+        return self.start == other.start and self.end == other.end
 
 
 class TextEdit(LSPObject):

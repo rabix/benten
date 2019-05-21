@@ -23,7 +23,7 @@ class WorkflowCompletions(Process):
         if len(p) and p[-1] == "steps":
             return "steps"
 
-        if len(p) and p[-2] == "steps":
+        if len(p) > 1 and p[-2] == "steps":
             return "inside step"
 
         if len(p) >= 4 and p[-4] == "steps" and p[-3] == "in":

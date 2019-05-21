@@ -16,8 +16,35 @@ parallel, flagging inconsistencies as we go.
 from typing import Union, Dict
 import json
 
+from ..langserver.lspobjects import (mark_problem, DiagnosticSeverity)
+
 import logging
 logger = logging.getLogger(__name__)
+
+
+latest_published_cwl_version = "v1.0"
+
+
+def infer_cwl_version(doc: dict):
+    return doc.get("cwlVersion", latest_published_cwl_version)
+
+
+def select_language_model(doc: dict, lang_models: dict):
+    cwl_v = infer_cwl_version(doc)
+    lm = lang_models.get(cwl_v)
+    if lm is None:
+        logger.error(f"No language model for cwl version {cwl_v}. Using {latest_published_cwl_version}")
+        lm = lang_models.get(latest_published_cwl_version)
+
+    return lm
+
+
+def infer_model_from_type(doc: dict, lang_model: dict):
+    if "class" in doc:
+        return lang_model.get(doc.get("class"))
+
+    if "type" in doc:
+        return lang_model.get(doc.get("type"))
 
 
 class CWLField:
@@ -34,6 +61,9 @@ class CWLField:
     def __repr__(self):
         return str(self)
 
+    def validate(self, doc_node, problems):
+        pass
+
 
 class CWLType:
 
@@ -47,6 +77,22 @@ class CWLType:
 
     def __repr__(self):
         return str(self)
+
+    def validate(self, doc_node, problems):
+        required_fields = set((k for k, v in self.fields.items() if v.required))
+        fields_present = set(doc_node.keys())
+        missing_required_fields = required_fields - fields_present
+
+        for f in missing_required_fields:
+            problems += [mark_problem(f"Missing required field: {f}", DiagnosticSeverity.Error)]
+
+        # Good use case for key coordinates too
+        for k, child_node in doc_node.items():
+            field = self.fields.get(k)
+            if field is None:
+                problems += [mark_problem(f"Unknown field: {k}", DiagnosticSeverity.Warning, child_node)]
+            else:
+                field.validate(child_node, problems)
 
 
 class CWLEnum:
@@ -62,6 +108,14 @@ class CWLEnum:
     def __repr__(self):
         return str(self)
 
+    def validate(self, doc_node, problems):
+        if not isinstance(doc_node, str):
+            problems += [mark_problem(f"This is an enum. Should be a string like : {self.symbols}",
+                                      DiagnosticSeverity.Error, doc_node)]
+        elif doc_node not in self.symbols:
+            problems += [mark_problem(f"Expecting one of {self.symbols}",
+                                      DiagnosticSeverity.Error, doc_node)]
+
 
 class CWLTypeArray:
 
@@ -73,6 +127,9 @@ class CWLTypeArray:
 
     def __repr__(self):
         return str(self)
+
+    def validate(self, doc_node, problems):
+        pass
 
 
 def parse_cwl_type(schema, lang_model):
