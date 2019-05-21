@@ -103,9 +103,7 @@ def mark_problem(message, severity, value=None):
     return Diagnostic(
         _range=Range(start=start, end=end),
         message=message,
-        severity=severity,
-        code="CWL err",
-        source="Benten")
+        severity=severity)
 
 
 class PublishDiagnosticsParams(LSPObject):

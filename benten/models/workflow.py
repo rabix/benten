@@ -11,19 +11,6 @@ logger = logging.getLogger(__name__)
 class Workflow(WorkflowCompletions, WorkflowStructure, Process):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields = {
-            "class": True,
-            "cwlVersion": True,
-            "id": False,
-            "doc": False,
-            "label": False,
-            "inputs": True,
-            "outputs": True,
-            "steps": True,
-            "requirements": False,
-            "hints": False
-        }
-        super().parse_sections(self.fields)
         self._add_steps_to_symbol_list()
 
     def definition(self, position: Position):

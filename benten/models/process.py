@@ -110,32 +110,7 @@ class Process(Base):
         self._symbols = {}
         super().__init__(*args, **kwargs)
         self._run_validations()
-
-    def parse_sections(self, fields):
         self._symbols = {k: self._create_document_symbol(k, v) for k, v in self.ydict.items()}
-
-        for k in self._symbols.keys():
-            if k not in fields:
-                self.problems += [
-                    Diagnostic(
-                        _range=Range(
-                            start=Position(self.ydict[k].start.line, 0),
-                            end=Position(self.ydict[k].end.line, self.ydict[k].end.column)),
-                        message=f"Illegal section: {k}",
-                        severity=DiagnosticSeverity.Error,
-                        code="CWL err",
-                        source="Benten")]
-
-        for k, _required in fields.items():
-            if _required:
-                if k not in self._symbols:
-                    self.problems += [
-                        Diagnostic(
-                            _range=Range(start=Position(0, 0), end=Position(0, 1)),
-                            message=f"Missing required section: {k}",
-                            severity=DiagnosticSeverity.Error,
-                            code="CWL err",
-                            source="Benten")]
 
     def definition(self, position: Position):
         p = self._compute_path(position)
