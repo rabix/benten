@@ -11,10 +11,13 @@ traverse the document tree and the completion tree in
 parallel, flagging inconsistencies as we go.
 """
 
-#  Copyright (c) 2019 Seven Bridges. Some rights reserved.
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 from typing import Union, Dict
 import json
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class CWLField:
@@ -72,56 +75,58 @@ class CWLTypeArray:
         return str(self)
 
 
-def parse_cwl_type(schema, completers):
+def parse_cwl_type(schema, lang_model):
 
     if isinstance(schema, str):
-        if schema not in completers:
-            completers[schema] = schema
-        return completers.get(schema)
+        if schema not in lang_model:
+            lang_model[schema] = schema
+        return lang_model.get(schema)
 
     elif isinstance(schema, list):
         return [
-            parse_cwl_type(_scheme, completers)
+            parse_cwl_type(_scheme, lang_model)
             for _scheme in schema
         ]
 
     elif schema.get("type") == "array":
-        return CWLTypeArray(parse_cwl_type(schema.get("items"), completers))
+        return CWLTypeArray(parse_cwl_type(schema.get("items"), lang_model))
 
     elif schema.get("type") == "enum":
-        return parse_enum(schema, completers)
+        return parse_enum(schema, lang_model)
 
     elif schema.get("type") == "record":
-        return parse_record(schema, completers)
+        return parse_record(schema, lang_model)
+
+    logger.error(f"Unknown schema type {schema.get('type')}: {schema}")
 
 
-def parse_enum(schema, completers):
+def parse_enum(schema, lang_model):
     enum_name = schema.get("name")
-    if enum_name not in completers:
-        completers[enum_name] = CWLEnum(
+    if enum_name not in lang_model:
+        lang_model[enum_name] = CWLEnum(
             name=schema.get("name"),
             doc=schema.get("doc"),
             symbols=schema.get("symbols")
         )
-    return completers.get(enum_name)
+    return lang_model.get(enum_name)
 
 
-def parse_record(schema, completers):
+def parse_record(schema, lang_model):
     record_name = schema.get("name")
-    if record_name not in completers:
-        completers[record_name] = CWLType(
+    if record_name not in lang_model:
+        lang_model[record_name] = CWLType(
             name=record_name,
             doc=schema.get("doc"),
             fields={
                 k: v
-                for field in schema.get("fields") for k, v in [parse_field(field, completers)]
+                for field in schema.get("fields") for k, v in [parse_field(field, lang_model)]
             }
         )
 
-    return completers.get(record_name)
+    return lang_model.get(record_name)
 
 
-def parse_field(field, completers):
+def parse_field(field, lang_model):
 
     field_name = field.get("name")
     required = True
@@ -138,12 +143,35 @@ def parse_field(field, completers):
         doc=field.get("name"),
         required=required,
         lom_key=lom_key,
-        allowed_types=parse_cwl_type(field.get("type"), completers)
+        allowed_types=parse_cwl_type(field.get("type"), lang_model)
     )
 
+
+def load_languagemodel(fname):
+    lang_model = {}
+    schema = json.load(open(fname, "r"))
+    parse_cwl_type(schema, lang_model)
+    clean_up_model(lang_model)
+    return lang_model
+
+
+# CWL grows hairy. It needs to be shaved periodically
+def clean_up_model(lang_model):
+    if isinstance(lang_model.get("CWLVersion"), CWLEnum):
+        lang_model["CWLVersion"].symbols = [
+            symbol
+            for symbol in lang_model["CWLVersion"].symbols
+            if not symbol.startswith("draft-")
+        ]
+        lang_model["CWLVersion"].symbols.remove("v1.0.dev4")
+    else:
+        logger.error("No CWLVersion enum in schema")
+
+
+
 # ## Use as ##
-#
+# import json
 # fname = 'schema.json'
 # schema = json.load(open(fname, "r"))
-# completers = {}
-# parse_cwl_type(schema, completers)
+# lang_model = {}
+# parse_cwl_type(schema, lang_model)
