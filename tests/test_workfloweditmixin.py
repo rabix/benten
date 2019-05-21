@@ -3,7 +3,7 @@ import os
 import shutil
 import pytest
 
-pytestmark = pytest.mark.skip("Programmatic step insertion will be worked on next")
+pytest.skip("Skipping test until refactor is complete", allow_module_level=True)
 
 
 from benten.editing.rootyamlview import RootYamlView
