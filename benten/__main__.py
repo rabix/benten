@@ -14,7 +14,9 @@ import logging
 logger = logging.getLogger()
 
 
-class ForkingTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
+# https://stackoverflow.com/a/47075664
+# https://docs.python.org/3.6/library/socketserver.html#socketserver.ForkingMixIn
+class ForkingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
 
