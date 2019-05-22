@@ -38,19 +38,27 @@ extension. The VS Code extension is written in Typescript.
 
 # Server installation
 
-Benten requires Python 3.7.
+Benten requires [Python 3.7 or later](https://www.python.org/downloads/)
+
+If you will be installing from source you will need
+[git](https://git-scm.com/downloads) on your system
 
 A neat way to install `benten` in a virtual env (isolating it from your
-system python) is to use `pipx`
+system python) and still be able to call it as a regular executable is
+to use `pipx`
 
 ```
 pip3 install pipx  # in case you don't have pipx
-pipx install git+https://github.com/rabix/benten.git
+pipx install --spec git+https://github.com/rabix/benten.git benten
 ```
+
+_Note: `pipx` installs the executables in `$HOME/.local/bin`
+(%HOMEPATH%\.local\bin for Windows). This needs to be added to your PATH
+env variable_
 
 To install from develop branch (or some other branch): 
 ```
-pipx install git+https://github.com/rabix/benten.git@develop
+pipx install -spec git+https://github.com/rabix/benten.git@develop benten
 ```
 
 Or, if you have cloned the repository and want to play with the server
