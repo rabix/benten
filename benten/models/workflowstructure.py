@@ -57,8 +57,12 @@ class StepInterface:
             cwl = step
 
         self.label = cwl.get("label")
-        self.available_inputs = {k: Port(_id, k) for k in cwl.get("inputs", {}).keys()}
-        self.available_outputs = {k: Port(_id, k) for k in cwl.get("outputs", {}).keys()}
+
+        def try_dict(obj):
+            return obj if isinstance(obj, dict) else {}
+
+        self.available_inputs = {k: Port(_id, k) for k in try_dict(cwl.get("inputs")).keys()}
+        self.available_outputs = {k: Port(_id, k) for k in try_dict(cwl.get("outputs")).keys()}
 
 
 class WFConnectionError(Exception):
