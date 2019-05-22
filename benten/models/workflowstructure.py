@@ -4,7 +4,7 @@ import time
 
 from .lineloader import YNone, Ydict, load_cwl_resolve_lams
 from ..langserver.lspobjects import (
-    Diagnostic, DiagnosticSeverity, Range, Position, Location, DocumentSymbol, SymbolKind)
+    mark_problem, Diagnostic, DiagnosticSeverity, Range, Position, Location, DocumentSymbol, SymbolKind)
 from .process import Base, resolve_file_path
 
 import logging
@@ -133,14 +133,10 @@ class WorkflowStructure(Base):
                         resolve_file_path(self.doc_uri, _run).read_text())
                 except (FileNotFoundError, IsADirectoryError):
                     self.problems += [
-                        Diagnostic(
-                            _range=Range(
-                                start=Position(_run.start.line, 0),
-                                end=Position(_run.end.line, _run.end.column)),
+                        mark_problem(
                             message=f"Missing linked file: {_run}",
                             severity=DiagnosticSeverity.Error,
-                            code="CWL err",
-                            source="Benten")]
+                            mark=_run)]
                     continue
             elif isinstance(_run, dict):
                 step_structures[_id] = StepInterface(_id, _run)
@@ -172,15 +168,11 @@ class WorkflowStructure(Base):
             for _outp in _step.get("out", []):
                 if _outp not in _step_interface.available_outputs:
                     self.problems += [
-                        Diagnostic(
-                            _range=Range(
-                                start=Position(_outp.start.line, 0),
-                                end=Position(_outp.start.line, 80)),
-                            message=f"{_id} has no output port {_outp}.\n"
+                        mark_problem(
+                            message=f"Step [{_id}] has no output port [{_outp}].\n"
                             f"Available ports are {list(_step_interface.available_outputs.keys())}",
                             severity=DiagnosticSeverity.Error,
-                            code="CWL err",
-                            source="Benten")]
+                            mark=_outp)]
 
             for _port_id, _input in _step.get("in", {}).items():
                 if isinstance(_input, (str, list)):
@@ -201,15 +193,12 @@ class WorkflowStructure(Base):
                     sink = _step_interface.available_inputs[_port_id]
                 except KeyError:
                     self.problems += [
-                        Diagnostic(
-                            _range=Range(
-                                start=Position(_input.start.line, 0),
-                                end=Position(_input.start.line, 80)),
-                            message=f"{_id} has no input port {_port_id}.\n"
+                        mark_problem(
+                            message=f"Step [{_id}] has no input port [{_port_id}].\n"
                             f"Available ports are {list(_step_interface.available_inputs.keys())}",
                             severity=DiagnosticSeverity.Error,
-                            code="CWL err",
-                            source="Benten")]
+                            mark=_input
+                        )]
                     continue
 
                 for _conn in _src_v:
@@ -217,14 +206,10 @@ class WorkflowStructure(Base):
                         source = self._get_source(_conn)
                     except WFConnectionError as e:
                         self.problems += [
-                            Diagnostic(
-                                _range=Range(
-                                    start=Position(_conn.start.line, 0),
-                                    end=Position(_conn.end.line, _conn.end.column)),
+                            mark_problem(
                                 message=str(e),
                                 severity=DiagnosticSeverity.Error,
-                                code="CWL err",
-                                source="Benten")]
+                                mark=_conn)]
                         continue
                     _connections += [Connection(source, sink)]
 
@@ -254,14 +239,10 @@ class WorkflowStructure(Base):
                     source = self._get_source(_conn)
                 except WFConnectionError as e:
                     self.problems += [
-                        Diagnostic(
-                            _range=Range(
-                                start=Position(_conn.start.line, 0),
-                                end=Position(_conn.end.line, _conn.end.column)),
+                        mark_problem(
                             message=str(e),
                             severity=DiagnosticSeverity.Error,
-                            code="CWL err",
-                            source="Benten")]
+                            mark=_conn)]
                     continue
                 _connections += [Connection(source, sink)]
 
@@ -275,17 +256,17 @@ class WorkflowStructure(Base):
         else:
             _src = self._structure.get("inputs", {}).get(_conn)
             if _src is None:
-                raise WFConnectionError(f"No input called '{_conn}'")
+                raise WFConnectionError(f"No input called [{_conn}]")
             return _src
 
     def _get_step_source(self, _conn) -> Port:
         src_step_id, src_port_id = _conn.split("/")
 
         if src_step_id not in self._structure["steps"]:
-            raise WFConnectionError(f"No such source step {src_step_id}")
+            raise WFConnectionError(f"No step with id [{src_step_id}]")
 
         if src_port_id not in self._structure["steps"][src_step_id].available_outputs:
-            raise WFConnectionError(f"No such source port {src_step_id}.{src_port_id}")
+            raise WFConnectionError(f"Step [{src_step_id}] has no port [{src_port_id}]")
 
         return self._structure["steps"][src_step_id].available_outputs[src_port_id]
 

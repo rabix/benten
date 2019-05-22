@@ -92,13 +92,13 @@ class Diagnostic(LSPObject):
         return self.range == other.range and self.message == other.message
 
 
-def mark_problem(message, severity, value=None):
-    if value is None:
+def mark_problem(message, severity, mark=None):
+    if mark is None:
         start = Position(0, 0)
         end = Position(0, 1)
     else:
-        start = Position(value.start.line, value.start.column)
-        end = Position(value.end.line, value.end.column)
+        start = Position(mark.start.line, mark.start.column)
+        end = Position(mark.end.line, mark.end.column)
 
     return Diagnostic(
         _range=Range(start=start, end=end),
