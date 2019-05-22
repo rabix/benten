@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 from ..langserver.lspobjects import (
     DocumentSymbol, Range, Position, SymbolKind, CompletionItem, CompletionList, Location)
@@ -54,12 +55,20 @@ class WorkflowCompletions(Process):
             ]
 
     def _file_picker(self, prefix):
+
         path = resolve_file_path(self.doc_uri, prefix)
         if not path.is_dir():
             path = path.parent
 
+        if not path.exists():
+            logger.error(f"No path called: {path}")
+            return []
+
         # This is a workaround to the issue of having a dangling "." in front of the path
-        pre = os.sep if prefix == "." else ""
+        # We use .split( ... ) so we can handle the case for run: .    # my/commented/path
+        # an other such shenanigans
+        _prefix = prefix.split(" ",1)[0]
+        pre = os.sep if _prefix in [".", ".."] else ""
 
         return (pre + str(p.relative_to(path))
                 for p in path.iterdir()
