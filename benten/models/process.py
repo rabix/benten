@@ -30,6 +30,8 @@ def resolve_file_path(doc_uri, uri):
 
 
 class Process(Base):
+
+    # SymbolKind has a nice representation in the VS Code UI
     Symbols = {
         "class": lambda k, v: {
             "kind": SymbolKind.File,
@@ -87,8 +89,7 @@ class Process(Base):
     def SymbolDefault(k, v):
         return {
             "kind": SymbolKind.Field,
-            "name": k,
-            "detail": "Unknown field"
+            "name": k
         }
 
     def _create_document_symbol(self, k, v):
