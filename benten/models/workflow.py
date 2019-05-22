@@ -42,7 +42,8 @@ class Workflow(WorkflowCompletions, WorkflowStructure, Process):
         ]
 
     def _definition(self, p):
-        if p[-1] == "run" and p[-3] == "steps":
-            step_uri = self._lookup(p)
-            if isinstance(step_uri, str):
-                return Location(resolve_file_path(self.doc_uri, step_uri).as_uri())
+        if len(p) > 2:
+            if p[-1] == "run" and p[-3] == "steps":
+                step_uri = self._lookup(p)
+                if isinstance(step_uri, str):
+                    return Location(resolve_file_path(self.doc_uri, step_uri).as_uri())
