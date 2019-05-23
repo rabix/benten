@@ -1,5 +1,4 @@
-import os
-import pathlib
+import shlex
 
 from ..langserver.lspobjects import (
     DocumentSymbol, Range, Position, SymbolKind, CompletionItem, CompletionList, Location)
@@ -32,10 +31,7 @@ class WorkflowCompletions(Process):
 
     def _prefix(self, position: Position):
         pref = self.lines[position.line].split(":", 1)
-        if len(pref) == 2:
-            return pref[1].strip()
-        else:
-            return pref[0].strip()
+        return pref[-1].strip()
 
     def _no_completion(self, path, position: Position, snippets: dict):
         return None
@@ -56,7 +52,11 @@ class WorkflowCompletions(Process):
 
     def _file_picker(self, prefix):
 
-        path = resolve_file_path(self.doc_uri, prefix)
+        # We use .split( ... ) so we can handle the case for run: .    # my/commented/path
+        # an other such shenanigans
+        _prefix = shlex.split(prefix, comments=True)[0]
+
+        path = resolve_file_path(self.doc_uri, _prefix)
         if not path.is_dir():
             path = path.parent
 
@@ -65,10 +65,7 @@ class WorkflowCompletions(Process):
             return []
 
         # This is a workaround to the issue of having a dangling "." in front of the path
-        # We use .split( ... ) so we can handle the case for run: .    # my/commented/path
-        # an other such shenanigans
-        _prefix = prefix.split(" ",1)[0]
-        pre = os.sep if _prefix in [".", ".."] else ""
+        pre = "/" if _prefix in [".", ".."] else ""
 
         return (pre + str(p.relative_to(path))
                 for p in path.iterdir()
