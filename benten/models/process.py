@@ -20,11 +20,13 @@ def truncate(text):
     return "-"
 
 
-def resolve_file_path(doc_uri, uri):
-    _path = pathlib.Path(urllib.parse.urlparse(uri).path)
+def resolve_file_path(doc_uri, target_path):
+    _path = pathlib.PurePosixPath(target_path)
     if not _path.is_absolute():
-        base_path = pathlib.Path(urllib.parse.urlparse(doc_uri).path)
-        _path = pathlib.Path(base_path.parent, _path).absolute()
+        base_path = pathlib.Path(urllib.parse.urlparse(doc_uri).path).parent
+    else:
+        base_path = "."
+    _path = pathlib.Path(base_path / _path).resolve().absolute()
     logger.debug(f"Resolved URI: {_path.as_uri()}")
     return _path
 
