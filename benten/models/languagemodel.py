@@ -90,7 +90,9 @@ class CWLType:
         for k, child_node in doc_node.items():
             field = self.fields.get(k)
             if field is None:
-                problems += [mark_problem(f"Unknown field: {k}", DiagnosticSeverity.Warning, child_node)]
+                if ":" not in k and k[0] != "$":
+                    # heuristics to ignore $schemas, $namespaces and custom tags
+                    problems += [mark_problem(f"Unknown field: {k}", DiagnosticSeverity.Warning, child_node)]
             else:
                 field.validate(child_node, problems)
 
