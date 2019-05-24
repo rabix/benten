@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 import pathlib
 
 from .createmodel import create_model, Base, Undefined

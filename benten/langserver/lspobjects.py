@@ -1,4 +1,6 @@
 """Collection of common LSP objects"""
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from typing import List
 from enum import IntEnum
 

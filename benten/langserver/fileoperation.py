@@ -37,6 +37,8 @@ interface TextDocumentItem {
     text: string;
 }
 """
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from .lspobjects import to_dict, PublishDiagnosticsParams
 from .base import CWLLangServerBase
 from ..models.document import Document

@@ -6,12 +6,12 @@ from benten.models.languagemodel import load_languagemodel
 
 
 current_path = pathlib.Path(__file__).parent
+schema_fname = pathlib.Path(current_path, "../benten/000.package.data/schema-v1.0.json")
 
 
 def test_load_languagemodel():
 
-    fname = pathlib.Path(current_path, "../benten/000.package.data/schema-v1.0.json")
-    lang_model = load_languagemodel(fname)
+    lang_model = load_languagemodel(schema_fname)
 
     assert "CommandLineTool" in lang_model
     assert "Workflow" in lang_model

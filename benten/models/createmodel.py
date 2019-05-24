@@ -1,4 +1,6 @@
 """<shudder> factory </shudder> for creating a model based on inferring the process type"""
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from typing import List, Tuple
 
 from .lineloader import parse_yaml_with_line_info, YNone, Ystr, Ydict, DocumentError, LAM

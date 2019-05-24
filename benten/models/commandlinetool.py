@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from .process import Process, Position
 from .lineloader import compute_path
 from ..langserver.lspobjects import CompletionList, CompletionItem

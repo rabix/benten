@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 import shlex
 
 from ..langserver.lspobjects import (

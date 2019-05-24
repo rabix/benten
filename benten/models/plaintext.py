@@ -1,5 +1,7 @@
 """This is to take care of documents that start with comments etc. so we can offer
 to auto complete as a CWL object"""
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from .base import Base
 from ..langserver.lspobjects import CompletionItem, CompletionList, Position, Range
 

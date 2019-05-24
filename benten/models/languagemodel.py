@@ -61,7 +61,10 @@ class CWLField:
     def __repr__(self):
         return str(self)
 
-    def validate(self, doc_node, problems):
+    def validate(self, doc_node, problems, requirements=None):
+
+
+
         pass
 
 
@@ -78,7 +81,7 @@ class CWLType:
     def __repr__(self):
         return str(self)
 
-    def validate(self, doc_node, problems):
+    def validate(self, doc_node, problems, requirements=None):
         required_fields = set((k for k, v in self.fields.items() if v.required))
         fields_present = set(doc_node.keys())
         missing_required_fields = required_fields - fields_present
@@ -110,7 +113,7 @@ class CWLEnum:
     def __repr__(self):
         return str(self)
 
-    def validate(self, doc_node, problems):
+    def validate(self, doc_node, problems, requirements=None):
         if not isinstance(doc_node, str):
             problems += [mark_problem(f"This is an enum. Should be a string like : {self.symbols}",
                                       DiagnosticSeverity.Error, doc_node)]
@@ -130,7 +133,7 @@ class CWLTypeArray:
     def __repr__(self):
         return str(self)
 
-    def validate(self, doc_node, problems):
+    def validate(self, doc_node, problems, requirements=None):
         pass
 
 
@@ -199,10 +202,10 @@ def parse_field(field, lang_model):
         lom_key = jldp.get("mapSubject")
 
     return field_name, CWLField(
-        doc=field.get("name"),
+        doc=field.get("doc"),
         required=required,
         lom_key=lom_key,
-        allowed_types=parse_cwl_type(field.get("type"), lang_model)
+        allowed_types=parse_cwl_type(_allowed_types, lang_model)
     )
 
 
@@ -225,7 +228,6 @@ def clean_up_model(lang_model):
         lang_model["CWLVersion"].symbols.remove("v1.0.dev4")
     else:
         logger.error("No CWLVersion enum in schema")
-
 
 
 # ## Use as ##

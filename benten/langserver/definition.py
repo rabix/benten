@@ -2,6 +2,8 @@
 textDocument/definition
 """
 
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from .lspobjects import Position
 from .base import CWLLangServerBase
 

@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 import pytest
 
 pytest.skip("Skipping test until refactor is complete", allow_module_level=True)

@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 import sevenbridges.errors as sbgerr
 
 import logging

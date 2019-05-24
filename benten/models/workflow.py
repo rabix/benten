@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from .process import Process, resolve_file_path
 from .workflowstructure import WorkflowStructure
 from .workflowcompletions import WorkflowCompletions

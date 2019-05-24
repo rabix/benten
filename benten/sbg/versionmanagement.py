@@ -16,6 +16,8 @@ As a result we can use a fast algorithm
 
 
 """
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from sevenbridges import Api
 
 from ..editing.rootyamlview import RootYamlView, YamlView

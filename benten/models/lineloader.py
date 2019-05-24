@@ -36,6 +36,8 @@ In [9]: %timeit data = yaml.load(cwl, CSafeLoader)
 For now, this code only puts in meta information in lists, seq and strings. This is sufficient
 for the editing we need to do in CWL docs. We can extend as needed
 """
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from typing import Tuple, Union, Any, List
 
 import yaml

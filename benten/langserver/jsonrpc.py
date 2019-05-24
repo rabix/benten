@@ -1,5 +1,9 @@
 """
 Copyright (c) 2016 Sourcegraph
+Copyright (c) 2019 Seven Bridges. See LICENSE
+
+This code is assembled and reorganized
+Retrieved from: https://github.com/sourcegraph/python-langserver/blob/master/langserver/jsonrpc.py
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -18,13 +22,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-
-Copyright (c) 2019 Seven Bridges Genomics
-
-This code is assembled and reorganized
-Retrieved from: https://github.com/sourcegraph/python-langserver/blob/master/langserver/jsonrpc.py
 """
+
 import json
 import logging
 import queue

@@ -1,5 +1,7 @@
 """Scaffolding features for CommandLineTool"""
 
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 
 class CltEditMixin:
 

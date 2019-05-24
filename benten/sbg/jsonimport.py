@@ -1,5 +1,7 @@
 """Load a JSON file, strip out insessential SBG tags and convert it into YAML. Change the
 base file name if needed."""
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 import pathlib
 
 from .utils import _strip_sbg_tags

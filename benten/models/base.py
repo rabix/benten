@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from typing import List
 
 from ..langserver.lspobjects import Diagnostic, CompletionList, CompletionItem, Range, Position

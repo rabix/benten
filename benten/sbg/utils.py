@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 def _strip_sbg_tags(node):
     if isinstance(node, dict):
         return {

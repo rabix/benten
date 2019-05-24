@@ -4,6 +4,8 @@ textDocument/hover
 subprocess.check_output(['node', "-e", "console.log(\"hi\");"])
 
 """
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from .lspobjects import Position, Range
 from ..models.lineloader import compute_path
 from .base import CWLLangServerBase

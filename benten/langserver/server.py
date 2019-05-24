@@ -22,6 +22,8 @@ Expected requests
     "exit": self.serve_exit,
 
 """
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 from enum import IntEnum
 
 from .lspobjects import to_dict

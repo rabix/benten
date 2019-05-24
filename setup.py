@@ -1,3 +1,5 @@
+#  Copyright (c) 2019 Seven Bridges. See LICENSE
+
 import pathlib
 from datetime import datetime
 from setuptools import setup, find_packages
@@ -6,7 +8,8 @@ current_path = pathlib.Path(__file__).parent
 
 name = 'benten'
 ver_path = pathlib.Path(current_path, "benten", "version.py")
-version = ver_path.open("r").read().split("=")[1].strip().replace("\"", "")
+exec(ver_path.open("r").read())
+version = locals()["__version__"]
 now = datetime.utcnow()
 desc_path = pathlib.Path(current_path, "Readme.md")
 long_description = desc_path.open("r").read()
@@ -35,7 +38,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     include_package_data=True,
-    license='Copyright (c) {} Seven Bridges Genomics'.format(now.year),
+    license='Copyright (c) {} Seven Bridges'.format(now.year),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
