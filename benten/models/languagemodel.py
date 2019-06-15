@@ -30,6 +30,100 @@ latest_published_cwl_version = "v1.0"
 primitive_types = ['null','string', 'boolean', 'int', 'long']
 
 
+def load_languagemodel(fname):
+    lang_model = {}
+    schema = json.load(open(fname, "r"))
+    parse_cwl_type(schema, lang_model)
+    parse_cwl_type(schema, lang_model)  # Two passes takes care of forward references
+    clean_up_model(lang_model)
+    return lang_model
+
+
+# CWL grows hairy. It needs to be shaved periodically
+def clean_up_model(lang_model):
+    if isinstance(lang_model.get("CWLVersion"), CWLEnum):
+        lang_model["CWLVersion"].symbols = [
+            symbol
+            for symbol in lang_model["CWLVersion"].symbols
+            if not symbol.startswith("draft-")
+        ]
+        lang_model["CWLVersion"].symbols.remove("v1.0.dev4")
+        return
+
+    logger.error("No CWLVersion enum in schema")
+
+
+def parse_cwl_type(schema, lang_model, lom_key=None):
+
+    if isinstance(schema, str):
+        return lang_model.get(schema, schema)
+
+    elif isinstance(schema, list):
+        return [
+            parse_cwl_type(_scheme, lang_model, lom_key)
+            for _scheme in schema
+        ]
+
+    elif schema.get("type") == "array":
+        if lom_key is None:
+            return CWLArray(parse_cwl_type(schema.get("items"), lang_model))
+        else:
+            return CWLListOrMap(parse_cwl_type(schema.get("items"), lang_model), lom_key=lom_key)
+
+    elif schema.get("type") == "enum":
+        return parse_enum(schema, lang_model)
+
+    elif schema.get("type") == "record":
+        return parse_record(schema, lang_model)
+
+    logger.error(f"Unknown schema type {schema.get('type')}: {schema}")
+
+
+def parse_enum(schema, lang_model):
+    enum_name = schema.get("name")
+    if True: # enum_name not in lang_model:
+        lang_model[enum_name] = CWLEnum(
+            name=schema.get("name"),
+            doc=schema.get("doc"),
+            symbols=schema.get("symbols"))
+
+    return lang_model.get(enum_name)
+
+
+def parse_record(schema, lang_model):
+    record_name = schema.get("name")
+    if True: # record_name not in lang_model:
+        lang_model[record_name] = CWLRecord(
+            name=record_name,
+            doc=schema.get("doc"),
+            fields={
+                k: v
+                for field in schema.get("fields") for k, v in [parse_field(field, lang_model)]
+            })
+
+    return lang_model.get(record_name)
+
+
+def parse_field(field, lang_model):
+
+    field_name = field.get("name")
+    required = True
+    _allowed_types = field.get("type")
+    if isinstance(_allowed_types, list) and "null" in _allowed_types:
+        required = False
+
+    lom_key = None
+    jldp = field.get("jsonldPredicate")
+    if isinstance(jldp, dict):
+        lom_key = jldp.get("mapSubject")
+
+    return field_name, CWLField(
+        doc=field.get("doc"),
+        required=required,
+        allowed_types=parse_cwl_type(_allowed_types, lang_model, lom_key=lom_key)
+    )
+
+
 def infer_cwl_version(doc: dict):
     v = doc.get("cwlVersion")
     if not isinstance(v, str):
@@ -64,35 +158,8 @@ class ValidationResult(IntEnum):
 class CWLBaseType:
 
     @abstractmethod
-    def is_the_type_for(self, node):
-        pass
-
-    @abstractmethod
     def validate(self, node, problems, requirements=None):
         pass
-
-
-# This is a trick to allow us to fill in the real type with one
-# pass of the spec. When we find a forward reference to a type in the
-# spec JSON we create CWLTypeWrapper object as a shell which we can
-# fill in later. If this is the first time we've encountered this type
-# We create it all at the same time
-class CWLTypeWrapper(CWLBaseType):
-
-    def __init__(self, the_type: CWLBaseType):
-        self._underlying_type: CWLBaseType = the_type
-
-    def get_type(self):
-        return self._underlying_type
-
-    def set_type(self, the_type: CWLBaseType):
-        self._underlying_type = the_type
-
-    def is_the_type_for(self, node):
-        return self._underlying_type.is_the_type_for(node)
-
-    def validate(self, node, problems, requirements=None):
-        return self._underlying_type.validate(node, problems, requirements)
 
 
 class CWLEnum(CWLBaseType):
@@ -108,10 +175,14 @@ class CWLEnum(CWLBaseType):
     def __repr__(self):
         return str(self)
 
-    def is_the_type_for(self, node):
-        return isinstance(node, str)
+    # def is_the_type_for(self, node):
+    #     return isinstance(node, str)
 
     def validate(self, node, problems, requirements=None):
+
+        if not isinstance(node, str):
+            return ValidationResult.InvalidType
+
         if node not in self.symbols:
             problems += [mark_problem(f"Expecting one of {self.symbols}",
                                       DiagnosticSeverity.Error, node)]
@@ -122,8 +193,7 @@ class CWLEnum(CWLBaseType):
 
 class CWLArray(CWLBaseType):
 
-    def __init__(self, allowed_types, lom_key):
-        self.lom_key = lom_key
+    def __init__(self, allowed_types):
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
         self.types = allowed_types
@@ -134,21 +204,38 @@ class CWLArray(CWLBaseType):
     def __repr__(self):
         return str(self)
 
-    def is_the_type_for(self, node):
-        if self.lom_key is not None:
-            valid_types = (list, dict)
-        else:
-            valid_types = (list,)
-        return isinstance(node, valid_types)
-
     def validate(self, node, problems, requirements=None):
-        if isinstance(node, list):
-            values = node
-        else:
-            values = node.values()
 
-        for v in values:
+        if not isinstance(node, list):
+            return ValidationResult.InvalidType
+
+        for v in node:
             _validate(v, self.types, problems, requirements)
+
+        return ValidationResult.Valid
+
+
+class CWLListOrMap(CWLBaseType):
+
+    def __init__(self, allowed_types, lom_key):
+        self.lom_key = lom_key
+        if not isinstance(allowed_types, list):
+            allowed_types = [allowed_types]
+        self.types = allowed_types
+
+    def validate(self, doc_node, problems, requirements=None):
+        if isinstance(doc_node, list):
+            for v in doc_node:
+                _validate(v, self.types, problems, requirements)
+            return ValidationResult.Valid
+
+        elif isinstance(doc_node, dict):
+            for v in doc_node.values():
+                _validate(v, self.types, problems, requirements, lom_key=self.lom_key)
+            return ValidationResult.Valid
+
+        else:
+            return ValidationResult.InvalidType
 
 
 class CWLRecord(CWLBaseType):
@@ -165,43 +252,24 @@ class CWLRecord(CWLBaseType):
     def __repr__(self):
         return str(self)
 
-    def is_the_type_for(self, node):
-        if isinstance(node, dict):
-            if node.get("class") == self.name:
-                return True
-            elif node.get("type") == self.name:
-                return True
+    def validate(self, doc_node, problems, requirements=None, lom_key=None):
 
-            mf = self.missing_required_fields(node)
-            if mf is None:
-                return False
+        required_fields = self.required_fields - {lom_key}
 
-            if len(mf) == 0:
-                return True
-        else:
-            if len(self.required_fields) == 1 and isinstance(node, str):
-                # We allow users a shortcut where a type with only one req field
-                # can be expressed as a string rep just that req field
-                return True
-            else:
-                return False
-
-    def missing_required_fields(self, node):
-        if isinstance(node, dict):
-            fields_present = set(node.keys())
-            return self.required_fields - fields_present
-        else:
-            return None
-
-    def validate(self, doc_node, problems, requirements=None):
+        # We allow users a shortcut where a type with only one req field
+        # can be expressed as a string rep just that req field
         if isinstance(doc_node, str):
-            return True
+            if len(required_fields) == 1:
+                return ValidationResult.Valid
+            else:
+                return ValidationResult.InvalidType
 
         fields_present = set(doc_node.keys())
-        missing_required_fields = self.required_fields - fields_present
-
-        for f in missing_required_fields:
-            problems += [mark_problem(f"Missing required field: {f}", DiagnosticSeverity.Error)]
+        missing_fields = required_fields - fields_present
+        if len(missing_fields):
+            for f in missing_fields:
+                problems += [mark_problem(f"Missing required field: {f}", DiagnosticSeverity.Error)]
+            return ValidationResult.InvalidType
 
         # Good use case for key coordinates too
         for k, child_node in doc_node.items():
@@ -213,13 +281,14 @@ class CWLRecord(CWLBaseType):
             else:
                 field.validate(child_node, problems, requirements)
 
+        return ValidationResult.Valid
 
-class CWLField:
 
-    def __init__(self, doc: str, required: bool, lom_key: Union[None, str], allowed_types: list):
+class CWLField(CWLBaseType):
+
+    def __init__(self, doc: str, required: bool, allowed_types: list):
         self.doc = doc
         self.required = required
-        self.lom_key = lom_key
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
         self.types = allowed_types
@@ -231,136 +300,35 @@ class CWLField:
         return str(self)
 
     def validate(self, doc_node, problems, requirements=None):
+        # It makes no sense to consider is_list_element for individual fields
         return _validate(doc_node, self.types, problems, requirements)
 
 
-def _validate(doc_node, allowed_types, problems, requirements=None):
+def _validate(doc_node, allowed_types, problems, requirements=None, lom_key=None):
     for _type in allowed_types:
         if _type == 'null':
             if isinstance(doc_node, YNone):
-                return True
+                return ValidationResult.Valid
             else:
                 continue
 
         # For now, don't closely validate these base types
         if _type in ['string', 'boolean', 'int', 'long']:
             if isinstance(doc_node, str):
-                return True
+                return ValidationResult.Valid
             else:
                 continue
 
-        if _type.is_the_type_for(doc_node):
-            return _type.validate(doc_node, problems, requirements)
+        if isinstance(_type, CWLRecord) and lom_key is not None:
+            validation_result = _type.validate(doc_node, problems, requirements, lom_key=lom_key)
+        else:
+            validation_result = _type.validate(doc_node, problems, requirements)
+        if validation_result != ValidationResult.InvalidType:
+            return validation_result
 
     else:
         # problems += [mark_problem(f"Mismatched type", DiagnosticSeverity.Warning, doc_node)]
-        return False
-
-
-def parse_cwl_type(schema, lang_model, lom_key=None):
-
-    if isinstance(schema, str):
-        if schema not in lang_model:
-            if schema not in primitive_types:
-                lang_model[schema] = CWLTypeWrapper(the_type=None)
-            else:
-                lang_model[schema] = schema
-        return lang_model.get(schema)
-
-    elif isinstance(schema, list):
-        return [
-            parse_cwl_type(_scheme, lang_model, lom_key)
-            for _scheme in schema
-        ]
-
-    elif schema.get("type") == "array":
-        return CWLTypeWrapper(
-            the_type=CWLArray(parse_cwl_type(schema.get("items"), lang_model, lom_key), lom_key=lom_key))
-
-    elif schema.get("type") == "enum":
-        return parse_enum(schema, lang_model)
-
-    elif schema.get("type") == "record":
-        return parse_record(schema, lang_model)
-
-    logger.error(f"Unknown schema type {schema.get('type')}: {schema}")
-
-
-def parse_enum(schema, lang_model):
-    enum_name = schema.get("name")
-    if enum_name not in lang_model:
-        lang_model[enum_name] = CWLTypeWrapper(the_type=None)
-
-    wrapper = lang_model.get(enum_name)
-    wrapper.set_type(
-        the_type=CWLEnum(
-            name=schema.get("name"),
-            doc=schema.get("doc"),
-            symbols=schema.get("symbols")))
-
-    return wrapper
-
-
-def parse_record(schema, lang_model):
-    record_name = schema.get("name")
-    if record_name not in lang_model:
-        lang_model[record_name] = CWLTypeWrapper(the_type=None)
-
-    wrapper = lang_model.get(record_name)
-    wrapper.set_type(
-        the_type=CWLRecord(
-            name=record_name,
-            doc=schema.get("doc"),
-            fields={
-                k: v
-                for field in schema.get("fields") for k, v in [parse_field(field, lang_model)]
-            }))
-
-    return wrapper
-
-
-def parse_field(field, lang_model):
-
-    field_name = field.get("name")
-    required = True
-    _allowed_types = field.get("type")
-    if isinstance(_allowed_types, list) and "null" in _allowed_types:
-        required = False
-
-    lom_key = None
-    jldp = field.get("jsonldPredicate")
-    if isinstance(jldp, dict):
-        lom_key = jldp.get("mapSubject")
-
-    return field_name, CWLField(
-        doc=field.get("doc"),
-        required=required,
-        lom_key=lom_key,
-        allowed_types=parse_cwl_type(_allowed_types, lang_model, lom_key=lom_key)
-    )
-
-
-def load_languagemodel(fname):
-    lang_model = {}
-    schema = json.load(open(fname, "r"))
-    parse_cwl_type(schema, lang_model)
-    clean_up_model(lang_model)
-    return lang_model
-
-
-# CWL grows hairy. It needs to be shaved periodically
-def clean_up_model(lang_model):
-    if isinstance(lang_model.get("CWLVersion"), CWLTypeWrapper):
-        if isinstance(lang_model["CWLVersion"].get_type(), CWLEnum):
-            lang_model["CWLVersion"].symbols = [
-                symbol
-                for symbol in lang_model["CWLVersion"].get_type().symbols
-                if not symbol.startswith("draft-")
-            ]
-            lang_model["CWLVersion"].symbols.remove("v1.0.dev4")
-            return
-
-    logger.error("No CWLVersion enum in schema")
+        return ValidationResult.InvalidType
 
 
 # ## Use as ##
