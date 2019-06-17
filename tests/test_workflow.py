@@ -29,3 +29,5 @@ def test_basic_errors():
     assert len(document.model.problems) == 4
     assert len([problem for problem in document.model.problems
                 if problem.message.startswith("Missing linked file")]) == 1
+    assert len([problem for problem in document.model.problems
+                if problem.message.startswith("Unknown field")]) == 1
