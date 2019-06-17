@@ -104,6 +104,13 @@ def parse_record(schema, lang_model):
     return lang_model.get(record_name)
 
 
+class LomKey:
+
+    def __init__(self, subject, predicate):
+        self.subject = subject
+        self.predicate = predicate
+
+
 def parse_field(field, lang_model):
 
     field_name = field.get("name")
@@ -115,7 +122,7 @@ def parse_field(field, lang_model):
     lom_key = None
     jldp = field.get("jsonldPredicate")
     if isinstance(jldp, dict):
-        lom_key = jldp.get("mapSubject")
+        lom_key = LomKey(jldp.get("mapSubject"), jldp.get("mapPredicate"))
 
     return field_name, CWLField(
         doc=field.get("doc"),
@@ -194,6 +201,7 @@ class CWLEnum(CWLBaseType):
 class CWLArray(CWLBaseType):
 
     def __init__(self, allowed_types):
+        self.name = "list"
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
         self.types = allowed_types
@@ -218,6 +226,7 @@ class CWLArray(CWLBaseType):
 class CWLListOrMap(CWLBaseType):
 
     def __init__(self, allowed_types, lom_key):
+        self.name = "list/map"
         self.lom_key = lom_key
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
@@ -252,23 +261,29 @@ class CWLRecord(CWLBaseType):
     def __repr__(self):
         return str(self)
 
-    def validate(self, doc_node, problems, requirements=None, lom_key=None):
+    def validate(self, doc_node, problems, requirements=None, lom_key: LomKey=None):
 
-        required_fields = self.required_fields - {lom_key}
+        required_fields = self.required_fields - {lom_key.subject if lom_key else None}
 
         # We allow users a shortcut where a type with only one req field
         # can be expressed as a string rep just that req field
         if isinstance(doc_node, str):
-            if len(required_fields) == 1:
-                return ValidationResult.Valid
+            if lom_key is not None:
+                if lom_key.predicate in self.fields and len(required_fields) <= 1:
+                    return ValidationResult.Valid
             else:
+                problems += [
+                    mark_problem(f"Tried type {self.name}: Got string",
+                                 DiagnosticSeverity.Error, doc_node)]
                 return ValidationResult.InvalidType
 
         fields_present = set(doc_node.keys())
         missing_fields = required_fields - fields_present
         if len(missing_fields):
             for f in missing_fields:
-                problems += [mark_problem(f"Missing required field: {f}", DiagnosticSeverity.Error)]
+                problems += [
+                    mark_problem(f"Tried type {self.name}: Missing required field: {f}",
+                                 DiagnosticSeverity.Error, doc_node)]
             return ValidationResult.InvalidType
 
         # Good use case for key coordinates too
@@ -277,7 +292,8 @@ class CWLRecord(CWLBaseType):
             if field is None:
                 if ":" not in k and k[0] != "$":
                     # heuristics to ignore $schemas, $namespaces and custom tags
-                    problems += [mark_problem(f"Unknown field: {k}", DiagnosticSeverity.Warning, child_node)]
+                    problems += [mark_problem(f"Unknown field: {k}",
+                                              DiagnosticSeverity.Warning, child_node)]
             else:
                 field.validate(child_node, problems, requirements)
 
@@ -300,11 +316,21 @@ class CWLField(CWLBaseType):
         return str(self)
 
     def validate(self, doc_node, problems, requirements=None):
-        # It makes no sense to consider is_list_element for individual fields
         return _validate(doc_node, self.types, problems, requirements)
 
 
+class TypeCheckResult:
+
+    def __init__(self, type_tested: str):
+        self.type_tested = type_tested
+        self.check_result: ValidationResult = None
+        self.problems = []
+
+
 def _validate(doc_node, allowed_types, problems, requirements=None, lom_key=None):
+
+    type_check_results = []
+
     for _type in allowed_types:
         if _type == 'null':
             if isinstance(doc_node, YNone):
@@ -319,15 +345,21 @@ def _validate(doc_node, allowed_types, problems, requirements=None, lom_key=None
             else:
                 continue
 
+        this_type = TypeCheckResult(_type.name)
         if isinstance(_type, CWLRecord) and lom_key is not None:
-            validation_result = _type.validate(doc_node, problems, requirements, lom_key=lom_key)
+            this_type.check_result = _type.validate(doc_node, this_type.problems, requirements, lom_key=lom_key)
         else:
-            validation_result = _type.validate(doc_node, problems, requirements)
-        if validation_result != ValidationResult.InvalidType:
-            return validation_result
+            this_type.check_result = _type.validate(doc_node, this_type.problems, requirements)
+
+        if this_type.check_result == ValidationResult.Valid:
+            problems += this_type.problems
+            return ValidationResult.Valid
+
+        type_check_results += [this_type]
 
     else:
-        # problems += [mark_problem(f"Mismatched type", DiagnosticSeverity.Warning, doc_node)]
+        for check_result in type_check_results:
+            problems += check_result.problems
         return ValidationResult.InvalidType
 
 
