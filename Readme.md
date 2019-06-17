@@ -53,8 +53,8 @@ pipx install --spec git+https://github.com/rabix/benten.git benten
 ```
 
 _Note: `pipx` installs the executables in `$HOME/.local/bin`
-(%HOMEPATH%\.local\bin for Windows). This needs to be added to your PATH
-env variable_
+(`%HOMEPATH%\.local\bin` for Windows). This needs to be added to your
+PATH env variable_
 
 To install from develop branch (or some other branch): 
 ```
@@ -78,8 +78,8 @@ pipx install -e benten
 # Tips and Tricks
 
 Benten attaches onto your regular text editor and offers help by
-way of autocompletions and document validations, so most of its
-functionality is exposed naturally as you write the CWL, and a 
+way of auto-completions and document validations, so most of its
+functionality is exposed naturally via the editor's regular UI, and a 
 specialized tutorial is not necessary, but some helpful 
 [tips and tricks](docs/tips.md) are listed in this page.
 

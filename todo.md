@@ -13,6 +13,7 @@
   - [ ] Help for individual CWL sections
   - [ ] Cache for WF structure so we don't reprocess linked workflow interface with every
         re-parse
+  - [ ] Refactor WorkflowStructure for code elegance
 - [ ] Error/warning checking
 - [x] Outline view
   - [x] Steps

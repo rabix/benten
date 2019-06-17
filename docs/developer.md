@@ -1,8 +1,15 @@
-# How to setup and develop with VS Code
+# Notes for developers
 
-- Install benten
-- Make sure the `benten-ls.sh` script is executable and in a location in the path
-  e.g. /usr/local/bin
+## Debugging the server
+Open the project in PyCharm. Goto `Run->Attach To Process` and the
+select the process titled `benten-ls`. Insert appropriate breakpoints
+and perform some editor operation that will trigger a request from the
+client.
+
+
+## How to setup and develop with VS Code
+
+- Install benten (as outlined on the main Readme)
 - Run `npm install` in this folder. This installs all the npm modules needed to
   compile the VS Code client extension.
 - Run `tsc -b`
@@ -15,14 +22,14 @@
 - In the [Extension Development Host] in the `output` tab, select "benten"
 
 
-## Restart server
+### Restart server
 
 The development cycle is to modify the server code and then restart the server. 
 Currently (04.2019) the only way to do this in VS Code is to use the 
 "Reload Window" command:
 CMD + Shift + P to bring up the command bar and then type "Reload Window".
 
-## Code organization
+### Code organization
 
 ```
 |-- .vscode
@@ -33,7 +40,12 @@ CMD + Shift + P to bring up the command bar and then type "Reload Window".
 |-- package.json      - declares entry points etc.
 ```
 
-# VS Code web view
+## VS Code: embedding one language in another
+
+https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#embedded-languages
+
+
+## VS Code: web view
 
 The VS Code documentation is extremely good.
 
@@ -41,16 +53,7 @@ The VS Code documentation is extremely good.
 - https://github.com/Microsoft/vscode/tree/master/extensions/markdown-language-features
 
 
-
-
-# Distribution (WIP)
-
-## Distributing the server
-```
-pip install cx_Freeze
-```
-
-## Distributing VS Code extension
+## VS Code: distributing extension
 
 https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 https://docs.microsoft.com/en-us/visualstudio/extensibility/adding-an-lsp-extension?view=vs-2019
@@ -61,27 +64,6 @@ For local or test distribution we can use
 vsce package
 ```
 and pass around the `.vsix` file for installing in VS Code
-
-
-
-# Building distributions (WIP)
-
-```
-python setup.py sdist bdist_wheel
-```
-
-Upload to test pypi
-```
-python -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-```
-
-
-Check distribution is working
-```
-python3 -m virtualenv ~/.venvs/test-benten
-. ~/.venvs/test-benten/bin/activate
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple benten
-```
 
 
 # Things I learned
