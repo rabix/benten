@@ -1,0 +1,18 @@
+# YAML patterns for cursor context
+
+k1:
+  k1: { k1: A, K2: B}
+  k2: B
+
+k2:
+  k1: [A, B, C]
+  k2: [A, B
+, C]
+  k3: 
+    - A
+    - B
+    - C
+  k4: {
+k1: A,
+k2: B
+}

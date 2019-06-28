@@ -22,6 +22,7 @@ setup(
     python_requires='>=3.7.0',
     install_requires=[
         "pyyaml",
+        "ruamel.yaml",
         "sevenbridges-python"
     ],
     entry_points={
