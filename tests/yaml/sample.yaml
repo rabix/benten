@@ -1,18 +1,49 @@
 # YAML patterns for cursor context
 
 k1:
-  k1: { k1: A, K2: B}
-  k2: B
-
-k2:
   k1: [A, B, C]
-  k2: [A, B
-, C]
-  k3: 
+
+  k2: [A, 
+
+ C]
+  k3:
     - A
     - B
-    - C
-  k4: {
+    - k1: A
+      k2: B
+
+      k3: 3
+
+  k4:
+    k1: A
+
+    k2: B
+
+k2:
+  k1: { k1: A, k2: B,    k3: C}
+  k2: { k1: A
+
+  , k2: B, 
+
+k3: {k1: A,
+k2: 2}}
+
+  k3:
+    k1: A
+    k2: {
 k1: A,
-k2: B
-}
+   k2: 2}
+    k3: C
+
+k3:
+  k1: Single line
+  k2: |
+      Multiple line
+      Text with new lines
+      Preserved
+  
+  k3: >
+      Multi line text
+      where new lines are
+      removed
+
