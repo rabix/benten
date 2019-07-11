@@ -1,11 +1,39 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 import pathlib
+from typing import Tuple, List
 
-from .createmodel import create_model, Base, Undefined
+from ruamel.yaml import YAML
+from ruamel.yaml.parser import ParserError
+from ruamel.yaml.scanner import ScannerError
+
+from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
+from .languagemodel import parse_document
+
 
 import logging
 logger = logging.getLogger(__name__)
+
+yaml_parser = YAML(typ="rt")
+# TODO: allow checking for duplicate keys, perhaps with self healing
+yaml_parser.allow_duplicate_keys = True
+
+
+def _parse_yaml(text) -> Tuple[dict, List[Diagnostic]]:
+    problems = []
+    try:
+        cwl = yaml_parser.load(text)
+    except (ParserError, ScannerError) as e:
+        cwl = None
+        problems = [
+            Diagnostic(
+                _range=Range(start=Position(e.line, e.column), end=Position(e.line, e.column)),
+                message=e.message,
+                severity=DiagnosticSeverity.Error,
+                code="YAML err",
+                source="Benten")]
+
+    return cwl, problems
 
 
 class Document:
@@ -20,24 +48,12 @@ class Document:
         self.version = version
         self.language_models = language_models
 
-        self.use_last_good_model = True
-
-        self._current_parsed_model: Base = None
-        self._last_good_model: Base = None
-
+        self.problems = None
+        self.completer = None
         self.update(text)
-
-    @property
-    def model(self) -> Base:
-        return self._last_good_model if self.use_last_good_model else self._current_parsed_model
 
     def update(self, new_text):
         self.text = new_text
-        self._current_parsed_model = create_model(self.doc_uri, self.text, self.language_models)
 
-        if self._last_good_model is None or not isinstance(self._current_parsed_model, Undefined):
-            self._last_good_model = self._current_parsed_model
-
-        if self._current_parsed_model.problems:
-            self._last_good_model.problems += self._current_parsed_model.problems
-            self._last_good_model.problems = list(set(self._last_good_model.problems))
+        cwl, problems = _parse_yaml(self.text)
+        self.completer, self.problems = parse_document(cwl, self.language_models, problems)
