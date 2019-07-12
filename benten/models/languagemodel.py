@@ -11,7 +11,8 @@ For details see ../../docs/document-model.md
 
 from typing import Union, List, Dict
 import json
-from abc import abstractmethod
+import pathlib
+import urllib.parse
 from dataclasses import dataclass
 from enum import IntEnum
 
@@ -165,7 +166,10 @@ def infer_model_from_type(doc: dict, lang_model: dict):
         return lang_model.get(doc.get("type"))
 
 
-def parse_document(cwl: dict, raw_text: str, lang_models: dict, problems: List=None):
+process_types = ["CommandLineTool", "ExpressionTool", "Workflow"]
+
+
+def parse_document(cwl: dict, doc_uri: str, raw_text: str, lang_models: dict, problems: List=None):
 
     completer = Completer()
     symbols = []
@@ -189,6 +193,7 @@ def parse_document(cwl: dict, raw_text: str, lang_models: dict, problems: List=N
             value_lookup_node = ValueLookup(Range(Position(0, 0), Position(0, 0)))
             if base_type is not None:
                 base_type.parse(
+                    doc_uri=doc_uri,
                     node=cwl,
                     value_lookup_node=value_lookup_node,
                     lom_key=None,
@@ -197,7 +202,7 @@ def parse_document(cwl: dict, raw_text: str, lang_models: dict, problems: List=N
                     problems=problems,
                     requirements=None)
 
-        if _typ in ["CommandLineTool", "ExpressionTool", "Workflow"]:
+        if _typ in process_types:
             symbols = extract_symbols(cwl, line_count)
 
             if _typ == "Workflow":
@@ -266,10 +271,10 @@ def infer_type(node, allowed_types, key_field=None):
         check_result = _type.check(node, key_field)
 
         if check_result.match_type == TypeMatch.MatchAndValid:
-            return _type, None
+            return check_result.cwl_type, None
 
         if check_result.match_type == TypeMatch.MatchButInvalid:
-            return _type, check_result
+            return check_result.cwl_type, check_result
 
         type_check_results += [check_result]
 
@@ -312,6 +317,7 @@ def add_to_problems(loc, type_check_results, problems):
 class CWLBaseType:
 
     def parse(self,
+              doc_uri: str,
               node,
               value_lookup_node: ValueLookup,
               parent_completer_node: CompleterNode,
@@ -320,10 +326,21 @@ class CWLBaseType:
               problems: list, requirements=None):
         return
 
+    @staticmethod
+    def resolve_file_path(doc_uri, target_path):
+        _path = pathlib.PurePosixPath(target_path)
+        if not _path.is_absolute():
+            base_path = pathlib.Path(urllib.parse.urlparse(doc_uri).path).parent
+        else:
+            base_path = "."
+        _path = pathlib.Path(base_path / _path).resolve().absolute()
+        return _path
+
 
 class CWLScalarType(CWLBaseType):
 
     def parse(self,
+              doc_uri: str,
               node,
               value_lookup_node: ValueLookup,
               lom_key: MapSubjectPredicate,
@@ -345,6 +362,33 @@ class CWLScalarType(CWLBaseType):
 
 class CWLUnknownType(CWLBaseType):
     pass
+
+
+class CWLLinkedFileType(CWLBaseType):
+
+    def __init__(self, linked_file: str):
+        self.doc_uri = None
+        self.linked_file = linked_file
+
+    def parse(self,
+              doc_uri: str,
+              node: str,
+              value_lookup_node: ValueLookup,
+              lom_key: MapSubjectPredicate,
+              parent_completer_node: CompleterNode,
+              completer: Completer,
+              problems: list, requirements=None):
+
+        self.doc_uri = doc_uri
+
+        full_path = self.resolve_file_path(self.doc_uri, self.linked_file)
+        if not full_path.exists():
+            problems += [
+                Diagnostic(
+                    _range=value_lookup_node.loc,
+                    message=f"Missing linked file {self.linked_file}",
+                    severity=DiagnosticSeverity.Error)
+            ]
 
 
 class CWLEnumType(CWLBaseType):
@@ -402,6 +446,7 @@ class CWLEnumType(CWLBaseType):
         )
 
     def parse(self,
+              doc_uri: str,
               node,
               value_lookup_node: ValueLookup,
               lom_key: MapSubjectPredicate,
@@ -453,6 +498,7 @@ class CWLArrayType(CWLBaseType):
             )
 
     def parse(self,
+              doc_uri: str,
               node,
               value_lookup_node: ValueLookup,
               lom_key: MapSubjectPredicate,
@@ -468,6 +514,7 @@ class CWLArrayType(CWLBaseType):
             inferred_type, type_check_results = infer_type(node[n], self.types, key_field=None)
             add_to_problems(value_lookup_node.loc, type_check_results, problems)
             inferred_type.parse(
+                doc_uri=doc_uri,
                 node=node[n],
                 value_lookup_node=value_lookup_node,
                 lom_key=lom_key,
@@ -504,6 +551,7 @@ class CWLListOrMapType(CWLBaseType):
             )
 
     def parse(self,
+              doc_uri: str,
               node,
               value_lookup_node: ValueLookup,
               lom_key: str,
@@ -533,6 +581,7 @@ class CWLListOrMapType(CWLBaseType):
                 type_check_results, problems)
 
             inferred_type.parse(
+                doc_uri=doc_uri,
                 node=v,
                 value_lookup_node=value_lookup_node,
                 lom_key=lom_key,
@@ -565,6 +614,15 @@ class CWLRecordType(CWLBaseType):
                 missing_required_fields=list(self.required_fields),
                 message=f"Tried type {self.name}: Got NONE"
             )
+
+        # Exception for $import/$include etc.
+        if isinstance(node, dict):
+            if "$import" in node:
+                return TypeTestResult(
+                    cwl_type=CWLLinkedFileType(linked_file=node.get("$import")),
+                    match_type=TypeMatch.MatchAndValid,
+                    missing_required_fields=[]
+                )
 
         required_fields = self.required_fields - {key_field.map_subject_predicate.subject if key_field else None}
 
@@ -618,6 +676,7 @@ class CWLRecordType(CWLBaseType):
             )
 
     def parse(self,
+              doc_uri: str,
               node,
               value_lookup_node: ValueLookup,
               parent_completer_node: CompleterNode,
@@ -649,35 +708,39 @@ class CWLRecordType(CWLBaseType):
             key_lookup_node = KeyLookup.from_key(node, k)
             key_lookup_node.completer_node = this_completer_node
             completer.add_lookup_node(key_lookup_node)
-
             value_lookup_node = ValueLookup.from_value(node, k)
 
-            field = self.fields.get(k)
-            if field is None:
-                if ":" not in k and k[0] != "$":
-                    # heuristics to ignore $schemas, $namespaces and custom tags
-                    problems += [
-                        Diagnostic(
-                            _range=key_lookup_node.loc,
-                            message=f"Unknown field: {k} for type {self.name}",
-                            severity=DiagnosticSeverity.Warning)
-                    ]
+            if self.name == "WorkflowStep" and k == "run" and isinstance(child_node, str):
+                # Exception for run field that is a string
+                inferred_type = CWLLinkedFileType(linked_file=child_node)
 
             else:
-                inferred_type, type_check_results = infer_type(child_node, field.types, key_field=lom_key)
-                add_to_problems(value_lookup_node.loc, type_check_results, problems)
+                # Regular processing
+                field = self.fields.get(k)
+                if field is None:
+                    if ":" not in k and k[0] != "$":
+                        # heuristics to ignore $schemas, $namespaces and custom tags
+                        problems += [
+                            Diagnostic(
+                                _range=key_lookup_node.loc,
+                                message=f"Unknown field: {k} for type {self.name}",
+                                severity=DiagnosticSeverity.Warning)
+                        ]
+                    continue
 
-                # Special handling for $import and run fields
+                else:
+                    inferred_type, type_check_results = infer_type(child_node, field.types, key_field=lom_key)
+                    add_to_problems(value_lookup_node.loc, type_check_results, problems)
 
-
-                inferred_type.parse(
-                    node=child_node,
-                    value_lookup_node=value_lookup_node,
-                    lom_key=lom_key,
-                    parent_completer_node=parent_completer_node,
-                    completer=completer,
-                    problems=problems,
-                    requirements=requirements)
+            inferred_type.parse(
+                doc_uri=doc_uri,
+                node=child_node,
+                value_lookup_node=value_lookup_node,
+                lom_key=lom_key,
+                parent_completer_node=parent_completer_node,
+                completer=completer,
+                problems=problems,
+                requirements=requirements)
 
 
 class CWLFieldType(CWLBaseType):
