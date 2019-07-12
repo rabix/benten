@@ -339,7 +339,7 @@ class CWLEnumType(CWLBaseType):
         if self.name in ["PrimitiveType", "CWLType"]:
             # Special treatment for syntactic sugar around types
             symbols = [
-                sy + ext for sy in self.symbols for ext in ["", "[]", "?"]
+                sy + ext for sy in self.symbols for ext in ["", "[]", "?", "[]?"]
             ]
 
         if node not in symbols:
