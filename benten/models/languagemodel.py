@@ -388,6 +388,7 @@ class CWLArrayType(CWLBaseType):
             inferred_type.parse(
                 node=node[n],
                 value_lookup_node=value_lookup_node,
+                lom_key=lom_key,
                 parent_completer_node=parent_completer_node,
                 completer=completer,
                 problems=problems,
@@ -504,6 +505,14 @@ class CWLRecordType(CWLBaseType):
                     missing_required_fields=list(self.required_fields),
                     message=f"Tried type {self.name}: Got string"
                 )
+
+        if not isinstance(node, dict):
+            return TypeTestResult(
+                cwl_type=self,
+                match_type=TypeMatch.NotMatch,
+                missing_required_fields=list(self.required_fields),
+                message=f"Tried type {self.name}: Got {type(node)}"
+            )
 
         fields_present = set(node.keys())
         missing_fields = required_fields - fields_present
