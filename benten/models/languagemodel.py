@@ -17,7 +17,7 @@ from enum import IntEnum
 
 from ..langserver.lspobjects import (
     Position, Range, CompletionItem, Diagnostic, DiagnosticSeverity)
-from .completer import (KeyLookup, ValueLookup, CompleterNode, Completer, Style)
+from .intelligence import (KeyLookup, ValueLookup, CompleterNode, Completer, Style)
 from .symbols import extract_symbols, extract_step_symbols
 
 import logging
@@ -52,22 +52,23 @@ def clean_up_model(lang_model):
     logger.error("No CWLVersion enum in schema")
 
 
-def parse_cwl_type(schema, lang_model, lom_key=None):
+def parse_cwl_type(schema, lang_model, map_subject_predicate=None):
 
     if isinstance(schema, str):
         return lang_model.get(schema, schema)
 
     elif isinstance(schema, list):
         return [
-            parse_cwl_type(_scheme, lang_model, lom_key)
+            parse_cwl_type(_scheme, lang_model, map_subject_predicate)
             for _scheme in schema
         ]
 
     elif schema.get("type") == "array":
-        if lom_key is None:
+        if map_subject_predicate is None:
             return CWLArrayType(parse_cwl_type(schema.get("items"), lang_model))
         else:
-            return CWLListOrMapType(parse_cwl_type(schema.get("items"), lang_model), lom_key=lom_key)
+            return CWLListOrMapType(
+                parse_cwl_type(schema.get("items"), lang_model), lom_key=map_subject_predicate)
 
     elif schema.get("type") == "enum":
         return parse_enum(schema, lang_model)
@@ -125,7 +126,7 @@ def listify(items):
         return [items]
 
 
-class LomKey:
+class MapSubjectPredicate:
 
     def __init__(self, subject, predicate):
         self.subject = subject
@@ -140,15 +141,16 @@ def parse_field(field, lang_model):
     if isinstance(_allowed_types, list) and "null" in _allowed_types:
         required = False
 
-    lom_key = None
+    map_subject_predicate = None
     jldp = field.get("jsonldPredicate")
     if isinstance(jldp, dict):
-        lom_key = LomKey(jldp.get("mapSubject"), jldp.get("mapPredicate"))
+        map_subject_predicate = MapSubjectPredicate(jldp.get("mapSubject"), jldp.get("mapPredicate"))
 
     return field_name, CWLFieldType(
         doc=field.get("doc"),
         required=required,
-        allowed_types=parse_cwl_type(_allowed_types, lang_model, lom_key=lom_key)
+        allowed_types=parse_cwl_type(
+            _allowed_types, lang_model, map_subject_predicate=map_subject_predicate)
     )
 
 
@@ -204,6 +206,12 @@ def parse_document(cwl: dict, raw_text: str, lang_models: dict, problems: List=N
         return completer, list(symbols.values()), problems
 
 
+@dataclass
+class KeyField:
+    map_subject_predicate: MapSubjectPredicate
+    key: str
+
+
 class TypeMatch(IntEnum):
     MatchAndValid = 1
     MatchButInvalid = 2
@@ -215,15 +223,31 @@ class TypeMatch(IntEnum):
 # used for type inference heuristics
 @dataclass
 class TypeTestResult:
-    cwl_type: 'CWLBaseType'
+    cwl_type: Union[None, 'CWLBaseType']
     match_type: TypeMatch
     missing_required_fields: list
-    message: Union[None, str]
+    message: Union[None, str] = None
 
 
-def infer_type(node, allowed_types, lom_key=None):
+def infer_type(node, allowed_types, key_field=None):
 
     type_check_results = []
+
+    explicit_type = get_explicit_type_str(node, key_field)
+
+    if explicit_type is not None:
+        for _type in allowed_types:
+            if explicit_type == _type.name:
+                return _type, None
+        else:
+            return CWLUnknownType(), [
+                TypeTestResult(
+                    cwl_type=None,
+                    match_type=TypeMatch.NotMatch,
+                    missing_required_fields=[],
+                    message=f"{explicit_type}"
+                )
+            ]
 
     for _type in allowed_types:
         if _type == 'null':
@@ -239,7 +263,7 @@ def infer_type(node, allowed_types, lom_key=None):
             else:
                 continue
 
-        check_result = _type.check(node, lom_key)
+        check_result = _type.check(node, key_field)
 
         if check_result.match_type == TypeMatch.MatchAndValid:
             return _type, None
@@ -258,6 +282,18 @@ def infer_type(node, allowed_types, lom_key=None):
     return CWLUnknownType(), type_check_results
 
 
+def get_explicit_type_str(node, key_field: KeyField):
+    if key_field is not None:
+        if key_field.map_subject_predicate.subject == "class":
+            return key_field.key
+        else:
+            return None
+    elif isinstance(node, dict):
+        return node.get("class")
+    else:
+        return None
+
+
 def add_to_problems(loc, type_check_results, problems):
     if type_check_results is not None:
         if isinstance(type_check_results, list):
@@ -274,7 +310,15 @@ def add_to_problems(loc, type_check_results, problems):
 
 
 class CWLBaseType:
-    pass
+
+    def parse(self,
+              node,
+              value_lookup_node: ValueLookup,
+              parent_completer_node: CompleterNode,
+              lom_key: MapSubjectPredicate,
+              completer: Completer,
+              problems: list, requirements=None):
+        return
 
 
 class CWLScalarType(CWLBaseType):
@@ -282,7 +326,7 @@ class CWLScalarType(CWLBaseType):
     def parse(self,
               node,
               value_lookup_node: ValueLookup,
-              lom_key: LomKey,
+              lom_key: MapSubjectPredicate,
               parent_completer_node: CompleterNode,
               completer: Completer,
               problems: list, requirements=None):
@@ -316,7 +360,7 @@ class CWLEnumType(CWLBaseType):
     def __repr__(self):
         return str(self)
 
-    def check(self, node, lom_key: LomKey=None):
+    def check(self, node, lom_key: MapSubjectPredicate=None):
 
         if self.name == "Any":
             # Special treatment for the any type. It agrees to everything
@@ -360,7 +404,7 @@ class CWLEnumType(CWLBaseType):
     def parse(self,
               node,
               value_lookup_node: ValueLookup,
-              lom_key: LomKey,
+              lom_key: MapSubjectPredicate,
               parent_completer_node: CompleterNode,
               completer: Completer,
               problems: list, requirements=None):
@@ -391,7 +435,7 @@ class CWLArrayType(CWLBaseType):
     def __repr__(self):
         return str(self)
 
-    def check(self, node, lom_key: LomKey=None):
+    def check(self, node, lom_key: MapSubjectPredicate=None):
 
         if isinstance(node, list):
             return TypeTestResult(
@@ -411,7 +455,7 @@ class CWLArrayType(CWLBaseType):
     def parse(self,
               node,
               value_lookup_node: ValueLookup,
-              lom_key: LomKey,
+              lom_key: MapSubjectPredicate,
               parent_completer_node: CompleterNode,
               completer: Completer,
               problems: list, requirements=None):
@@ -421,7 +465,7 @@ class CWLArrayType(CWLBaseType):
 
             # loc = node.lc.item(n)
             # style = Style.flow if node[n].fa.flow_style() else Style.block
-            inferred_type, type_check_results = infer_type(node[n], self.types, lom_key=None)
+            inferred_type, type_check_results = infer_type(node[n], self.types, key_field=None)
             add_to_problems(value_lookup_node.loc, type_check_results, problems)
             inferred_type.parse(
                 node=node[n],
@@ -437,12 +481,12 @@ class CWLListOrMapType(CWLBaseType):
 
     def __init__(self, allowed_types, lom_key):
         self.name = "list/map"
-        self.lom_key = lom_key
+        self.map_subject_predicate = lom_key
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
         self.types = allowed_types
 
-    def check(self, node, lom_key: LomKey=None):
+    def check(self, node, lom_key: MapSubjectPredicate=None):
 
         if isinstance(node, (list, dict)):
             return TypeTestResult(
@@ -462,28 +506,32 @@ class CWLListOrMapType(CWLBaseType):
     def parse(self,
               node,
               value_lookup_node: ValueLookup,
-              lom_key: LomKey,
+              lom_key: str,
               parent_completer_node: CompleterNode,
               completer: Completer,
               problems: list, requirements=None):
 
         if isinstance(node, list):
+            is_dict = False
             itr = enumerate(node)
-            loc_fn = node.lc.item
-            lom_key = None
         elif isinstance(node, dict):
+            is_dict = True
             itr = node.items()
-            loc_fn = node.lc.value
-            lom_key = self.lom_key
         else:
             # Incomplete document
             return
 
         for k, v in itr:
+            key_lookup_node = KeyLookup.from_key(node, k) if is_dict else None
             value_lookup_node = ValueLookup.from_value(node, k)
 
-            inferred_type, type_check_results = infer_type(v, self.types, lom_key=lom_key)
-            add_to_problems(value_lookup_node.loc, type_check_results, problems)
+            lom_key = KeyField(self.map_subject_predicate, k) if is_dict else None
+            inferred_type, type_check_results = infer_type(v, self.types, key_field=lom_key)
+
+            add_to_problems(
+                key_lookup_node.loc if key_lookup_node else value_lookup_node,
+                type_check_results, problems)
+
             inferred_type.parse(
                 node=v,
                 value_lookup_node=value_lookup_node,
@@ -508,7 +556,7 @@ class CWLRecordType(CWLBaseType):
     def __repr__(self):
         return str(self)
 
-    def check(self, node, lom_key: LomKey=None):
+    def check(self, node, key_field: KeyField=None):
 
         if node is None:
             return TypeTestResult(
@@ -518,11 +566,11 @@ class CWLRecordType(CWLBaseType):
                 message=f"Tried type {self.name}: Got NONE"
             )
 
-        required_fields = self.required_fields - {lom_key.subject if lom_key else None}
+        required_fields = self.required_fields - {key_field.map_subject_predicate.subject if key_field else None}
 
         if isinstance(node, str):
-            if lom_key is not None:
-                if lom_key.predicate in self.fields and len(required_fields) <= 1:
+            if key_field is not None:
+                if key_field.map_subject_predicate.predicate in self.fields and len(required_fields) <= 1:
                     return TypeTestResult(
                                 cwl_type=self,
                                 match_type=TypeMatch.MatchAndValid,
@@ -573,7 +621,7 @@ class CWLRecordType(CWLBaseType):
               node,
               value_lookup_node: ValueLookup,
               parent_completer_node: CompleterNode,
-              lom_key: LomKey,
+              lom_key: MapSubjectPredicate,
               completer: Completer,
               problems: list, requirements=None):
 
@@ -611,13 +659,17 @@ class CWLRecordType(CWLBaseType):
                     problems += [
                         Diagnostic(
                             _range=key_lookup_node.loc,
-                            message=f"Unknown field: {k}",
+                            message=f"Unknown field: {k} for type {self.name}",
                             severity=DiagnosticSeverity.Warning)
                     ]
 
             else:
-                inferred_type, type_check_results = infer_type(child_node, field.types, lom_key=lom_key)
+                inferred_type, type_check_results = infer_type(child_node, field.types, key_field=lom_key)
                 add_to_problems(value_lookup_node.loc, type_check_results, problems)
+
+                # Special handling for $import and run fields
+
+
                 inferred_type.parse(
                     node=child_node,
                     value_lookup_node=value_lookup_node,
