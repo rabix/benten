@@ -20,10 +20,10 @@ class DocumentSymbol(CWLLangServerBase):
         doc_uri = params["textDocument"]["uri"]
 
         doc = self.open_documents[doc_uri]
-        logger.debug(type(doc.model))
 
-        self._write_out_graph(doc)
-        return doc.model.symbols()
+        # TODO: Put back graph writing
+        # self._write_out_graph(doc)
+        return doc.symbols
 
     def _write_out_graph(self, doc):
         graph_data_file = pathlib.Path(

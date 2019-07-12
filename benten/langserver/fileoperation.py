@@ -90,4 +90,4 @@ class FileOperation(CWLLangServerBase):
             params=to_dict(
                 PublishDiagnosticsParams(
                     uri=doc_uri,
-                    diagnostics=document.model.problems)))
+                    diagnostics=document.problems)))

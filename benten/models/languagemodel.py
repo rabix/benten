@@ -18,7 +18,7 @@ from enum import IntEnum
 from ..langserver.lspobjects import (
     Position, Range, CompletionItem, Diagnostic, DiagnosticSeverity)
 from .completer import (KeyLookup, ValueLookup, CompleterNode, Completer, Style)
-
+from .symbols import extract_symbols, extract_step_symbols
 
 import logging
 logger = logging.getLogger(__name__)
@@ -141,9 +141,12 @@ def infer_model_from_type(doc: dict, lang_model: dict):
         return lang_model.get(doc.get("type"))
 
 
-def parse_document(cwl: dict, lang_models: dict, problems: List=None):
+def parse_document(cwl: dict, raw_text: str, lang_models: dict, problems: List=None):
 
     completer = Completer()
+    symbols = []
+
+    line_count = len(raw_text.splitlines())
 
     if isinstance(cwl, dict):
 
@@ -170,7 +173,13 @@ def parse_document(cwl: dict, lang_models: dict, problems: List=None):
                     problems=problems,
                     requirements=None)
 
-        return completer, problems
+        if _typ in ["CommandLineTool", "ExpressionTool", "Workflow"]:
+            symbols = extract_symbols(cwl, line_count)
+
+            if _typ == "Workflow":
+                symbols = extract_step_symbols(cwl, symbols)
+
+        return completer, list(symbols.values()), problems
 
 
 class TypeMatch(IntEnum):

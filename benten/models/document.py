@@ -50,10 +50,13 @@ class Document:
 
         self.problems = None
         self.completer = None
+        self.symbols = None
+
         self.update(text)
 
     def update(self, new_text):
         self.text = new_text
 
         cwl, problems = _parse_yaml(self.text)
-        self.completer, self.problems = parse_document(cwl, self.language_models, problems)
+        self.completer, self.symbols, self.problems = \
+            parse_document(cwl, self.text, self.language_models, problems)
