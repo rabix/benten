@@ -318,6 +318,15 @@ class CWLEnumType(CWLBaseType):
 
     def check(self, node, lom_key: LomKey=None):
 
+        if self.name == "Any":
+            # Special treatment for the any type. It agrees to everything
+            return TypeTestResult(
+                cwl_type=self,
+                match_type=TypeMatch.MatchAndValid,
+                missing_required_fields=[],
+                message=""
+            )
+
         if not (isinstance(node, str) or None):
             return TypeTestResult(
                 cwl_type=self,
