@@ -82,15 +82,10 @@ def parse_enum(schema, lang_model):
     enum_name = schema.get("name")
 
     symbols = schema.get("symbols")
-    if "extends" in schema:
-        # Need to unionize!
-        extends_l = schema.get("extends")
-        if not isinstance(extends_l, list):
-            extends_l = [extends_l]
-        for extends in extends_l:
-            extends = extends.split("#")[1]  # Proper way is to use URIs ...
-            if extends in lang_model:
-                symbols += lang_model[extends].symbols
+    for extends in listify(schema.get("extends")):
+        extends = extends.split("#")[1]  # Proper way is to use URIs ...
+        if extends in lang_model:
+            symbols += lang_model[extends].symbols
 
     lang_model[enum_name] = CWLEnumType(
         name=schema.get("name"),
@@ -102,16 +97,32 @@ def parse_enum(schema, lang_model):
 
 def parse_record(schema, lang_model):
     record_name = schema.get("name")
-    if True: # record_name not in lang_model:
-        lang_model[record_name] = CWLRecordType(
-            name=record_name,
-            doc=schema.get("doc"),
-            fields={
-                k: v
-                for field in schema.get("fields") for k, v in [parse_field(field, lang_model)]
-            })
+    fields = {}
+    for extends in listify(schema.get("extends")):
+        extends = extends.split("#")[1]  # Proper way is to use URIs ...
+        if extends in lang_model:
+            fields.update(**lang_model[extends].fields)
+
+    fields.update(**{
+        k: v
+        for field in schema.get("fields") for k, v in [parse_field(field, lang_model)]
+    })
+
+    lang_model[record_name] = CWLRecordType(
+        name=record_name,
+        doc=schema.get("doc"),
+        fields=fields)
 
     return lang_model.get(record_name)
+
+
+def listify(items):
+    if items is None:
+        return []
+    elif isinstance(items, list):
+        return items
+    else:
+        return [items]
 
 
 class LomKey:
