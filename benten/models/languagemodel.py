@@ -80,11 +80,22 @@ def parse_cwl_type(schema, lang_model, lom_key=None):
 
 def parse_enum(schema, lang_model):
     enum_name = schema.get("name")
-    if True: # enum_name not in lang_model:
-        lang_model[enum_name] = CWLEnumType(
-            name=schema.get("name"),
-            doc=schema.get("doc"),
-            symbols=schema.get("symbols"))
+
+    symbols = schema.get("symbols")
+    if "extends" in schema:
+        # Need to unionize!
+        extends_l = schema.get("extends")
+        if not isinstance(extends_l, list):
+            extends_l = [extends_l]
+        for extends in extends_l:
+            extends = extends.split("#")[1]  # Proper way is to use URIs ...
+            if extends in lang_model:
+                symbols += lang_model[extends].symbols
+
+    lang_model[enum_name] = CWLEnumType(
+        name=schema.get("name"),
+        doc=schema.get("doc"),
+        symbols=set(symbols))
 
     return lang_model.get(enum_name)
 
@@ -283,7 +294,7 @@ class CWLUnknownType(CWLBaseType):
 
 class CWLEnumType(CWLBaseType):
 
-    def __init__(self, name: str, doc: str, symbols: list):
+    def __init__(self, name: str, doc: str, symbols: set):
         self.name = name
         self.doc = doc
         self.symbols = symbols
@@ -304,7 +315,14 @@ class CWLEnumType(CWLBaseType):
                 message="Expecting an enum value here"
             )
 
-        if node not in self.symbols:
+        symbols = self.symbols
+        if self.name in ["PrimitiveType", "CWLType"]:
+            # Special treatment for syntactic sugar around types
+            symbols = [
+                sy + ext for sy in self.symbols for ext in ["", "[]", "?"]
+            ]
+
+        if node not in symbols:
             return TypeTestResult(
                 cwl_type=self,
                 match_type=TypeMatch.MatchButInvalid,
