@@ -66,5 +66,10 @@ class Document:
         if de is not None:
             return de.definition()
 
+    def completion(self, loc: Position, dummy):
+        de = self.completer.get_doc_element(loc)
+        if de is not None:
+            return de.completion()
+
     def hover(self, loc: Position):
         pass

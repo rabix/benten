@@ -15,6 +15,7 @@ import pathlib
 import urllib.parse
 from dataclasses import dataclass
 from enum import IntEnum
+import shlex
 
 from ..langserver.lspobjects import (
     Position, Range, Location, CompletionItem, Diagnostic, DiagnosticSeverity)
@@ -396,12 +397,39 @@ class CWLLinkedFileType(CWLBaseType):
                     message=f"Missing linked file {self.linked_file}",
                     severity=DiagnosticSeverity.Error)
             ]
-        else:
-            value_lookup_node.completer_node = self
-            completer.add_lookup_node(value_lookup_node)
+
+        value_lookup_node.completer_node = self
+        completer.add_lookup_node(value_lookup_node)
 
     def definition(self):
         return Location(self.full_path.as_uri())
+
+    def completion(self):
+        return [
+            CompletionItem(label=file_path)
+            for file_path in self._file_picker(self.linked_file)
+        ]
+
+    def _file_picker(self, prefix):
+
+        # We use .split( ... ) so we can handle the case for run: .    # my/commented/path
+        # an other such shenanigans
+        _prefix = shlex.split(prefix, comments=True)[0]
+
+        path = self.full_path
+        if not path.is_dir():
+            path = path.parent
+
+        if not path.exists():
+            logger.error(f"No path called: {path}")
+            return []
+
+        # This is a workaround to the issue of having a dangling "." in front of the path
+        pre = "/" if _prefix in [".", ".."] else ""
+
+        return (pre + str(p.relative_to(path))
+                for p in path.iterdir()
+                if p.is_dir() or p.suffix == ".cwl")
 
 
 class CWLEnumType(CWLBaseType):
@@ -590,7 +618,7 @@ class CWLListOrMapType(CWLBaseType):
             inferred_type, type_check_results = infer_type(v, self.types, key_field=lom_key)
 
             add_to_problems(
-                key_lookup_node.loc if key_lookup_node else value_lookup_node,
+                key_lookup_node.loc if key_lookup_node else value_lookup_node.loc,
                 type_check_results, problems)
 
             inferred_type.parse(
