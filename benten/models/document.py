@@ -59,4 +59,12 @@ class Document:
 
         cwl, problems = _parse_yaml(self.text)
         self.completer, self.symbols, self.problems = \
-            parse_document(cwl, self.text, self.language_models, problems)
+            parse_document(cwl, self.doc_uri, self.text, self.language_models, problems)
+
+    def definition(self, loc: Position):
+        de = self.completer.get_doc_element(loc)
+        if de is not None:
+            return de.definition()
+
+    def hover(self, loc: Position):
+        pass

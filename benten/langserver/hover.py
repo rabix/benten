@@ -21,4 +21,4 @@ class Hover(CWLLangServerBase):
         position = Position(**params["position"])
         doc = self.open_documents[doc_uri]
 
-        return doc.model.hover(position, doc_uri)
+        return doc.hover(position)

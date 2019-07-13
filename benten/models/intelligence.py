@@ -46,6 +46,24 @@ class CompleterNode:
         else:
             return [CompletionItem(label=c) for c in self._completions]
 
+    def hover(self, loc: Position):
+        pass
+
+    def definition(self, loc: Position):
+        pass
+
+
+class LinkedFileNode:
+
+    def __init__(self):
+        pass
+
+
+class FilePickerNode:
+    pass
+
+
+
 
 class LookupNode:
 
@@ -93,3 +111,13 @@ class Completer:
 
     def add_completer_node(self, node: CompleterNode):
         self.nodes.append(node)
+
+    def get_doc_element(self, loc: Position):
+        # O(n) algorithm, but should do fine for our file sizes
+        # For now doing exact matches on lines, which is sufficient
+        for n in self.lookup_table:
+            if n.loc.start.line == loc.line:
+                if n.loc.start.character <= loc.character <= n.loc.end.character:
+                    return n.completer_node
+
+        return None

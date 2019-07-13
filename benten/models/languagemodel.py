@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 from ..langserver.lspobjects import (
-    Position, Range, CompletionItem, Diagnostic, DiagnosticSeverity)
+    Position, Range, Location, CompletionItem, Diagnostic, DiagnosticSeverity)
 from .intelligence import (KeyLookup, ValueLookup, CompleterNode, Completer, Style)
 from .symbols import extract_symbols, extract_step_symbols
 
@@ -324,7 +324,13 @@ class CWLBaseType:
               lom_key: MapSubjectPredicate,
               completer: Completer,
               problems: list, requirements=None):
-        return
+        pass
+
+    def definition(self):
+        pass
+
+    def completion(self):
+        pass
 
     @staticmethod
     def resolve_file_path(doc_uri, target_path):
@@ -348,16 +354,16 @@ class CWLScalarType(CWLBaseType):
               completer: Completer,
               problems: list, requirements=None):
 
-        this_completer_node = CompleterNode(
-            indent=value_lookup_node.loc.start.character,
-            style=Style.none,
-            completions=[],
-            parent=parent_completer_node
-        )
+        # this_completer_node = CompleterNode(
+        #     indent=value_lookup_node.loc.start.character,
+        #     style=Style.none,
+        #     completions=[],
+        #     parent=parent_completer_node
+        # )
 
-        value_lookup_node.completer_node = this_completer_node
+        # value_lookup_node.completer_node = this_completer_node
         completer.add_lookup_node(value_lookup_node)
-        completer.add_completer_node(this_completer_node)
+        # completer.add_completer_node(this_completer_node)
 
 
 class CWLUnknownType(CWLBaseType):
@@ -369,6 +375,7 @@ class CWLLinkedFileType(CWLBaseType):
     def __init__(self, linked_file: str):
         self.doc_uri = None
         self.linked_file = linked_file
+        self.full_path = None
 
     def parse(self,
               doc_uri: str,
@@ -381,14 +388,20 @@ class CWLLinkedFileType(CWLBaseType):
 
         self.doc_uri = doc_uri
 
-        full_path = self.resolve_file_path(self.doc_uri, self.linked_file)
-        if not full_path.exists():
+        self.full_path = self.resolve_file_path(self.doc_uri, self.linked_file)
+        if not self.full_path.exists():
             problems += [
                 Diagnostic(
                     _range=value_lookup_node.loc,
                     message=f"Missing linked file {self.linked_file}",
                     severity=DiagnosticSeverity.Error)
             ]
+        else:
+            value_lookup_node.completer_node = self
+            completer.add_lookup_node(value_lookup_node)
+
+    def definition(self):
+        return Location(self.full_path.as_uri())
 
 
 class CWLEnumType(CWLBaseType):
@@ -454,16 +467,16 @@ class CWLEnumType(CWLBaseType):
               completer: Completer,
               problems: list, requirements=None):
 
-        this_completer_node = CompleterNode(
-            indent=value_lookup_node.loc.start.character,
-            style=Style.none,
-            completions=self.symbols,
-            parent=parent_completer_node
-        )
+        # this_completer_node = CompleterNode(
+        #     indent=value_lookup_node.loc.start.character,
+        #     style=Style.none,
+        #     completions=self.symbols,
+        #     parent=parent_completer_node
+        # )
 
-        value_lookup_node.completer_node = this_completer_node
+        value_lookup_node.completer_node = self
         completer.add_lookup_node(value_lookup_node)
-        completer.add_completer_node(this_completer_node)
+        # completer.add_completer_node(this_completer_node)
 
 
 class CWLArrayType(CWLBaseType):
@@ -691,22 +704,22 @@ class CWLRecordType(CWLBaseType):
         else:
             completions = list(set(self.fields.keys()) - set(node.keys()))
 
-        this_completer_node = CompleterNode(
-            indent=value_lookup_node.loc.start.character,
-            style=Style.none,
-            completions=completions,
-            parent=parent_completer_node
-        )
-        completer.add_completer_node(this_completer_node)
+        # this_completer_node = CompleterNode(
+        #     indent=value_lookup_node.loc.start.character,
+        #     style=Style.none,
+        #     completions=completions,
+        #     parent=parent_completer_node
+        # )
+        # completer.add_completer_node(this_completer_node)
 
         if isinstance(node, str) or node is None:
-            value_lookup_node.completer_node = this_completer_node
+            # value_lookup_node.completer_node = this_completer_node
             return
 
         for k, child_node in node.items():
 
             key_lookup_node = KeyLookup.from_key(node, k)
-            key_lookup_node.completer_node = this_completer_node
+            key_lookup_node.completer_node = self
             completer.add_lookup_node(key_lookup_node)
             value_lookup_node = ValueLookup.from_value(node, k)
 
