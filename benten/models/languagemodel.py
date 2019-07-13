@@ -21,6 +21,7 @@ from ..langserver.lspobjects import (
     Position, Range, Location, CompletionItem, Diagnostic, DiagnosticSeverity)
 from .intelligence import (KeyLookup, ValueLookup, CompleterNode, Completer, Style)
 from .symbols import extract_symbols, extract_step_symbols
+from .workflow import analyze_connectivity
 
 import logging
 logger = logging.getLogger(__name__)
@@ -208,6 +209,7 @@ def parse_document(cwl: dict, doc_uri: str, raw_text: str, lang_models: dict, pr
 
             if _typ == "Workflow":
                 symbols = extract_step_symbols(cwl, symbols)
+                wf_graph = analyze_connectivity(completer, problems)
 
         return completer, list(symbols.values()), problems
 
@@ -371,7 +373,7 @@ class CWLUnknownType(CWLBaseType):
     pass
 
 
-class CWLLinkedFileType(CWLBaseType):
+class CWLLinkedFile(CWLBaseType):
 
     def __init__(self, linked_file: str):
         self.doc_uri = None
@@ -430,6 +432,25 @@ class CWLLinkedFileType(CWLBaseType):
         return (pre + str(p.relative_to(path))
                 for p in path.iterdir()
                 if p.is_dir() or p.suffix == ".cwl")
+
+
+class CWLLinkedProcessFile(CWLLinkedFile):
+    pass
+
+
+class CWLStepInputs(CWLBaseType):
+    # This helps auto-complete input port names
+    pass
+
+
+class CWLSource(CWLBaseType):
+    # This helps auto-complete source port names
+    pass
+
+
+class CWLStepOutputs(CWLBaseType):
+    # This helps auto-complete output port names
+    pass
 
 
 class CWLEnumType(CWLBaseType):
@@ -660,7 +681,7 @@ class CWLRecordType(CWLBaseType):
         if isinstance(node, dict):
             if "$import" in node:
                 return TypeTestResult(
-                    cwl_type=CWLLinkedFileType(linked_file=node.get("$import")),
+                    cwl_type=CWLLinkedFile(linked_file=node.get("$import")),
                     match_type=TypeMatch.MatchAndValid,
                     missing_required_fields=[]
                 )
@@ -753,7 +774,7 @@ class CWLRecordType(CWLBaseType):
 
             if self.name == "WorkflowStep" and k == "run" and isinstance(child_node, str):
                 # Exception for run field that is a string
-                inferred_type = CWLLinkedFileType(linked_file=child_node)
+                inferred_type = CWLLinkedProcessFile(linked_file=child_node)
 
             else:
                 # Regular processing
