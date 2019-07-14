@@ -21,7 +21,8 @@ from ..langserver.lspobjects import (
     Position, Range, Location, CompletionItem, Diagnostic, DiagnosticSeverity)
 from .intelligence import (KeyLookup, ValueLookup, CompleterNode, Completer, Style)
 from .symbols import extract_symbols, extract_step_symbols
-from .workflow import analyze_connectivity
+from . import workflow
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -84,6 +85,11 @@ def parse_cwl_type(schema, lang_model, map_subject_predicate=None):
 
 def parse_enum(schema, lang_model):
     enum_name = schema.get("name")
+
+    if enum_name == "Any":
+        # This is a special type masquerading as an enum
+        lang_model[enum_name] = CWLAnyType(name=schema.get("name"))
+        return lang_model.get(enum_name)
 
     symbols = schema.get("symbols")
     for extends in listify(schema.get("extends")):
@@ -209,7 +215,7 @@ def parse_document(cwl: dict, doc_uri: str, raw_text: str, lang_models: dict, pr
 
             if _typ == "Workflow":
                 symbols = extract_step_symbols(cwl, symbols)
-                wf_graph = analyze_connectivity(completer, problems)
+                wf_graph = workflow.analyze_connectivity(completer, problems)
 
         return completer, list(symbols.values()), problems
 
@@ -435,7 +441,16 @@ class CWLLinkedFile(CWLBaseType):
 
 
 class CWLLinkedProcessFile(CWLLinkedFile):
-    pass
+    # This helps us to identify steps
+
+    def __init__(self, linked_file: str):
+        super().__init__(linked_file)
+        self.interface = None
+
+    def parse(self, **args):
+        super().parse(**args)
+        if self.full_path.exists():
+            self.interface = workflow.parse_interface(self.full_path)
 
 
 class CWLStepInputs(CWLBaseType):
@@ -453,6 +468,34 @@ class CWLStepOutputs(CWLBaseType):
     pass
 
 
+class CWLAnyType(CWLBaseType):
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def check(self, node, lom_key: MapSubjectPredicate=None):
+
+        # Special treatment for the any type. It agrees to everything
+        return TypeTestResult(
+            cwl_type=self,
+            match_type=TypeMatch.MatchAndValid,
+            missing_required_fields=[],
+            message=""
+        )
+
+    def parse(self,
+              doc_uri: str,
+              node,
+              value_lookup_node: ValueLookup,
+              lom_key: MapSubjectPredicate,
+              parent_completer_node: CompleterNode,
+              completer: Completer,
+              problems: list, requirements=None):
+
+        value_lookup_node.completer_node = self
+        completer.add_lookup_node(value_lookup_node)
+
+
 class CWLEnumType(CWLBaseType):
 
     def __init__(self, name: str, doc: str, symbols: set):
@@ -467,15 +510,6 @@ class CWLEnumType(CWLBaseType):
         return str(self)
 
     def check(self, node, lom_key: MapSubjectPredicate=None):
-
-        if self.name == "Any":
-            # Special treatment for the any type. It agrees to everything
-            return TypeTestResult(
-                cwl_type=self,
-                match_type=TypeMatch.MatchAndValid,
-                missing_required_fields=[],
-                message=""
-            )
 
         if not (isinstance(node, str) or None):
             return TypeTestResult(
@@ -516,16 +550,8 @@ class CWLEnumType(CWLBaseType):
               completer: Completer,
               problems: list, requirements=None):
 
-        # this_completer_node = CompleterNode(
-        #     indent=value_lookup_node.loc.start.character,
-        #     style=Style.none,
-        #     completions=self.symbols,
-        #     parent=parent_completer_node
-        # )
-
         value_lookup_node.completer_node = self
         completer.add_lookup_node(value_lookup_node)
-        # completer.add_completer_node(this_completer_node)
 
 
 class CWLArrayType(CWLBaseType):
