@@ -68,11 +68,16 @@ def parse_cwl_type(schema, lang_model, map_subject_predicate=None):
         ]
 
     elif schema.get("type") == "array":
+        name = schema.get("name")
         if map_subject_predicate is None:
-            return CWLArrayType(parse_cwl_type(schema.get("items"), lang_model))
+            return CWLArrayType(
+                name=name,
+                allowed_types=parse_cwl_type(schema.get("items"), lang_model))
         else:
             return CWLListOrMapType(
-                parse_cwl_type(schema.get("items"), lang_model), lom_key=map_subject_predicate)
+                name=name,
+                allowed_types=parse_cwl_type(schema.get("items"), lang_model),
+                lom_key=map_subject_predicate)
 
     elif schema.get("type") == "enum":
         return parse_enum(schema, lang_model)
@@ -556,8 +561,8 @@ class CWLEnumType(CWLBaseType):
 
 class CWLArrayType(CWLBaseType):
 
-    def __init__(self, allowed_types):
-        self.name = "list"
+    def __init__(self, name, allowed_types):
+        self.name = name
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
         self.types = allowed_types
@@ -614,8 +619,9 @@ class CWLArrayType(CWLBaseType):
 
 class CWLListOrMapType(CWLBaseType):
 
-    def __init__(self, allowed_types, lom_key):
-        self.name = "list/map"
+    def __init__(self, name, allowed_types, lom_key):
+        self.name = name
+        self.is_dict = None
         self.map_subject_predicate = lom_key
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
