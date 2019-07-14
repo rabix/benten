@@ -185,7 +185,7 @@ process_types = ["CommandLineTool", "ExpressionTool", "Workflow"]
 def parse_document(cwl: dict, doc_uri: str, raw_text: str, lang_models: dict, problems: List=None):
 
     completer = Completer()
-    symbols = []
+    symbols = {}
 
     line_count = len(raw_text.splitlines())
 
@@ -222,7 +222,8 @@ def parse_document(cwl: dict, doc_uri: str, raw_text: str, lang_models: dict, pr
                 symbols = extract_step_symbols(cwl, symbols)
                 wf_graph = workflow.analyze_connectivity(completer, problems)
 
-        return completer, list(symbols.values()), problems
+
+    return completer, list(symbols.values()), problems
 
 
 @dataclass
@@ -618,6 +619,12 @@ class CWLArrayType(CWLBaseType):
                 requirements=requirements)
 
 
+# TODO: subclass this to handle
+#  inputs and outputs re: filling out keys = ports
+#  requirements re: filling out types
+#  To do this we need to properly propagate the name of the field to LOM types
+#  and to properly handle the broken document that results when we start to fill
+#  out a key
 class CWLListOrMapType(CWLBaseType):
 
     def __init__(self, name, allowed_types, lom_key):
@@ -655,20 +662,26 @@ class CWLListOrMapType(CWLBaseType):
               problems: list, requirements=None):
 
         if isinstance(node, list):
-            is_dict = False
+            self.is_dict = False
             itr = enumerate(node)
         elif isinstance(node, dict):
-            is_dict = True
+            self.is_dict = True
             itr = node.items()
         else:
             # Incomplete document
             return
 
         for k, v in itr:
-            key_lookup_node = KeyLookup.from_key(node, k) if is_dict else None
+            if self.is_dict:
+                key_lookup_node = KeyLookup.from_key(node, k)
+                key_lookup_node.completer_node = self
+                completer.add_lookup_node(key_lookup_node)
+            else:
+                key_lookup_node = None
+
             value_lookup_node = ValueLookup.from_value(node, k)
 
-            lom_key = KeyField(self.map_subject_predicate, k) if is_dict else None
+            lom_key = KeyField(self.map_subject_predicate, k) if self.is_dict else None
             inferred_type, type_check_results = infer_type(v, self.types, key_field=lom_key)
 
             add_to_problems(
@@ -684,6 +697,13 @@ class CWLListOrMapType(CWLBaseType):
                 completer=completer,
                 problems=problems,
                 requirements=requirements)
+
+    def completion(self):
+        if self.is_dict:
+            return [
+                CompletionItem(label=t.name)
+                for t in self.types
+            ]
 
 
 class CWLRecordType(CWLBaseType):

@@ -27,8 +27,9 @@ def _parse_yaml(text) -> Tuple[dict, List[Diagnostic]]:
         cwl = None
         problems = [
             Diagnostic(
-                _range=Range(start=Position(e.line, e.column), end=Position(e.line, e.column)),
-                message=e.message,
+                _range=Range(start=Position(e.problem_mark.line, e.problem_mark.column),
+                             end=Position(e.problem_mark.line, e.problem_mark.column)),
+                message=str(e),
                 severity=DiagnosticSeverity.Error,
                 code="YAML err",
                 source="Benten")]
