@@ -24,6 +24,9 @@ def _parse_yaml(text) -> Tuple[dict, List[Diagnostic]]:
     try:
         cwl = yaml_parser.load(text)
     except (ParserError, ScannerError) as e:
+        if e.problem == "could not find expected ':'":
+            return _parse_yaml(heal_incomplete_key(text, e))
+
         cwl = None
         problems = [
             Diagnostic(
@@ -35,6 +38,13 @@ def _parse_yaml(text) -> Tuple[dict, List[Diagnostic]]:
                 source="Benten")]
 
     return cwl, problems
+
+
+def heal_incomplete_key(original_text, e):
+    lines = original_text.splitlines(keepends=False)
+    # TODO: This only works for block style, but it does the job
+    lines[e.context_mark.line] = lines[e.context_mark.line] + ":"
+    return "\n".join(lines)
 
 
 class Document:
