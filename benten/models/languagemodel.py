@@ -264,7 +264,8 @@ def infer_type(node, allowed_types, key_field=None):
                     cwl_type=None,
                     match_type=TypeMatch.NotMatch,
                     missing_required_fields=[],
-                    message=f"{explicit_type}"
+                    message=f"Found {explicit_type}. "
+                    f"Expected one of {[t.name for t in allowed_types]}"
                 )
             ]
 
