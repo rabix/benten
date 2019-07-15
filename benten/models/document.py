@@ -1,6 +1,6 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-import pathlib
+import time
 from typing import Tuple, List
 
 from ruamel.yaml import YAML
@@ -68,9 +68,14 @@ class Document:
     def update(self, new_text):
         self.text = new_text
 
+        t0 = time.time()
         cwl, problems = _parse_yaml(self.text)
+        t1 = time.time()
         self.completer, self.symbols, self.problems = \
             parse_document(cwl, self.doc_uri, self.text, self.language_models, problems)
+        t2 = time.time()
+        logger.debug(f"Took {t1 - t0:1.3}s to load document")
+        logger.debug(f"Took {t2 - t1:1.3}s to parse document")
 
     def definition(self, loc: Position):
         de = self.completer.get_doc_element(loc)
