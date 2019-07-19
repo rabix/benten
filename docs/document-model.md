@@ -1,181 +1,104 @@
-# Document model
+# Main steps executed by the server
 
-When we load the CWL document we build a model of it to help with
-1. Validation
-2. Cursor location 
-3. Information on hover
-4. Auto-completion
+1. The CWL schema (in JSON format) is loaded to create a library
+   of _type templates_. Each version of the CWL specification has
+   a different schema. (This only has to be done at startup)
+2. The CWL document is parsed, validation issues are listed and a
+   lookup table is created mapping each node to a relevant code
+   intelligence object.
+3. If the document is identified as a process object top level
+   symbols are extracted
+4. If the document is a workflow steps are added to the symbols and
+   the workflow connectivity is analyzed
+5. When a hover, goto definition or completion request is received
+   the relevant completer object is pulled up and the code intelligence
+   action is invoked
 
-## Validation
+## Document parsing
+1. The CWL document is traversed depth first. 
+2. The CWL type of each node is inferred based on the type of the 
+   node and the CWL types allowed in that context. 
+3. Once a CWL type is inferred any child nodes are recursively 
+   analyzed based on the allowed types in the fields of the 
+   inferred node. 
+4. As we traverse the document any issues are flagged. 
+5. A table is created with lookup tokens that map document 
+   locations (elements) to relevant completer objects.
 
-At each document element we need to guess what kind of CWL type it is,
-and flag any validation errors based on mis-matched types, missing
-fields etc.
+# Completions
 
-## Extra validations
+## Keys
 
-Some validations depend on the larger context of the workflow:
-1. Do linked workflows exist? 
-2. Are the port assignments to/from a step + step tool valid
-3. Are there JS expressions, is InlineJavascript requirement present,
-   and what do the expressions evaluate to?
+Key completions are always based on the parent (enclosing node). For
+record types they are simply the names of the record's fields. For
+arrays nothing special is done. For Map/List types there are no
+completions except in the  following interesting exceptions 
+when they are expressed as map
 
+- Requirements: Key completions are the type names
+- WorkflowStepInputs: Key completions are names of the available step inputs
 
-## Cursor location
+## Values
 
-Given a line and column we need to return the document node this covers.
-This information is used for hover information and auto-completion
+Values always have interesting completions. They have to be inferred from
+the field they are in and almost always require special completers
 
-## Hover
-
-Given where the cursor is in the document yield documentation for the
-given node type.
-
-
-## Auto-completion
-
-Auto-completion takes care of suggesting key and value strings based on
-what element the cursor is in.
-
-
-## Extra completions
-
-These are completions (usually for free form strings) that depend on the
-larger context of the workflow. There are two kind of custom completion
-that are offered
-
-1. `run` field completion. This gives us an inline file picker that
-   allows us to select tool/workflow files for the `run` field
-2. port completion. This suggests port names for `source` and
-   `outputSource` fields based on the available, legal source ports from
-   other steps
+- Enums: list of accepted symbols
+- LinkedFiles: File picker for `run` and `$include` fields
+- class (requirements): allowed type names
+- value for map form of WorkflowStepInput: any of the ports
+- 'source' (WorkflowStepInput): any of the ports
+- 'outputSource (WorkflowOutput): any of the ports
+- out (WorkflowStep): CWLArray 
 
 
-# Cursor context for completions
+## Examples
 
-Since a YAML document is a tree whose leaves are strings (or numbers) a 
-cursor can have the following states
-
-## Over a Key
-Offer key completion based on the enclosing node. If the node type has
-not been inferred, the keys will be a union of keys taken from all possible 
-types.
-
-## Over a value
-For values that can take record types we offer completions of all possible
-keys. For extra completions (all for string fields) a special completer is 
-invoked.
-
-## In between nodes
-
+requirements
 ```
-IF block style node and on empty line
+requirements:
+  - class: SomeRequirement ->(RequirementCompleter)
+  - class: SomeOtherRequirement ->(RequirementCompleter)
 
-    Enclosing node is an ancestor of the parent node of the previous key/value
-    Ancestor is computed based on the indent level of the cursor
-
-ELSE
-
-    Enclosing node is that of previous key/value
-
-Offer key completions for the enclosing node  
+requirements:
+  SomeRequirement ->(RequirementCompleter): {}
+  SomeOtherRequirement ->(RequirementCompleter): {}
 ```
 
-# Coordinates
-
-A YAML document is structured as a tree with leaf nodes being scalar
-elements like strings, ints, floats etc. `ruamel.yaml` gives us the 
-start locations for all elements. We can infer the end location of keys 
-from the length of the string. We can do the same for number
-values and single line strings. For multiline strings the inference is a bit
-more tricky.
-
-
-# CWL language model
-
-The CWL specification can be exported into a JSON format using the Schema
-Salad tool. 
-
+Step inputs
 ```
-schema-salad-tool --print-avro ~/path/to/cwl/schemas/CommonWorkflowLanguage.yml > schema.json
-``` 
+in:
+  - id: input1 ->(WFStepInputs)
+    source: stepX/portY ->(WFPortCompleter)
+  - id: input2 ->(WFStepInputs)
+    source: stepX/portY ->(WFPortCompleter)
 
-The JSON format describes CWL in terms of nested types. Types are mostly record 
-types which are described with a dict whose keys are the names of the fields and 
-the values are CWL types. An interesting wrinkles is that a CWL type may be
-described after it is first declared (used), requiring a two pass parse to 
-create the language model.
+in:
+  input1 ->(WFStepInputs): stepX/portY ->(WFPortCompleter)
+  input2 ->(WFStepInputs): stepX/portY ->(WFPortCompleter)
 
+in:
+  input1 ->(WFStepInputs): 
+    - stepX/portY ->(WFPortCompleter)
+    - stepW/portZ ->(WFPortCompleter)
 
-# CWL type inference
-
-Each node in a CWL document has to match a type. Given a document node it's type
-is inferred as follows:
-
-```
-IF there is only one type
-
-    Return this as the type
-
-ELSE 
-
-    FOR EACH type in type list
-
-        IF type is a perfect match
-
-            Return this as the type
-
-        ELSE
-
-            Score this type by how many fields match.
-
-    IF Score is greater than zero
-
-        Return the type with maximum score
-
-    ELSE
-
-        Return unknown type
+  input2 ->(WFStepInputs): stepX/portY ->(WFPortCompleter)
 ```
 
-# Data structure
-
-## Requirements
-
-- We need an efficient structure to locate if a cursor is over a key, value or
-  in-between and to locate which node that key/value/space belongs to
-- We need to know which node a key/value is in
-- We need to know if a node is block or flow style
-- We need to know the parent of a node
-- We need to know the indent level of a block level node
-- We need to figure out how to find the end of a multi-line string
-
-## Design
-
-We chose to satisfy these requirements using an sorted list of location markers.
-Each marker indicates the start and stop of keys and values. Key markers are
-linked to enclosing completer objects. Value markers are only needed for leaf
-nodes (nodes that are only str type) and usually point to custom completer 
-objects.
-
-Completer objects are created during document validation and are defined in
-the language model. They typically yield enum values or key values based on the
-fields for the CWL object. 
+Workflow outputs
+```
+outputs:
+  - id: output1
+    outputSource: stepX/portY ->(WFPortCompleter)
+  - id: output2
+    outputSource: stepX/portY ->(WFPortCompleter)
+  - id: output3
+    outputSource: 
+      - stepX/portY ->(WFPortCompleter)
+      - stepW/portZ ->(WFPortCompleter)
 
 
-# Parsing the document
-
-For the first version of the algorithm we allow a strong coupling between the
-language model
-
-
-The document tree is traversed depth first. Once the type of a node is inferred
-if the type can have descendants, the descendants of the node are recursively
-processed. As the document is parsed, any validation warnings and errors are 
-added to a list.
-
-
-# Limitations
-
-1. For flow style we can't detect when the cursor is outside the curly brackets
-   and will offer completions as if the cursor is within that enclosing node
+outputs:
+  output1: stepX/portY ->(WFPortCompleter)
+  output2: stepX/portY ->(WFPortCompleter)
+```
