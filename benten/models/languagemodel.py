@@ -685,6 +685,8 @@ class CWLListOrMapType(CWLBaseType):
             if self.name == "in":
                 if self.is_dict:
                     key_lookup_node.completer_node = parent_completer_node.get_step_input_completer()
+                    value_lookup_node.completer_node = parent_completer_node.parent
+                    completer.add_lookup_node(value_lookup_node)
 
             lom_key = KeyField(self.map_subject_predicate, k) if self.is_dict else None
             inferred_type, type_check_results = infer_type(v, self.types, key_field=lom_key)
@@ -874,6 +876,7 @@ class WF_Completer(CompleterNode):
     def __init__(self, *args):
         super().__init__(*args)
         self.step_interface = {}
+        self.wf_inputs = []
 
     # TODO: refactor this, because of redundant code and processing
     def analyze_workflow(self, node, doc_uri, problems):
@@ -903,13 +906,24 @@ class WF_Completer(CompleterNode):
             if isinstance(step, dict):
                 self.step_interface[step_id] = parse_step_interface(doc_uri, step)
 
+        self.wf_inputs = list_as_map(node.get("inputs"), key_field="id")
+
     def get_step_completer(self, step_id):
-        return WFStepCompleter(step_id=step_id, step_interface=self.step_interface)
+        return WFStepCompleter(parent=self, step_id=step_id, step_interface=self.step_interface)
+
+    def completion(self):
+        step_ports = [CompletionItem(label=f"{step}/{port}")
+                      for step in self.step_interface.keys()
+                      for port in self.step_interface[step]["outputs"]]
+        wf_inputs = [CompletionItem(label=f"{inp}") for inp in self.wf_inputs.keys()]
+
+        return wf_inputs + step_ports
 
 
 class WFStepCompleter(CompleterNode):
-    def __init__(self, step_id, step_interface):
+    def __init__(self, parent, step_id, step_interface):
         super().__init__()
+        self.parent = parent
         self.step_id = step_id
         self.step_interface = step_interface
 
@@ -982,11 +996,13 @@ def list_as_map(node, key_field):
         return node
 
     new_node = {}
-    for _item in node:
-        if isinstance(_item, dict):
-            key = _item.get(key_field)
-            if key is not None:
-                new_node[key] = _item
+
+    if isinstance(node, list):
+        for _item in node:
+            if isinstance(_item, dict):
+                key = _item.get(key_field)
+                if key is not None:
+                    new_node[key] = _item
 
     return new_node
 
