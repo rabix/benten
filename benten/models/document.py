@@ -19,13 +19,20 @@ yaml_parser = YAML(typ="rt")
 yaml_parser.allow_duplicate_keys = True
 
 
-def _parse_yaml(text) -> Tuple[dict, List[Diagnostic]]:
+def _parse_yaml(text, retries=3) -> Tuple[dict, List[Diagnostic]]:
     problems = []
     try:
         cwl = yaml_parser.load(text)
     except (ParserError, ScannerError) as e:
-        if e.problem == "could not find expected ':'":
-            return _parse_yaml(heal_incomplete_key(text, e))
+
+        if retries:
+
+            # TODO: refactor - cleanup healing code
+            if e.problem == "could not find expected ':'":
+                return _parse_yaml(heal_incomplete_key(text, e), retries - 1)
+
+            if e.problem == "mapping values are not allowed here":
+                return _parse_yaml(heal_incomplete_key_typeB(text, e), retries - 1)
 
         cwl = None
         problems = [
@@ -44,6 +51,20 @@ def heal_incomplete_key(original_text, e):
     lines = original_text.splitlines(keepends=False)
     # TODO: This only works for block style, but it does the job
     lines[e.context_mark.line] = lines[e.context_mark.line] + ":"
+    return "\n".join(lines)
+
+
+def heal_incomplete_key_typeB(original_text, e):
+    logger.debug("Healing type B!")
+    lines = original_text.splitlines(keepends=False)
+    # Walk back up to first non-empty line and slap a ":" on the end
+    ln = e.problem_mark.line - 1
+    while ln > 0 and len(lines[ln].strip()) == 0:
+        ln -= 1
+
+    if len(lines[ln]):
+        lines[ln] = lines[ln] + ":"
+
     return "\n".join(lines)
 
 

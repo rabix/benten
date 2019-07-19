@@ -17,6 +17,9 @@ from dataclasses import dataclass
 from enum import IntEnum
 import shlex
 
+from ruamel.yaml import YAML
+fast_load = YAML(typ='safe')
+
 from ..langserver.lspobjects import (
     Position, Range, Location, CompletionItem, Diagnostic, DiagnosticSeverity)
 from .intelligence import (KeyLookup, ValueLookup, CompleterNode, Completer, Style)
@@ -451,15 +454,7 @@ class CWLLinkedFile(CWLBaseType):
 
 class CWLLinkedProcessFile(CWLLinkedFile):
     # This helps us to identify steps
-
-    def __init__(self, linked_file: str):
-        super().__init__(linked_file)
-        self.interface = None
-
-    def parse(self, **args):
-        super().parse(**args)
-        if self.full_path.exists():
-            self.interface = workflow.parse_interface(self.full_path)
+    pass
 
 
 class CWLStepInputs(CWLBaseType):
@@ -683,6 +678,14 @@ class CWLListOrMapType(CWLBaseType):
 
             value_lookup_node = ValueLookup.from_value(node, k)
 
+            if self.name == "steps":
+                step_id = k if self.is_dict else v.get("id")
+                parent_completer_node = completer.wf_completer.get_step_completer(step_id)
+
+            if self.name == "in":
+                if self.is_dict:
+                    key_lookup_node.completer_node = parent_completer_node.get_step_input_completer()
+
             lom_key = KeyField(self.map_subject_predicate, k) if self.is_dict else None
             inferred_type, type_check_results = infer_type(v, self.types, key_field=lom_key)
 
@@ -802,23 +805,12 @@ class CWLRecordType(CWLBaseType):
               problems: list, requirements=None):
 
         if isinstance(node, str) or node is None:
-            # This is expressed in abbreviated form
-            # In some cases we'll have a custom completer
-            completions = []
-        else:
-            completions = list(set(self.fields.keys()) - set(node.keys()))
-
-        # this_completer_node = CompleterNode(
-        #     indent=value_lookup_node.loc.start.character,
-        #     style=Style.none,
-        #     completions=completions,
-        #     parent=parent_completer_node
-        # )
-        # completer.add_completer_node(this_completer_node)
-
-        if isinstance(node, str) or node is None:
             # value_lookup_node.completer_node = this_completer_node
             return
+
+        if self.name == "Workflow":
+            completer.wf_completer = WF_Completer()
+            completer.wf_completer.analyze_workflow(node, doc_uri, problems)
 
         for k, child_node in node.items():
 
@@ -832,6 +824,7 @@ class CWLRecordType(CWLBaseType):
                 inferred_type = CWLLinkedProcessFile(linked_file=child_node)
 
             else:
+
                 # Regular processing
                 field = self.fields.get(k)
                 if field is None:
@@ -874,6 +867,129 @@ class CWLFieldType(CWLBaseType):
 
     def __repr__(self):
         return str(self)
+
+
+class WF_Completer(CompleterNode):
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.step_interface = {}
+
+    # TODO: refactor this, because of redundant code and processing
+    def analyze_workflow(self, node, doc_uri, problems):
+
+        _steps = node.get("steps")
+        # Convert it all to a dict for ease of processing
+        if isinstance(_steps, dict):
+            steps = _steps
+        elif isinstance(_steps, list):
+            steps = {}
+            for n, _step in enumerate(_steps):
+                if isinstance(_step, dict):
+                    _step_id = _step.get("id")
+                    if _step_id is not None:
+                        steps[_step_id] = _step  # This still has location information
+                    else:
+                        problems += [
+                            Diagnostic(
+                                _range=get_range_for_value(_steps, n),
+                                message=f"Step has no id",
+                                severity=DiagnosticSeverity.Error)
+                        ]
+        else:
+            return
+
+        for step_id, step in steps.items():
+            if isinstance(step, dict):
+                self.step_interface[step_id] = parse_step_interface(doc_uri, step)
+
+    def get_step_completer(self, step_id):
+        return WFStepCompleter(step_id=step_id, step_interface=self.step_interface)
+
+
+class WFStepCompleter(CompleterNode):
+    def __init__(self, step_id, step_interface):
+        super().__init__()
+        self.step_id = step_id
+        self.step_interface = step_interface
+
+    def get_step_input_completer(self):
+        return WFStepInputCompleter(inputs=self.step_interface[self.step_id]["inputs"])
+
+    def get_step_output_completer(self):
+        return WFStepOutputCompleter(outputs=self.step_interface[self.step_id]["outputs"])
+
+
+class WFStepInputCompleter(CompleterNode):
+    def __init__(self, inputs):
+        super().__init__(completions=inputs)
+
+
+class WFStepOutputCompleter(CompleterNode):
+    def __init__(self, outputs):
+        super().__init__(completions=outputs)
+
+
+def parse_step_interface(doc_uri, step):
+
+    run_field = step.get("run")
+
+    if isinstance(run_field, str):
+        _step_path = resolve_file_path(doc_uri, run_field)
+        run_field = fast_load.load(_step_path)
+
+    inputs = []
+    outputs = []
+    if isinstance(run_field, dict):
+        inputs = [k for k in list_as_map(run_field.get("inputs"), key_field="id").keys()]
+        outputs = [k for k in list_as_map(run_field.get("outputs"), key_field="id").keys()]
+
+    return {
+        "inputs": inputs,
+        "outputs": outputs
+    }
+
+
+# TODO: refactor this for redundancy
+def get_range_for_value(node, key):
+    if isinstance(node, dict):
+        start = node.lc.value(key)
+    else:
+        start = node.lc.item(key)
+
+    v = node[key]
+    if v is None:
+        v = ""
+    else:
+        v = str(v)  # How to handle multi line strings
+
+    end = (start[0], start[1] + len(v))
+    return Range(Position(*start), Position(*end))
+
+
+def resolve_file_path(doc_uri, target_path):
+    _path = pathlib.PurePosixPath(target_path)
+    if not _path.is_absolute():
+        base_path = pathlib.Path(urllib.parse.urlparse(doc_uri).path).parent
+    else:
+        base_path = "."
+    _path = pathlib.Path(base_path / _path).resolve().absolute()
+    return _path
+
+
+def list_as_map(node, key_field):
+    if isinstance(node, dict):
+        return node
+
+    new_node = {}
+    for _item in node:
+        if isinstance(_item, dict):
+            key = _item.get(key_field)
+            if key is not None:
+                new_node[key] = _item
+
+    return new_node
+
 
 
 # ## Use as ##

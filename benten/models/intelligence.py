@@ -28,23 +28,18 @@ class Style(IntEnum):
 class CompleterNode:
 
     def __init__(self,
-                 indent: int,
-                 style: Style,
-                 completions: List[str],
-                 parent: Union[None, 'CompleterNode']):
+                 indent: int=0,
+                 style: Style=Style.block,
+                 completions: List[str]=None,
+                 parent: Union[None, 'CompleterNode']=None):
         self.indent = indent
         self.style = style
         self._completions = completions
 
         self.parent = parent
 
-        self.custom_completer = None
-
-    def completions(self, prefix):
-        if self.custom_completer is not None:
-            return self.custom_completer(prefix)
-        else:
-            return [CompletionItem(label=c) for c in self._completions]
+    def completion(self):
+        return [CompletionItem(label=c) for c in self._completions]
 
     def hover(self, loc: Position):
         pass
@@ -105,6 +100,9 @@ class Completer:
     def __init__(self):
         self.lookup_table: List[LookupNode] = []
         self.nodes: List[CompleterNode] = []
+
+        self.wf_completer = None
+        # TODO: Refactor these in a more principled manner
 
     def add_lookup_node(self, node: LookupNode):
         self.lookup_table.append(node)
