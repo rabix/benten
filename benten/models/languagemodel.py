@@ -877,6 +877,7 @@ class WF_Completer(CompleterNode):
         super().__init__(*args)
         self.step_interface = {}
         self.wf_inputs = []
+        self.all_connections = []
 
     # TODO: refactor this, because of redundant code and processing
     def analyze_workflow(self, node, doc_uri, problems):
@@ -907,17 +908,77 @@ class WF_Completer(CompleterNode):
                 self.step_interface[step_id] = parse_step_interface(doc_uri, step)
 
         self.wf_inputs = list_as_map(node.get("inputs"), key_field="id")
+        self.all_connections = self.generate_all_possible_connections()
+
+        for step_id, step in steps.items():
+            if isinstance(step, dict):
+                self.validate_step_connections(step, step_id, problems)
+
+    def generate_all_possible_connections(self):
+        step_ports = [f"{step}/{port}"
+                      for step in self.step_interface.keys()
+                      for port in self.step_interface[step]["outputs"]]
+        wf_inputs = [f"{inp}" for inp in self.wf_inputs.keys()]
+        return set(step_ports + wf_inputs)
+
+    def validate_step_connections(self, step, step_id, problems):
+        inputs = step.get("in")
+        allowed_inputs = set(self.step_interface[step_id]["inputs"])
+
+        if isinstance(inputs, list):
+            is_dict = False
+            itr = enumerate(inputs)
+        elif isinstance(inputs, dict):
+            is_dict = True
+            itr = inputs.items()
+        else:
+            return
+
+        for k, v in itr:
+            if is_dict:
+                input_id = k
+                id_range = get_range_for_key(inputs, k)
+            else:
+                input_id = v.get("id")
+                id_range = get_range_for_value(inputs, k)
+
+            if input_id not in allowed_inputs:
+                problems += [
+                    Diagnostic(
+                        _range=id_range,
+                        message=f"Expecting one of {allowed_inputs}",
+                        severity=DiagnosticSeverity.Error)
+                ]
+
+            if isinstance(v, dict):
+                conn_id = v.get("source")
+                if conn_id is None:
+                    continue
+                conn_range = get_range_for_value(v, "source")
+            elif isinstance(v, str):
+                conn_id = v
+                conn_range = get_range_for_value(inputs, k)
+            else:
+                continue
+
+            if conn_id not in self.all_connections:
+                problems += [
+                    Diagnostic(
+                        _range=conn_range,
+                        message=f"No such source",
+                        severity=DiagnosticSeverity.Error)
+                ]
 
     def get_step_completer(self, step_id):
         return WFStepCompleter(parent=self, step_id=step_id, step_interface=self.step_interface)
 
     def completion(self):
-        step_ports = [CompletionItem(label=f"{step}/{port}")
-                      for step in self.step_interface.keys()
-                      for port in self.step_interface[step]["outputs"]]
-        wf_inputs = [CompletionItem(label=f"{inp}") for inp in self.wf_inputs.keys()]
+        # step_ports = [CompletionItem(label=f"{step}/{port}")
+        #               for step in self.step_interface.keys()
+        #               for port in self.step_interface[step]["outputs"]]
+        # wf_inputs = [CompletionItem(label=f"{inp}") for inp in self.wf_inputs.keys()]
 
-        return wf_inputs + step_ports
+        return [CompletionItem(label=v) for v in self.all_connections]
 
 
 class WFStepCompleter(CompleterNode):
@@ -962,6 +1023,12 @@ def parse_step_interface(doc_uri, step):
         "inputs": inputs,
         "outputs": outputs
     }
+
+
+def get_range_for_key(parent, key):
+    start = parent.lc.key(key)
+    end = (start[0], start[1] + len(key))
+    return Range(Position(*start), Position(*end))
 
 
 # TODO: refactor this for redundancy
