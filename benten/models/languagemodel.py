@@ -56,19 +56,19 @@ def clean_up_model(lang_model):
     logger.error("No CWLVersion enum in schema")
 
 
-def parse_cwl_type(schema, lang_model, map_subject_predicate=None):
+def parse_cwl_type(schema, lang_model, map_subject_predicate=None, field_name=None):
 
     if isinstance(schema, str):
         return lang_model.get(schema, schema)
 
     elif isinstance(schema, list):
         return [
-            parse_cwl_type(_scheme, lang_model, map_subject_predicate)
+            parse_cwl_type(_scheme, lang_model, map_subject_predicate, field_name)
             for _scheme in schema
         ]
 
     elif schema.get("type") == "array":
-        name = schema.get("name")
+        name = field_name  # schema.get("name")
         if map_subject_predicate is None:
             return CWLArrayType(
                 name=name,
@@ -164,7 +164,9 @@ def parse_field(field, lang_model):
         doc=field.get("doc"),
         required=required,
         allowed_types=parse_cwl_type(
-            _allowed_types, lang_model, map_subject_predicate=map_subject_predicate)
+            _allowed_types, lang_model,
+            map_subject_predicate=map_subject_predicate,
+            field_name=field_name)
     )
 
 
