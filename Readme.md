@@ -74,6 +74,10 @@ pipx install -e benten
 - Download the VS Code extension file (.vsix) from the releases page
 - In the extensions pane on VS Code use "Install from VSIX..." to install this .vsix file
 
+# Using with VI/Vim
+
+See [this page](docs/vim.md) please.
+
 
 # Tips and Tricks
 
