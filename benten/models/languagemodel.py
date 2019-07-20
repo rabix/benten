@@ -557,6 +557,9 @@ class CWLEnumType(CWLBaseType):
         value_lookup_node.completer_node = self
         completer.add_lookup_node(value_lookup_node)
 
+    def completion(self):
+        return [CompletionItem(label=s) for s in self.symbols]
+
 
 class CWLArrayType(CWLBaseType):
 
