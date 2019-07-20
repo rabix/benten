@@ -672,6 +672,10 @@ class CWLListOrMapType(CWLBaseType):
             return
 
         for k, v in itr:
+
+            if not self.is_dict and v is None:
+                continue
+
             if self.is_dict:
                 key_lookup_node = KeyLookup.from_key(node, k)
                 key_lookup_node.completer_node = self
@@ -680,6 +684,9 @@ class CWLListOrMapType(CWLBaseType):
                 key_lookup_node = None
 
             value_lookup_node = ValueLookup.from_value(node, k)
+
+            if self.name == "requirements":
+                parent_completer_node = RequirementsCompleter([t.name for t in self.types])
 
             if self.name == "steps":
                 step_id = k if self.is_dict else v.get("id")
@@ -708,12 +715,11 @@ class CWLListOrMapType(CWLBaseType):
                 problems=problems,
                 requirements=requirements)
 
-    def completion(self):
-        if self.is_dict:
-            return [
-                CompletionItem(label=t.name)
-                for t in self.types
-            ]
+
+class RequirementsCompleter(CompleterNode):
+
+    def __init__(self, req_types):
+        super().__init__(completions=req_types)
 
 
 class CWLRecordType(CWLBaseType):
@@ -856,6 +862,9 @@ class CWLRecordType(CWLBaseType):
                 completer=completer,
                 problems=problems,
                 requirements=requirements)
+
+    def completion(self):
+        return [CompletionItem(label=k) for k in self.fields.keys()]
 
 
 class CWLFieldType(CWLBaseType):
@@ -1014,7 +1023,8 @@ def parse_step_interface(doc_uri, step):
 
     if isinstance(run_field, str):
         _step_path = resolve_file_path(doc_uri, run_field)
-        run_field = fast_load.load(_step_path)
+        if _step_path.exists() and _step_path.is_file():
+            run_field = fast_load.load(_step_path)
 
     inputs = []
     outputs = []
