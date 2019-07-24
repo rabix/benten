@@ -375,16 +375,16 @@ class CWLScalarType(CWLBaseType):
               completer: Completer,
               problems: list, requirements=None):
 
-        # this_completer_node = CompleterNode(
+        # this_completer_node = IntelligenceNode(
         #     indent=value_lookup_node.loc.start.character,
         #     style=Style.none,
         #     completions=[],
         #     parent=parent_completer_node
         # )
 
-        # value_lookup_node.completer_node = this_completer_node
+        # value_lookup_node.intelligence_node = this_completer_node
         completer.add_lookup_node(value_lookup_node)
-        # completer.add_completer_node(this_completer_node)
+        # code_intelligence.add_intelligence_node(this_completer_node)
 
 
 class CWLUnknownType(CWLBaseType):
@@ -816,7 +816,7 @@ class CWLRecordType(CWLBaseType):
               problems: list, requirements=None):
 
         if isinstance(node, str) or node is None:
-            # value_lookup_node.completer_node = this_completer_node
+            # value_lookup_node.intelligence_node = this_completer_node
             return
 
         if self.name == "Workflow":

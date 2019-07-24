@@ -19,52 +19,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Style(IntEnum):
-    block = 1
-    flow = 2
-    none = 3
-
-
-class CompleterNode:
-
-    def __init__(self,
-                 indent: int=0,
-                 style: Style=Style.block,
-                 completions: List[str]=None,
-                 parent: Union[None, 'CompleterNode']=None):
-        self.indent = indent
-        self.style = style
-        self._completions = completions
-
-        self.parent = parent
-
-    def completion(self):
-        return [CompletionItem(label=c) for c in self._completions]
-
-    def hover(self, loc: Position):
-        pass
-
-    def definition(self, loc: Position):
-        pass
-
-
-class LinkedFileNode:
-
-    def __init__(self):
-        pass
-
-
-class FilePickerNode:
-    pass
-
-
-
-
 class LookupNode:
 
     def __init__(self, loc: Range):
         self.loc = loc
-        self.completer_node = None
+        self.intelligence_node = None
 
 
 class KeyLookup(LookupNode):
@@ -95,11 +54,26 @@ class ValueLookup(LookupNode):
         return cls(Range(Position(*start), Position(*end)))
 
 
-class Completer:
+class IntelligenceNode:
+
+    def __init__(self, completions: List[str]=None):
+        self._completions = completions
+
+    def completion(self):
+        return [CompletionItem(label=c) for c in self._completions]
+
+    def hover(self, loc: Position):
+        pass
+
+    def definition(self, loc: Position):
+        pass
+
+
+class Intelligence:
 
     def __init__(self):
         self.lookup_table: List[LookupNode] = []
-        self.nodes: List[CompleterNode] = []
+        self.nodes: List[IntelligenceNode] = []
 
         self.wf_completer = None
         # TODO: Refactor these in a more principled manner
@@ -107,7 +81,7 @@ class Completer:
     def add_lookup_node(self, node: LookupNode):
         self.lookup_table.append(node)
 
-    def add_completer_node(self, node: CompleterNode):
+    def add_intelligence_node(self, node: IntelligenceNode):
         self.nodes.append(node)
 
     def get_doc_element(self, loc: Position):
@@ -116,6 +90,6 @@ class Completer:
         for n in self.lookup_table:
             if n.loc.start.line == loc.line:
                 if n.loc.start.character <= loc.character <= n.loc.end.character:
-                    return n.completer_node
+                    return n.intelligence_node
 
         return None
