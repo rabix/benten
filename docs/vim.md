@@ -1,16 +1,27 @@
 # Running Benten with vim 
 
-You will need to (if you haven't already)
+## Ensure you have a recent version of VIM
+
+The LSP client plugin requires vim8/neovim. It is best to
+have atleast **vim 8.1** which allows several code intelligence
+features (auto-complete, error gutter, symbol list etc.) to
+work in an intuitive manner out of the box.
+
+## Install a plugin manager
+
+I have found [`vim-plug`](https://github.com/junegunn/vim-plug) to work nicely
+with the required plugins. Install is simple following the instructions 
+[here](https://github.com/junegunn/vim-plug#installation)
+
+## Modify `.vimrc` file 
+
+Your `.vimrc` file has to be modified to ensure the following
+
 1. Register CWL as a file type
-2. Install a plugin manager - I use [`vim-plug`](https://github.com/junegunn/vim-plug)
-3. Install LSP client for VIM
-4. Configure it to run `benten-ls` when it loads up a CWL document
+2. Install LSP client for VIM
+3. Configure LSP client to run `benten-ls` when it loads up a CWL document
 
-
-## LSP client
-
-
-A minimally functional `.vimrc` file (mine) is
+A minimally functional `.vimrc` file is given here (explanations at end)
 
 ```
 syntax on
@@ -48,7 +59,7 @@ if executable('benten-ls')
 endif
 ```
 
-## Explanation
+### Explanation
 ```
 au BufNewFile,BufRead *.cwl setlocal ft=cwl
 ```
@@ -62,14 +73,15 @@ call plug#begin('~/.vim/plugged')
 ...
 call plug#end()
 ```
-Registers plugins. I have some issue in getting plugins to install the first time round.
+Registers plugins. There are often issues in getting plugins to install the 
+first time round.
+
+You should check if the plugins are loaded and active by doing `:PlugStatus`
+I had to do `:PlugInstall` to ensure the plugins are installed.
 
 *Note:* If you want `CWL` syntax highlighting you can try adding `Plug 'manabuishii/vim-cwl'`
 From this project: https://github.com/manabuishii/vim-cwl
 This is not necessary for testing.
-
-You should check if the plugins are loaded and active by doing `:PlugStatus`
-I had to manually do `:PlugInstall "<plugin name>"` for each of the plugins on my setup
 
 
 ```
@@ -90,11 +102,16 @@ After doing this you should be able to load up a CWL file and verify the vim lan
 AND the CWL language server are running by doing `:LspStatus` which should return 
 `cwl: starting` and then `cwl: running`
 
-You can then open up a log viewer and look at `~/.sevenbridges/benten-ls.log` and `~/.vim/vim-lsp.log`
-(That's where my `.vim` puts the `vim-lsp` log, you can change the latter)
 
 ## Available commands
 
 The available commands are found on the [VIM LSP plugin page][vl-help].
 
 [vl-help]: https://github.com/prabirshrestha/vim-lsp#supported-commands
+
+
+# Other options
+
+I have not explored this, but [ALE (Asynchronous Lint Engine)](https://github.com/w0rp/ale) also acts as
+a language client, and so should also be able to be configured to work with
+Benten.
