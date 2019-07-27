@@ -21,7 +21,6 @@ setup(
     platforms=['POSIX', 'MacOS', 'Windows'],
     python_requires='>=3.7.0',
     install_requires=[
-        "pyyaml",
         "ruamel.yaml",
         "sevenbridges-python"
     ],
