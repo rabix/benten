@@ -1,6 +1,10 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from .basetype import CWLBaseType, MapSubjectPredicate
+from .basetype import CWLBaseType, Workflow, Intelligence, MapSubjectPredicate, TypeCheck, Match
+from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
+from ..code.intelligence import LookupNode
+from .lib import ListOrMap
+from .typeinference import infer_type
 
 
 # TODO: subclass this to handle
@@ -9,6 +13,11 @@ from .basetype import CWLBaseType, MapSubjectPredicate
 #  To do this we need to properly propagate the name of the field to LOM types
 #  and to properly handle the broken document that results when we start to fill
 #  out a key
+
+# A list or map type is almost always interesting (see docs/document-model.md)
+# Requirements, step `in` and workflow `output` fields have special completions
+# So for each of these we instantiate specialized types. Depending on the exact
+
 class CWLListOrMapType(CWLBaseType):
 
     def __init__(self, name, allowed_types, map_sp: MapSubjectPredicate):
@@ -17,28 +26,34 @@ class CWLListOrMapType(CWLBaseType):
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
         self.types = allowed_types
+        self.enclosing_workflow = None
 
-    def check(self, node, node_key: str=None, map_sp: MapSubjectPredicate=None):
-        pass
-
-    def check2(self, node, lom_key: MapSubjectPredicate=None):
-
+    def check(self, node, node_key: str=None, map_sp: MapSubjectPredicate=None) -> TypeCheck:
         if isinstance(node, (list, dict)):
-            return TypeTestResult(
-                cwl_type=self,
-                match_type=TypeMatch.MatchAndValid,
-                missing_required_fields=[],
-                message=None
-            )
+            return TypeCheck(cwl_type=self)
         else:
-            return TypeTestResult(
-                cwl_type=self,
-                match_type=TypeMatch.NotMatch,
-                missing_required_fields=[],
-                message=None
-            )
+            return TypeCheck(cwl_type=self, match=Match.No)
 
     def parse(self,
+              doc_uri: str,
+              node,
+              enclosing_workflow: Workflow,
+              code_intel: Intelligence,
+              problems: list,
+              node_key: str = None,
+              map_sp: MapSubjectPredicate = None,
+              key_range: Range = None,
+              value_range: Range = None,
+              requirements=None):
+
+        obj = ListOrMap(node, key_field=self.map_subject_predicate.subject, problems=problems)
+        for k, v in obj.node.items():
+
+
+
+
+
+    def parse2(self,
               doc_uri: str,
               node,
               value_lookup_node: ValueLookup,

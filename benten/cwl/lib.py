@@ -59,6 +59,9 @@ class ListOrMap:
         else:
             return self.key_ids[key]
 
+    def get_range_for_value(self, key):
+        return get_range_for_value(self.node, key)
+
 
 # TODO: Deprecate this function
 def list_as_map(node, key_field, problems):
@@ -82,6 +85,28 @@ def list_as_map(node, key_field, problems):
                     ]
 
     return new_node
+
+
+def check_linked_file(doc_uri: str, path: str, loc: Range, problems: list):
+    linked_file = resolve_file_path(doc_uri, path)
+    if not linked_file.exists():
+        problems += [
+            Diagnostic(
+                _range=loc,
+                message=f"Missing document: {path}",
+                severity=DiagnosticSeverity.Error)
+        ]
+        return
+    elif not linked_file.is_file():
+        problems += [
+            Diagnostic(
+                _range=loc,
+                message=f"Linked document must be file: {path}",
+                severity=DiagnosticSeverity.Error)
+        ]
+        return
+    else:
+        return linked_file
 
 
 def resolve_file_path(doc_uri, target_path):

@@ -62,10 +62,10 @@ class IntelligenceNode:
     def completion(self):
         return [CompletionItem(label=c) for c in self._completions]
 
-    def hover(self, loc: Position):
+    def hover(self):
         pass
 
-    def definition(self, loc: Position):
+    def definition(self):
         pass
 
 

@@ -19,7 +19,7 @@ import pathlib
 from dataclasses import dataclass
 from typing import Dict
 
-from ..cwl.lib import (resolve_file_path, get_range_for_key,
+from ..cwl.lib import (check_linked_file, get_range_for_key,
                        get_range_for_value, list_as_map, ListOrMap)
 from .yaml import fast_load
 from .intelligence import IntelligenceNode
@@ -41,7 +41,6 @@ class Workflow:
 
     def analyze_connections(self, steps: ListOrMap, problems):
         for step_id, step in steps.node.items():
-
             pass
 
 
@@ -131,16 +130,9 @@ def parse_step_interface(doc_uri, step, problems):
     linked_file = None
 
     if isinstance(run_field, str):
-        linked_file = resolve_file_path(doc_uri, run_field)
-        if linked_file.exists() and linked_file.is_file():
+        linked_file = check_linked_file(doc_uri, run_field, step.lc.value("run"), problems)
+        if linked_file is not None:
             run_field = fast_load.load(linked_file)
-        else:
-            problems += [
-                Diagnostic(
-                    _range=step.lc.value("run"),
-                    message=f"Missing document: {run_field}",
-                    severity=DiagnosticSeverity.Error)
-            ]
 
     if isinstance(run_field, dict):
         step_interface = StepInterface(

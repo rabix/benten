@@ -3,7 +3,9 @@
 from dataclasses import dataclass
 from enum import IntEnum
 
+from ..langserver.lspobjects import Range
 from ..code.intelligence import IntelligenceNode, Intelligence
+from ..code.workflow import Workflow
 
 
 class MapSubjectPredicate:
@@ -21,6 +23,7 @@ class Match(IntEnum):
 
 @dataclass
 class TypeCheck:
+    cwl_type: 'CWLBaseType'
     match: Match = Match.Yes
     missing_req_fields: list = None
     missing_opt_fields: list = None
@@ -38,10 +41,12 @@ class CWLBaseType(IntelligenceNode):
     def parse(self,
               doc_uri: str,
               node,
-              parent_intel_node: IntelligenceNode,
+              enclosing_workflow: Workflow,
               code_intel: Intelligence,
               problems: list,
-              node_key: str=None,
-              map_sp: MapSubjectPredicate=None,
+              node_key: str = None,
+              map_sp: MapSubjectPredicate = None,
+              key_range: Range = None,
+              value_range: Range = None,
               requirements=None):
         pass

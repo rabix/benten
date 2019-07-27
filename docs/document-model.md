@@ -5,13 +5,16 @@
    a different schema. (This only has to be done at startup)
 2. The CWL document is parsed, validation issues are listed and a
    lookup table is created mapping each node to a relevant code
-   intelligence object.
+   intelligence object. Code intelligence is computed as lazily
+   as possible - the actual completions are computed only when
+   asked for. In many cases, however, most of the required 
+   computations have already been done during validation. 
 3. If the document is identified as a process object top level
    symbols are extracted
 4. If the document is a workflow steps are added to the symbols and
    the workflow connectivity is analyzed
 5. When a hover, goto definition or completion request is received
-   the relevant completer object is pulled up and the code intelligence
+   the relevant code_intelligence object is pulled up and the code intelligence
    action is invoked
 
 ## Document parsing
@@ -23,36 +26,95 @@
    inferred node. 
 4. As we traverse the document any issues are flagged. 
 5. A table is created with lookup tokens that map document 
-   locations (elements) to relevant completer objects.
+   locations (elements) to relevant code_intelligence objects.
 
 # Completions
 
-## Keys
+## Key completion for any Record type
 
-Key completions are always based on the parent (enclosing node). For
-record types they are simply the names of the record's fields. For
-arrays nothing special is done. For Map/List types there are no
-completions except in the  following interesting exceptions 
-when they are expressed as map
+```
+fi -> (complete with names of fields)
+```
+or
 
-- Requirements: Key completions are the type names
-- WorkflowStepInputs: Key completions are names of the available step inputs
+```
+fi -> (complete with names of fields)
+field1: value1
+field2: value2
+```
+or
 
-## Values
+```
+field1: value1
+field2: value2
+fi -> (complete with names of fields)
+```
 
-Values always have interesting completions. They have to be inferred from
-the field they are in and almost always require special completers
+## Completion for particular list/map types 
 
-- Enums: list of accepted symbols
-- LinkedFiles: File picker for `run` and `$include` fields
-- class (requirements): allowed type names
-- value for map form of WorkflowStepInput: any of the ports
-- 'source' (WorkflowStepInput): any of the ports
-- 'outputSource (WorkflowOutput): any of the ports
-- out (WorkflowStep): CWLArray 
+List/Map types are collections of record types where
+one field is marked as a key_field and one as a value_field.
+Either the key field, or the value field or both may have
+special completions.
+
+### Requirements
+
+#### Expressed as list:
+
+key completions - class  
+value completion for class - type names  
+
+Once a type has been established, completion for that follows
+the given type (i.e. just like a record) 
+
+#### Expressed as map
+
+key completions - type names
+value completions - follows completion for the given type
 
 
-## Examples
+### in field of step
+
+#### Expressed as list
+
+key completions - same as that for enclosing type which is
+WFStepInput
+
+value completion for id: port names
+value completion for source: connection names not of this step
+
+#### Expressed as map
+
+key completions: port names
+value completion: connection names not of this step
+value completion for source: connection names not of this step
+
+### out field of workflow
+
+#### Expressed as list
+
+value completion for outputSource: connection names
+
+#### Expressed as map
+
+value completion: connection names
+value completion for outputSource: connection names
+
+## Completions for `out` field of step
+
+List of sub process outputs not yet used. The collection is
+a list and so the completer should apply to any item
+
+
+## Completions for linked files
+This is a file picker. This also supports goto definition
+
+
+## Completions for enums
+These are value field completions and are just the list of symbols
+
+
+
 
 requirements
 ```
@@ -102,3 +164,30 @@ outputs:
   output1: stepX/portY ->(WFPortCompleter)
   output2: stepX/portY ->(WFPortCompleter)
 ```
+
+
+## Keys
+
+Key completions are always based on the parent (enclosing node). For
+record types they are simply the names of the record's fields. For
+arrays nothing special is done. For Map/List types there are no
+completions except in the  following interesting exceptions 
+when they are expressed as map
+
+- Requirements: Key completions are the type names
+- WorkflowStepInputs: Key completions are names of the available step inputs
+
+## Values
+
+Values always have interesting completions. They have to be inferred from
+the field they are in and almost always require special completers
+
+- Enums: list of accepted symbols
+- LinkedFiles: File picker for `run` and `$include` fields
+- class (requirements): allowed type names
+- value for map form of WorkflowStepInput: any of the ports
+- 'source' (WorkflowStepInput): any of the ports
+- 'outputSource (WorkflowOutput): any of the ports
+- out (WorkflowStep): CWLArray 
+
+

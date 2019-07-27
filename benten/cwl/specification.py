@@ -11,16 +11,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 import shlex
 
-from ruamel.yaml import YAML
-fast_load = YAML(typ='safe')
-
-from .basetype import CWLBaseType, MapSubjectPredicate
-
-from ..langserver.lspobjects import (
-    Position, Range, Location, CompletionItem, Diagnostic, DiagnosticSeverity)
-from .intelligence import (KeyLookup, ValueLookup, CompleterNode, Completer, Style)
-from .symbols import extract_symbols, extract_step_symbols
-from . import workflow
+from .alltypes import *
 
 
 import logging
@@ -75,7 +66,7 @@ def parse_cwl_type(schema, lang_model, map_subject_predicate=None, field_name=No
             return CWLListOrMapType(
                 name=name,
                 allowed_types=parse_cwl_type(schema.get("items"), lang_model),
-                lom_key=map_subject_predicate)
+                map_sp=map_subject_predicate)
 
     elif schema.get("type") == "enum":
         return parse_enum(schema, lang_model)
@@ -102,7 +93,6 @@ def parse_enum(schema, lang_model):
 
     lang_model[enum_name] = CWLEnumType(
         name=schema.get("name"),
-        doc=schema.get("doc"),
         symbols=set(symbols))
 
     return lang_model.get(enum_name)
