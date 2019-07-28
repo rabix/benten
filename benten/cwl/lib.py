@@ -33,18 +33,22 @@ class ListOrMap:
 
     def __init__(self, node, key_field, problems):
         self.was_dict = None
-        self.node = {}
+        self.as_dict = {}
+        self.original_obj = node
         self.key_ids = {}
+        self.map_key_to_idx = {}
         if isinstance(node, dict):
-            self.node = node
+            self.as_dict = node
             self.was_dict = True
         elif isinstance(node, list):
+            self.was_dict = False
             for n, _item in enumerate(node):
                 if isinstance(_item, dict):
                     key = _item.get(key_field)
                     if key is not None:
-                        self.node[key] = _item
+                        self.as_dict[key] = _item
                         self.key_ids[key] = get_range_for_value(_item, key_field)
+                        self.map_key_to_idx[key] = n
                     else:
                         problems += [
                             Diagnostic(
@@ -55,12 +59,15 @@ class ListOrMap:
 
     def get_range_for_id(self, key):
         if self.was_dict:
-            return get_range_for_key(self.node, key)
+            return get_range_for_key(self.as_dict, key)
         else:
             return self.key_ids[key]
 
     def get_range_for_value(self, key):
-        return get_range_for_value(self.node, key)
+        if self.was_dict:
+            return get_range_for_value(self.as_dict, key)
+        else:
+            return get_range_for_value(self.original_obj, self.map_key_to_idx[key])
 
 
 # TODO: Deprecate this function
@@ -96,7 +103,6 @@ def check_linked_file(doc_uri: str, path: str, loc: Range, problems: list):
                 message=f"Missing document: {path}",
                 severity=DiagnosticSeverity.Error)
         ]
-        return
     elif not linked_file.is_file():
         problems += [
             Diagnostic(
@@ -104,9 +110,8 @@ def check_linked_file(doc_uri: str, path: str, loc: Range, problems: list):
                 message=f"Linked document must be file: {path}",
                 severity=DiagnosticSeverity.Error)
         ]
-        return
-    else:
-        return linked_file
+
+    return linked_file
 
 
 def resolve_file_path(doc_uri, target_path):

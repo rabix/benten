@@ -36,10 +36,10 @@ class Document:
     def update(self, new_text):
         self.text = new_text
         self.code_intelligence = Intelligence()
-        self.symbols = {}
+        self.symbols = []
 
         t0 = time.time()
-        cwl, problems = parse_yaml(self.text)
+        cwl, self.problems = parse_yaml(self.text)
         t1 = time.time()
         logger.debug(f"Took {t1 - t0:1.3}s to load document")
 
@@ -86,12 +86,15 @@ class Document:
     def symbology(self, cwl):
         line_count = self.text.count("\n")
 
+        symbols = {}
         _typ = cwl.get("class")
         if _typ in process_types:
-            self.symbols = extract_symbols(cwl, line_count)
+            symbols = extract_symbols(cwl, line_count)
 
             if _typ == "Workflow":
-                self.symbols = extract_step_symbols(cwl, self.symbols)
+                symbols = extract_step_symbols(cwl, symbols)
+
+        self.symbols = list(symbols.values())
 
     def graphology(self, cwl):
         pass

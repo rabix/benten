@@ -43,6 +43,7 @@ class CWLEnumType(CWLBaseType):
             ]
 
         if node not in symbols:
+
             problems += [
                 Diagnostic(
                     _range=value_range,

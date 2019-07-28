@@ -40,8 +40,11 @@ class Workflow(IntelligenceContext):
         self.wf_outputs = []
 
     def analyze_connections(self, steps: ListOrMap, problems):
-        for step_id, step in steps.node.items():
+        for step_id, step in steps.as_dict.items():
             pass
+
+    def get_step_intel(self, step_id):
+        return self.step_intels.get(step_id)
 
     def get_output_source_completer(self):
         return WFOutputSourceCompleter(self)
@@ -70,7 +73,7 @@ class WFStepIntelligence(IntelligenceContext):
         if self.workflow is None:
             raise RuntimeError("Need to attach workflow first")
 
-        for port_id, port in inputs.node.items():
+        for port_id, port in inputs.as_dict.items():
             if port_id not in self.step_interface.inputs:
                 problems += [
                     Diagnostic(

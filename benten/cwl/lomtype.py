@@ -56,12 +56,17 @@ class CWLListOrMapType(CWLBaseType):
         if self.name == "requirements":
             intel_context = Requirements([t.name for t in self.types])
 
-        for k, v in obj.node.items():
+        for k, v in obj.as_dict.items():
             inferred_type = infer_type(
-                node,
+                v,
                 allowed_types=self.types,
                 key=k if obj.was_dict else None,
                 map_sp=self.map_subject_predicate)
+
+            # if inferred_type.name == "WorkflowStep":
+            #     this_intel_context = intel_context.step_intel.get(k)
+            # else:
+            #     this_intel_context = intel_context
 
             inferred_type.parse(
                 doc_uri=doc_uri,
@@ -83,17 +88,22 @@ class CWLListOrMapType(CWLBaseType):
                     code_intel.add_lookup_node(ln)
 
                 elif self.name == "in":
+
+                    wf_step = intel_context.get_step_intel(k)
+                    if wf_step is None:
+                        continue
+
                     ln = LookupNode(loc=obj.get_range_for_id(k))
-                    ln.intelligence_node = intel_context.get_step_inport_completer()
+                    ln.intelligence_node = wf_step.get_step_inport_completer()
                     code_intel.add_lookup_node(ln)
 
                     if v is None or isinstance(v, str):
                         ln = LookupNode(loc=obj.get_range_for_value(k))
-                        ln.intelligence_node = intel_context.get_step_source_completer(self)
+                        ln.intelligence_node = wf_step.get_step_source_completer(self)
                         code_intel.add_lookup_node(ln)
 
                 elif self.name == "output":
                     if v is None or isinstance(v, str):
                         ln = LookupNode(loc=obj.get_range_for_value(k))
-                        ln.intelligence_node = intel_context.get_step_source_completer(self)
+                        ln.intelligence_node = intel_context.get_output_source_completer(self)
                         code_intel.add_lookup_node(ln)

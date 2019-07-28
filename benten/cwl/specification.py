@@ -85,6 +85,11 @@ def parse_enum(schema, lang_model):
         lang_model[enum_name] = CWLAnyType(name=schema.get("name"))
         return lang_model.get(enum_name)
 
+    if enum_name == "Expression":
+        # Yet another special type masquerading as an enum
+        lang_model[enum_name] = CWLExpressionType(name=schema.get("name"))
+        return lang_model.get(enum_name)
+
     symbols = schema.get("symbols")
     for extends in listify(schema.get("extends")):
         extends = extends.split("#")[1]  # Proper way is to use URIs ...

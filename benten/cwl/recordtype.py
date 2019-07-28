@@ -68,11 +68,17 @@ class CWLRecordType(CWLBaseType):
             ln = LookupNode(loc=value_range)
             ln.intelligence_node = self
             code_intel.add_lookup_node(ln)
+            return
 
         if self.name == "Workflow":
             intel_context = Workflow()
 
         for k, child_node in node.items():
+
+            # key completer
+            ln = LookupNode(loc=get_range_for_key(node, k))
+            ln.intelligence_node = self
+            code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStep" and k == "run" and isinstance(child_node, str):
                 # Exception for run field that is a string
@@ -87,7 +93,7 @@ class CWLRecordType(CWLBaseType):
                         # heuristics to ignore $schemas, $namespaces and custom tags
                         problems += [
                             Diagnostic(
-                                _range=node.lc.value(k),
+                                _range=get_range_for_key(node, k),
                                 message=f"Unknown field: {k} for type {self.name}",
                                 severity=DiagnosticSeverity.Warning)
                         ]

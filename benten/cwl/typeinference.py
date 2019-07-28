@@ -25,6 +25,8 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
 
     if explicit_type is not None:
         for _type in allowed_types:
+            if isinstance(_type, str):
+                _type = CWLBaseType(name=_type)
             if explicit_type == _type.name:
                 return [TypeCheck(_type)]
         else:
@@ -44,7 +46,7 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
 
         # For now, don't closely validate these base types
         if _type in ['string', 'boolean', 'int', 'long']:
-            if node is None or isinstance(node, str):
+            if node is None or isinstance(node, (str, bool, int)):
                 return [TypeCheck(CWLBaseType(name=_type))]
             else:
                 type_check_results += [TypeCheck(CWLBaseType(name=_type), match=Match.No)]
