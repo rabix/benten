@@ -41,7 +41,7 @@ interface TextDocumentItem {
 
 from .lspobjects import to_dict, PublishDiagnosticsParams
 from .base import CWLLangServerBase
-from ..models.document import Document
+from ..code.document import Document
 
 import logging
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class FileOperation(CWLLangServerBase):
             doc_uri=doc_uri,
             text=params["textDocument"]["text"],
             version=params["textDocument"]["version"],
-            language_models=self.config.lang_models)
+            type_dicts=self.config.lang_models)
 
         self.open_documents[doc_uri] = document
         self._mark_document_issues(doc_uri)

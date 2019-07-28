@@ -69,6 +69,11 @@ class IntelligenceNode:
         pass
 
 
+# Children of maps need to track their ancestors for completions
+class IntelligenceContext:
+    pass
+
+
 class Intelligence:
 
     def __init__(self):

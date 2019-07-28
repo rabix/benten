@@ -3,7 +3,7 @@
 from typing import Dict
 from enum import IntEnum
 
-from ..models.document import Document
+from ..code.document import Document
 
 import logging
 

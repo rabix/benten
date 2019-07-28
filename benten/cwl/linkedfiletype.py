@@ -2,7 +2,7 @@
 
 import shlex
 
-from .basetype import CWLBaseType, Workflow, Intelligence, MapSubjectPredicate
+from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate
 from ..langserver.lspobjects import Range, Location, CompletionItem
 from .lib import check_linked_file
 from ..code.intelligence import LookupNode
@@ -22,7 +22,7 @@ class CWLLinkedFile(CWLBaseType):
     def parse(self,
               doc_uri: str,
               node,
-              enclosing_workflow: Workflow,
+              intel_context: IntelligenceContext,
               code_intel: Intelligence,
               problems: list,
               node_key: str = None,

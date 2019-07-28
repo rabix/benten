@@ -51,7 +51,7 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
                 continue
 
         check_result = _type.check(node, key, map_sp)
-        if check_result.match_type == Match.Yes:
+        if check_result.match == Match.Yes:
             return [check_result]
 
         type_check_results += [check_result]

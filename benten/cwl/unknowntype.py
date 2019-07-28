@@ -18,7 +18,7 @@ class CWLUnknownType(CWLBaseType):
     def parse(self,
               doc_uri: str,
               node,
-              enclosing_workflow: Workflow,
+              intel_context: Workflow,
               code_intel: Intelligence,
               problems: list,
               node_key: str = None,

@@ -6,3 +6,4 @@ from .anytype import CWLAnyType
 from .enumtype import CWLEnumType
 from .arraytype import CWLArrayType
 from .lomtype import CWLListOrMapType
+from .recordtype import CWLRecordType, CWLFieldType

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 from ..langserver.lspobjects import Range
-from ..code.intelligence import IntelligenceNode, Intelligence
+from ..code.intelligence import IntelligenceNode, IntelligenceContext, Intelligence
 from ..code.workflow import Workflow
 
 
@@ -41,7 +41,7 @@ class CWLBaseType(IntelligenceNode):
     def parse(self,
               doc_uri: str,
               node,
-              enclosing_workflow: Workflow,
+              intel_context: IntelligenceContext,
               code_intel: Intelligence,
               problems: list,
               node_key: str = None,

@@ -5,10 +5,7 @@ import shutil
 from pathlib import Path as P
 import configparser
 
-import yaml
-
-from .models.languagemodel import load_languagemodel
-from .langserver.lspobjects import CompletionItem
+from .cwl.specification import parse_schema
 
 import logging
 logger = logging.getLogger(__name__)
@@ -78,10 +75,11 @@ class Configuration(configparser.ConfigParser):
 
         logging.info("Loading snippets ...")
         snippet_file = self.getpath("editor", "snippets_file")
-        self.snippets = {
-            k: CompletionItem.from_snippet(v)
-            for k, v in yaml.load(snippet_file.open("r").read(), Loader=yaml.SafeLoader).items()
-        }
+        # self.snippets = {
+        #     k: CompletionItem.from_snippet(v)
+        #     for k, v in yaml.load(snippet_file.open("r").read(), Loader=yaml.SafeLoader).items()
+        # }
+        self.snippets = {}
 
     # https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
     def optionxform(self, optionstr):
@@ -129,5 +127,5 @@ class Configuration(configparser.ConfigParser):
     def _load_language_files(self):
         for fname in self.cfg_path.glob("schema-*.json"):
             version = fname.name[7:-5]
-            self.lang_models[version] = load_languagemodel(fname)
+            self.lang_models[version] = parse_schema(fname)
             logger.info(f"Loaded language schema {version}")

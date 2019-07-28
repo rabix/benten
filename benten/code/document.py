@@ -5,10 +5,9 @@ import time
 from .yaml import parse_yaml
 from .intelligence import Intelligence
 from ..cwl.specification import latest_published_cwl_version, process_types
+from ..cwl.typeinference import infer_type
 from .symbols import extract_symbols, extract_step_symbols
-
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
-from .languagemodel import parse_document
 
 
 import logging
@@ -53,7 +52,6 @@ class Document:
 
         self.symbology(cwl)
 
-
     def definition(self, loc: Position):
         de = self.code_intelligence.get_doc_element(loc)
         if de is not None:
@@ -75,26 +73,15 @@ class Document:
             cwl_v = latest_published_cwl_version
 
         lm = self.type_dicts.get(cwl_v)
-
-
-
-
-        _typ = cwl.get("class")
-        if _typ is not None:
-            base_type = lm.get(_typ)
-            value_lookup_node = ValueLookup(Range(Position(0, 0), Position(0, 0)))
-            if base_type is not None:
-                base_type.parse(
-                    doc_uri=doc_uri,
-                    node=cwl,
-                    value_lookup_node=value_lookup_node,
-                    lom_key=None,
-                    parent_completer_node=None,
-                    completer=completer,
-                    problems=problems,
-                    requirements=None)
-
-
+        inferred_type = infer_type(
+            node=cwl,
+            allowed_types=[lm.get(t) for t in process_types])
+        inferred_type.parse(
+            doc_uri=self.doc_uri,
+            node=cwl,
+            intel_context=None,
+            code_intel=self.code_intelligence,
+            problems=self.problems)
 
     def symbology(self, cwl):
         line_count = self.text.count("\n")
@@ -105,9 +92,9 @@ class Document:
 
             if _typ == "Workflow":
                 self.symbols = extract_step_symbols(cwl, self.symbols)
-                wf_graph = workflow.analyze_connectivity(completer, problems)
 
     def graphology(self, cwl):
-        _typ = cwl.get("class")
-        if _typ == "Workflow":
-            self.wf_graph = analyze_connectivity(completer, self.problems)
+        pass
+        # _typ = cwl.get("class")
+        # if _typ == "Workflow":
+        #     self.wf_graph = analyze_connectivity(completer, self.problems)

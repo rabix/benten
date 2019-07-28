@@ -22,7 +22,7 @@ from typing import Dict
 from ..cwl.lib import (check_linked_file, get_range_for_key,
                        get_range_for_value, list_as_map, ListOrMap)
 from .yaml import fast_load
-from .intelligence import IntelligenceNode
+from .intelligence import IntelligenceNode, IntelligenceContext
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity
 
 
@@ -33,7 +33,7 @@ class StepInterface:
         self.outputs = outputs or set()
 
 
-class Workflow:
+class Workflow(IntelligenceContext):
     def __init__(self):
         self.step_intels: Dict[str, WFStepIntelligence] = {}
         self.wf_inputs = []
@@ -43,8 +43,23 @@ class Workflow:
         for step_id, step in steps.node.items():
             pass
 
+    def get_output_source_completer(self):
+        return WFOutputSourceCompleter(self)
 
-class WFStepIntelligence(IntelligenceNode):
+
+class WFOutputSourceCompleter(IntelligenceNode):
+    def __init__(self, workflow: Workflow):
+        super().__init__()
+        self.workflow = workflow
+
+    def completion(self):
+        step_ports = [f"{step_id}/{port}"
+                      for step_id, step_intel in self.workflow.step_intels.items()
+                      for port in step_intel.step_interface.outputs]
+        return set(step_ports + self.workflow.wf_inputs)
+
+
+class WFStepIntelligence(IntelligenceContext):
     def __init__(self, step_id, step_interface: StepInterface):
         super().__init__()
         self.step_id = step_id
@@ -89,7 +104,7 @@ class WFStepIntelligence(IntelligenceNode):
                         severity=DiagnosticSeverity.Error)
                 ]
 
-    def get_step_input_completer(self):
+    def get_step_inport_completer(self):
         return WFStepInputPortCompleter(inputs=self.step_interface.inputs)
 
     def get_step_output_completer(self):

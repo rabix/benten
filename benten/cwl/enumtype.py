@@ -1,6 +1,6 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from .basetype import CWLBaseType, Workflow, Intelligence, MapSubjectPredicate, TypeCheck, Match
+from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate, TypeCheck, Match
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.intelligence import LookupNode
 
@@ -26,7 +26,7 @@ class CWLEnumType(CWLBaseType):
     def parse(self,
               doc_uri: str,
               node,
-              enclosing_workflow: Workflow,
+              intel_context: IntelligenceContext,
               code_intel: Intelligence,
               problems: list,
               node_key: str = None,
