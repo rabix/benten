@@ -1,6 +1,8 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate, TypeCheck, Match
+from .unknowntype import CWLUnknownType
+from .requirementstype import CWLRequirementsType
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.requirements import Requirements
 from ..code.intelligence import LookupNode
@@ -57,16 +59,15 @@ class CWLListOrMapType(CWLBaseType):
             intel_context = Requirements([t.name for t in self.types])
 
         for k, v in obj.as_dict.items():
+
             inferred_type = infer_type(
                 v,
                 allowed_types=self.types,
                 key=k if obj.was_dict else None,
-                map_sp=self.map_subject_predicate)
+                map_sp=self.map_subject_predicate if obj.was_dict else None)
 
-            # if inferred_type.name == "WorkflowStep":
-            #     this_intel_context = intel_context.step_intel.get(k)
-            # else:
-            #     this_intel_context = intel_context
+            if self.name == "requirements" and isinstance(inferred_type, CWLUnknownType):
+                inferred_type = CWLRequirementsType("requirement", self.types)
 
             inferred_type.parse(
                 doc_uri=doc_uri,
@@ -90,17 +91,16 @@ class CWLListOrMapType(CWLBaseType):
                 elif self.name == "in":
 
                     wf_step = intel_context.get_step_intel(k)
-                    if wf_step is None:
-                        continue
+                    if wf_step is not None:
 
-                    ln = LookupNode(loc=obj.get_range_for_id(k))
-                    ln.intelligence_node = wf_step.get_step_inport_completer()
-                    code_intel.add_lookup_node(ln)
-
-                    if v is None or isinstance(v, str):
-                        ln = LookupNode(loc=obj.get_range_for_value(k))
-                        ln.intelligence_node = wf_step.get_step_source_completer(self)
+                        ln = LookupNode(loc=obj.get_range_for_id(k))
+                        ln.intelligence_node = wf_step.get_step_inport_completer()
                         code_intel.add_lookup_node(ln)
+
+                        if v is None or isinstance(v, str):
+                            ln = LookupNode(loc=obj.get_range_for_value(k))
+                            ln.intelligence_node = wf_step.get_step_source_completer(self)
+                            code_intel.add_lookup_node(ln)
 
                 elif self.name == "output":
                     if v is None or isinstance(v, str):

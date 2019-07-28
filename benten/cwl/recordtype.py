@@ -6,6 +6,7 @@ from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubject
 from .linkedfiletype import CWLLinkedFile
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.intelligence import LookupNode
+from ..code.requirements import Requirements
 from ..code.workflow import Workflow
 from .typeinference import infer_type
 from .lib import get_range_for_key, get_range_for_value
@@ -79,6 +80,13 @@ class CWLRecordType(CWLBaseType):
             ln = LookupNode(loc=get_range_for_key(node, k))
             ln.intelligence_node = self
             code_intel.add_lookup_node(ln)
+
+            # TODO: looks like this logic and the logic in lomtype can be combined
+            # Special completers
+            if k == "class" and isinstance(intel_context, Requirements):
+                ln = LookupNode(loc=get_range_for_value(node, k))
+                ln.intelligence_node = intel_context.get_completer()
+                code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStep" and k == "run" and isinstance(child_node, str):
                 # Exception for run field that is a string
