@@ -8,6 +8,7 @@ from ..code.requirements import Requirements
 from ..code.intelligence import LookupNode
 from .lib import ListOrMap
 from .typeinference import infer_type
+from ..code import workflow
 
 
 # TODO: subclass this to handle
@@ -33,7 +34,7 @@ class CWLListOrMapType(CWLBaseType):
         self.enclosing_workflow = None
 
     def check(self, node, node_key: str=None, map_sp: MapSubjectPredicate=None) -> TypeCheck:
-        if isinstance(node, (list, dict)):
+        if node is None or isinstance(node, (str, list, dict)):
             return TypeCheck(cwl_type=self)
         else:
             return TypeCheck(cwl_type=self, match=Match.No)
@@ -58,7 +59,35 @@ class CWLListOrMapType(CWLBaseType):
         if self.name == "requirements":
             intel_context = Requirements([t.name for t in self.types])
 
+        # Exception, when we have an empty LOM we assume it's gonna be a dict and
+        # allow completions.
+        # We end up with None or str when we just start a lom
+        if obj.original_obj is None or isinstance(obj.original_obj, str):
+            # TODO: remove redundancy
+            # The keys get fancy completions
+            if self.name == "requirements":
+                ln = LookupNode(loc=value_range)
+                ln.intelligence_node = intel_context.get_completer()
+                code_intel.add_lookup_node(ln)
+
+            elif self.name == "in":
+
+                wf_step = intel_context
+                if wf_step is not None:
+
+                    ln = LookupNode(loc=value_range)
+                    ln.intelligence_node = wf_step.get_step_inport_completer()
+                    code_intel.add_lookup_node(ln)
+
+            elif self.name == "output":
+                if v is None or isinstance(v, str):
+                    ln = LookupNode(loc=value_range)
+                    ln.intelligence_node = intel_context.get_output_source_completer()
+                    code_intel.add_lookup_node(ln)
+
         for k, v in obj.as_dict.items():
+
+            this_intel_context = intel_context
 
             inferred_type = infer_type(
                 v,
@@ -69,10 +98,13 @@ class CWLListOrMapType(CWLBaseType):
             if self.name == "requirements" and isinstance(inferred_type, CWLUnknownType):
                 inferred_type = CWLRequirementsType("requirement", self.types)
 
+            if self.name == "steps":
+                this_intel_context = workflow.WFStepIntelligence(step_id=k)
+
             inferred_type.parse(
                 doc_uri=doc_uri,
                 node=v,
-                intel_context=intel_context,
+                intel_context=this_intel_context,
                 code_intel=code_intel,
                 problems=problems,
                 node_key=k if obj.was_dict else None,
@@ -90,7 +122,7 @@ class CWLListOrMapType(CWLBaseType):
 
                 elif self.name == "in":
 
-                    wf_step = intel_context.get_step_intel(k)
+                    wf_step = intel_context
                     if wf_step is not None:
 
                         ln = LookupNode(loc=obj.get_range_for_id(k))
@@ -99,11 +131,11 @@ class CWLListOrMapType(CWLBaseType):
 
                         if v is None or isinstance(v, str):
                             ln = LookupNode(loc=obj.get_range_for_value(k))
-                            ln.intelligence_node = wf_step.get_step_source_completer(self)
+                            ln.intelligence_node = wf_step.get_step_source_completer()
                             code_intel.add_lookup_node(ln)
 
                 elif self.name == "output":
                     if v is None or isinstance(v, str):
                         ln = LookupNode(loc=obj.get_range_for_value(k))
-                        ln.intelligence_node = intel_context.get_output_source_completer(self)
+                        ln.intelligence_node = intel_context.get_output_source_completer()
                         code_intel.add_lookup_node(ln)

@@ -43,6 +43,9 @@ class Workflow(IntelligenceContext):
         for step_id, step in steps.as_dict.items():
             pass
 
+    def add_step_intel(self, step_id, step_intel: 'WFStepIntelligence'):
+        self.step_intels[step_id] = step_intel
+
     def get_step_intel(self, step_id):
         return self.step_intels.get(step_id)
 
@@ -63,11 +66,14 @@ class WFOutputSourceCompleter(IntelligenceNode):
 
 
 class WFStepIntelligence(IntelligenceContext):
-    def __init__(self, step_id, step_interface: StepInterface):
+    def __init__(self, step_id):
         super().__init__()
         self.step_id = step_id
-        self.step_interface = step_interface
+        self.step_interface: StepInterface = None
         self.workflow = None
+
+    def set_step_interface(self, step_interface: StepInterface):
+        self.step_interface = step_interface
 
     def validate_connections(self, inputs: ListOrMap, problems):
         if self.workflow is None:
@@ -141,15 +147,12 @@ class PortSourceCompleter(IntelligenceNode):
 
 
 # This should be invoked when we arrive at the "run" field of a workflow
-def parse_step_interface(doc_uri, step, problems):
+def parse_step_interface(doc_uri, run_field, linked_file: pathlib.Path, problems):
 
-    run_field = step.get("run")
     step_interface = StepInterface()
-    linked_file = None
 
     if isinstance(run_field, str):
-        linked_file = check_linked_file(doc_uri, run_field, step.lc.value("run"), problems)
-        if linked_file is not None:
+        if linked_file.exists() and linked_file.is_file():
             run_field = fast_load.load(linked_file)
 
     if isinstance(run_field, dict):
@@ -161,4 +164,4 @@ def parse_step_interface(doc_uri, step, problems):
                                     key_field="id",
                                     problems=problems).keys()))
 
-    return linked_file, step_interface
+    return step_interface

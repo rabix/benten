@@ -10,6 +10,7 @@ from ..code.requirements import Requirements
 from ..code.workflow import Workflow
 from .typeinference import infer_type
 from .lib import get_range_for_key, get_range_for_value
+from ..code import workflow
 
 import logging
 logger = logging.getLogger(__name__)
@@ -88,7 +89,7 @@ class CWLRecordType(CWLBaseType):
                 ln.intelligence_node = intel_context.get_completer()
                 code_intel.add_lookup_node(ln)
 
-            if self.name == "WorkflowStep" and k == "run" and isinstance(child_node, str):
+            if self.name == "WorkflowStep" and k == "run"and isinstance(child_node, str):
                 # Exception for run field that is a string
                 inferred_type = CWLLinkedFile(prefix=child_node, extension=".cwl")
 
@@ -121,6 +122,14 @@ class CWLRecordType(CWLBaseType):
                 key_range=get_range_for_key(node, k),
                 value_range=get_range_for_value(node, k),
                 requirements=requirements)
+
+            if self.name == "WorkflowStep" and k == "run":
+                lf_full_path = None
+                if isinstance(inferred_type, CWLLinkedFile):
+                    lf_full_path = inferred_type.full_path
+
+                step_interface = workflow.parse_step_interface(doc_uri, child_node, lf_full_path, problems)
+                intel_context.set_step_interface(step_interface)
 
     def completion(self):
         return [CompletionItem(label=k) for k in self.fields.keys()]
