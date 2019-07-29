@@ -113,6 +113,9 @@ class CWLListOrMapType(CWLBaseType):
                 value_range=obj.get_range_for_value(k),
                 requirements=requirements)
 
+            if self.name == "steps":
+                intel_context.add_step_intel(k, this_intel_context)
+
             if obj.was_dict:
                 # The keys get fancy completions
                 if self.name == "requirements":

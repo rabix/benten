@@ -73,7 +73,7 @@ class CWLRecordType(CWLBaseType):
             return
 
         if self.name == "Workflow":
-            intel_context = Workflow()
+            intel_context = Workflow(node.get("inputs"), node.get("outputs"))
 
         for k, child_node in node.items():
 
@@ -130,6 +130,10 @@ class CWLRecordType(CWLBaseType):
 
                 step_interface = workflow.parse_step_interface(doc_uri, child_node, lf_full_path, problems)
                 intel_context.set_step_interface(step_interface)
+
+        if self.name == "Workflow":
+
+            intel_context.validate_connections(node.get("steps"), problems=problems)
 
     def completion(self):
         return [CompletionItem(label=k) for k in self.fields.keys()]
