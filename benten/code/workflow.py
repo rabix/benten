@@ -22,7 +22,7 @@ from typing import Dict
 from ..cwl.lib import (check_linked_file, get_range_for_key,
                        get_range_for_value, list_as_map, ListOrMap)
 from .yaml import fast_load
-from .intelligence import IntelligenceNode, IntelligenceContext
+from .intelligence import IntelligenceNode, IntelligenceContext, CompletionItem
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity
 
 
@@ -83,16 +83,15 @@ class WFOutputSourceCompleter(IntelligenceNode):
         self.workflow = workflow
 
     def completion(self):
-        # step_ports = [f"{step_id}/{port}"
-        #               for step_id, step_intel in self.workflow.step_intels.items()
-        #               for port in step_intel.step_interface.outputs]
-        return self.workflow.wf_inputs.union(
-            {
-                f"{step_id}/{port}"
-                for step_id, step_intel in self.workflow.step_intels.items()
-                for port in step_intel.step_interface.outputs
-            }
-        )
+        return [
+            CompletionItem(label=l)
+            for ll in (
+                (f"{step_id}/{port}"
+                 for step_id, step_intel in self.workflow.step_intels.items()
+                 for port in step_intel.step_interface.outputs),
+                self.workflow.wf_inputs)
+            for l in ll
+        ]
 
 
 class WFStepIntelligence(IntelligenceContext):
@@ -133,8 +132,8 @@ class WFStepIntelligence(IntelligenceContext):
     def get_step_output_completer(self):
         return WFStepOutputPortCompleter(outputs=self.step_interface.outputs)
 
-    def get_step_source_completer(self):
-        return PortSourceCompleter(self)
+    def get_step_source_completer(self, prefix):
+        return PortSourceCompleter(self, prefix)
 
 
 class WFStepInputPortCompleter(IntelligenceNode):
@@ -148,16 +147,28 @@ class WFStepOutputPortCompleter(IntelligenceNode):
 
 
 class PortSourceCompleter(IntelligenceNode):
-    def __init__(self, step_intel: WFStepIntelligence):
+    def __init__(self, step_intel: WFStepIntelligence, prefix):
         super().__init__()
         self.step_intel = step_intel
+        self.prefix = prefix
 
     def completion(self):
-        step_ports = [f"{step_id}/{port}"
-                      for step_id, step_intel in self.step_intel.workflow.step_intels.items()
-                      if step_id != self.step_intel.step_id
-                      for port in step_intel.step_interface.outputs]
-        return set(step_ports + self.step_intel.workflow.wf_inputs)
+        if "/" not in self.prefix:
+            return [
+                CompletionItem(label=_id)
+                for _port in (self.step_intel.workflow.step_intels.keys(),
+                              self.step_intel.workflow.wf_inputs)
+                for _id in _port
+                if _id != self.step_intel.step_id
+            ]
+        else:
+            src_step, src_port = self.prefix.split("/")
+            step_intel = self.step_intel.workflow.step_intels.get(src_step)
+            if step_intel is not None:
+                return [
+                    CompletionItem(label=_id)
+                    for _id in step_intel.step_interface.outputs
+                ]
 
 
 # This should be invoked when we arrive at the "run" field of a workflow

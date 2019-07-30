@@ -133,7 +133,7 @@ class CWLListOrMapType(CWLBaseType):
 
                         if v is None or isinstance(v, str):
                             ln = LookupNode(loc=obj.get_range_for_value(k))
-                            ln.intelligence_node = wf_step.get_step_source_completer()
+                            ln.intelligence_node = wf_step.get_step_source_completer(v)
                             code_intel.add_lookup_node(ln)
 
                 elif self.name == "output":

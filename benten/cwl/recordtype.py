@@ -68,7 +68,12 @@ class CWLRecordType(CWLBaseType):
 
         if node is None or isinstance(node, str):
             ln = LookupNode(loc=value_range)
-            ln.intelligence_node = self
+            if self.name == "WorkflowStepInput":
+                ln.intelligence_node = intel_context.get_step_source_completer(node)
+            elif self.name == "WorkflowOutputParameter":
+                ln.intelligence_node = intel_context.get_output_source_completer()
+            else:
+                ln.intelligence_node = self
             code_intel.add_lookup_node(ln)
             return
 
@@ -123,6 +128,16 @@ class CWLRecordType(CWLBaseType):
                 value_range=get_range_for_value(node, k),
                 requirements=requirements)
 
+            if self.name == "WorkflowOutputParameter" and k == "outputSource":
+                ln = LookupNode(loc=get_range_for_value(node, k))
+                ln.intelligence_node = intel_context.get_output_source_completer()
+                code_intel.add_lookup_node(ln)
+
+            if self.name == "WorkflowStepInput" and k == "source":
+                ln = LookupNode(loc=get_range_for_value(node, k))
+                ln.intelligence_node = intel_context.get_step_source_completer(child_node)
+                code_intel.add_lookup_node(ln)
+
             if self.name == "WorkflowStep" and k == "run":
                 lf_full_path = None
                 if isinstance(inferred_type, CWLLinkedFile):
@@ -132,7 +147,6 @@ class CWLRecordType(CWLBaseType):
                 intel_context.set_step_interface(step_interface)
 
         if self.name == "Workflow":
-
             intel_context.validate_connections(node.get("steps"), problems=problems)
 
     def completion(self):
