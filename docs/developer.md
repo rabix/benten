@@ -1,7 +1,7 @@
 # Notes for developers
 
 ## Debugging the server
-Open the project in PyCharm. Goto `Run->Attach To Process` and the
+Open the project in PyCharm. Goto `Run->Attach To Process` and then
 select the process titled `benten-ls`. Insert appropriate breakpoints
 and perform some editor operation that will trigger a request from the
 client.
