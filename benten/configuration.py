@@ -51,9 +51,6 @@ class Configuration(configparser.ConfigParser):
             self.create_default_config_file()
 
         self.lang_models = {}
-        self.last_session_file = None
-        self.last_session = None
-        self.snippets = {}
 
     # We do this separately to give the caller a chance to set up logging
     def initialize(self):
@@ -67,19 +64,6 @@ class Configuration(configparser.ConfigParser):
         # TODO: allow multiple language specifications
         logging.info("Loading language model ...")
         self._load_language_files()
-
-        logging.info("Loading last session ...")
-        self.last_session_file = P(self.cfg_path, "last-session.ini")
-        self.last_session = configparser.ConfigParser()
-        self.load_last_session()
-
-        logging.info("Loading snippets ...")
-        snippet_file = self.getpath("editor", "snippets_file")
-        # self.snippets = {
-        #     k: CompletionItem.from_snippet(v)
-        #     for k, v in yaml.load(snippet_file.open("r").read(), Loader=yaml.SafeLoader).items()
-        # }
-        self.snippets = {}
 
     # https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
     def optionxform(self, optionstr):
@@ -106,22 +90,15 @@ class Configuration(configparser.ConfigParser):
         self.read_file(P(default_config_data_dir, "config.ini").open("r"))
         self.read(self.path)
 
-    def load_last_session(self):
-        self.last_session.read(self.last_session_file)
-
-    def save_last_session(self):
-        self.last_session.write(self.last_session_file.open("w"))
-
     # We don't do this because we don't want to mess with the user's original formatting
     # def save(self):
     #     self.write(self.path.open("w"))
 
     def _copy_missing_config_files(self):
-        for fn in ["snippets.yaml", "autocomplete.yaml", "aliases.yaml", "schema-v1.0.json"]:
+        for fn in ["schema-v1.0.json"]:
             src_file = P(default_config_data_dir, fn)
             dst_file = P(self.cfg_path, fn)
             if not dst_file.exists():
-                # os.makedirs(os.path.dirname(dst_file.parent), exist_ok=True)
                 shutil.copy(src_file, dst_file)
 
     def _load_language_files(self):

@@ -57,7 +57,7 @@ class Document:
         if de is not None:
             return de.definition()
 
-    def completion(self, loc: Position, dummy):
+    def completion(self, loc: Position):
         de = self.code_intelligence.get_doc_element(loc)
         if de is not None:
             return de.completion()
