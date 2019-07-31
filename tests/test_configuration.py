@@ -6,9 +6,6 @@ import pathlib
 
 from benten.configuration import Configuration
 
-import pytest
-pytest.skip("Skipping test until refactor is complete", allow_module_level=True)
-
 test_dir = "./benten-test-config"
 
 
@@ -30,18 +27,7 @@ def test_basic(monkeypatch):
 
     # test creation of config dirs and default files
     config = Configuration()
-
-    assert "files" in config.sections()
-    assert "autosave" in config["files"]
+    config.initialize()
 
     assert config.getpath("executions", "command_alias_file") == \
            pathlib.Path(test_dir, "sevenbridges", "benten", "aliases.yaml")
-
-
-def test_template_copying(monkeypatch):
-    monkeypatch.setitem(os.environ, "XDG_CONFIG_HOME", test_dir)
-    monkeypatch.setitem(os.environ, "XDG_DATA_HOME", test_dir)
-
-    config = Configuration()
-
-    assert config.getpath("executions", "command_alias_file").exists()

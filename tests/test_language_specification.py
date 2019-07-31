@@ -2,16 +2,16 @@
 
 import pathlib
 
-from benten.models.languagemodel import load_languagemodel
+from benten.cwl.specification import parse_schema
 
 
 current_path = pathlib.Path(__file__).parent
 schema_fname = pathlib.Path(current_path, "../benten/000.package.data/schema-v1.0.json")
 
 
-def test_load_languagemodel():
+def test_load_language_specification():
 
-    lang_model = load_languagemodel(schema_fname)
+    lang_model = parse_schema(schema_fname)
 
     assert "CommandLineTool" in lang_model
     assert "Workflow" in lang_model
