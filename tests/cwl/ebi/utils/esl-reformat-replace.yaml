@@ -1,0 +1,14 @@
+type: record
+name: replace
+label: sequence token replacement
+fields:
+  - name: find
+    type: string
+    label: find
+    doc: |
+      Must be equal length with "replace". Each character from the input file
+      will be replaced by its counterpart (at the same position) from "replace"
+  - name: replace
+    type: string
+    label: replace
+    doc: must be equal length with "find"

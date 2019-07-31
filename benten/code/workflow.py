@@ -98,7 +98,7 @@ class WFStepIntelligence(IntelligenceContext):
     def __init__(self, step_id):
         super().__init__()
         self.step_id = step_id
-        self.step_interface: StepInterface = None
+        self.step_interface: StepInterface = StepInterface()
         self.workflow = None
 
     def set_step_interface(self, step_interface: StepInterface):

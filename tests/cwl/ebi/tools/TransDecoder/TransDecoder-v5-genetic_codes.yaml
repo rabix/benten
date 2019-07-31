@@ -1,0 +1,19 @@
+type: enum
+name: genetic_codes
+symbols:
+ - universal
+ - Euplotes
+ - Tetrahymena
+ - Candida
+ - Acetabularia
+ - Mitochondrial-Canonical
+ - Mitochondrial-Vertebrates
+ - Mitochondrial-Arthropods
+ - Mitochondrial-Echinoderms
+ - Mitochondrial-Molluscs
+ - Mitochondrial-Ascidians
+ - Mitochondrial-Nematodes
+ - Mitochondrial-Platyhelminths
+ - Mitochondrial-Yeasts
+ - Mitochondrial-Euascomycetes
+ - Mitochondrial-Protozoans

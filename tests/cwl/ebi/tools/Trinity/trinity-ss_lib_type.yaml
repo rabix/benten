@@ -1,0 +1,3 @@
+type: enum
+name: trinity_ss_lib_type
+symbols: [ FR, RF, F, R ]

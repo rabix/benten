@@ -1,0 +1,23 @@
+type: enum
+name: apps
+symbols:
+ - TIGRFAM
+ - SFLD
+ - SUPERFAMILY
+ - Gene3D
+ - Hamap
+ - Coils
+ - ProSiteProfiles
+ - SMART
+ - CDD
+ - PRINTS
+ - PIRSF
+ - ProSitePatterns
+ - PfamA
+ - ProDom
+ - MobiDBLite
+ - SignalP_GRAM_POSITIVE
+ - SignalP_GRAM_NEGATIVE
+ - SignalP_EUK
+ - Phobius
+ - TMHMM
