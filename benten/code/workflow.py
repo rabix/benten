@@ -50,7 +50,7 @@ class Workflow(IntelligenceContext):
         _steps = ListOrMap(steps, key_field="id", problems=[])
         for step_id, step in _steps.as_dict.items():
             step_intel = self.step_intels.get(step_id)
-            if step_intel:
+            if step_intel and isinstance(step, dict):
                 step_intel.validate_connections(
                     ListOrMap(step.get("in"), key_field="id", problems=[]),
                     problems=problems)
