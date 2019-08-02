@@ -67,34 +67,35 @@ class CWLRecordType(CWLBaseType):
               requirements=None):
 
         if node is None or isinstance(node, str):
-            ln = LookupNode(loc=value_range)
-            if self.name == "WorkflowStepInput":
-                ln.intelligence_node = intel_context.get_step_source_completer(node)
-            elif self.name == "WorkflowOutputParameter":
-                ln.intelligence_node = intel_context.get_output_source_completer()
+            if map_sp is not None:
+                field_iterator = [(map_sp.predicate, node)]
             else:
-                ln.intelligence_node = self
-            code_intel.add_lookup_node(ln)
-            return
+                return
+        else:
+            field_iterator = node.items()
 
         if self.name == "Workflow":
             intel_context = Workflow(node.get("inputs"), node.get("outputs"))
 
-        for k, child_node in node.items():
+        for k, child_node in field_iterator:
 
-            # key completer
-            ln = LookupNode(loc=get_range_for_key(node, k))
-            ln.intelligence_node = self
-            code_intel.add_lookup_node(ln)
+            if isinstance(node, dict):
+                key_range = get_range_for_key(node, k)
+                value_range = get_range_for_value(node, k)
+
+                # key completer
+                ln = LookupNode(loc=key_range)
+                ln.intelligence_node = self
+                code_intel.add_lookup_node(ln)
 
             # TODO: looks like this logic and the logic in lomtype can be combined
             # Special completers
             if k == "class" and isinstance(intel_context, Requirements):
-                ln = LookupNode(loc=get_range_for_value(node, k))
+                ln = LookupNode(loc=value_range)
                 ln.intelligence_node = intel_context.get_completer()
                 code_intel.add_lookup_node(ln)
 
-            if self.name == "WorkflowStep" and k == "run"and isinstance(child_node, str):
+            if self.name == "WorkflowStep" and k == "run" and isinstance(child_node, str):
                 # Exception for run field that is a string
                 inferred_type = CWLLinkedFile(prefix=child_node, extension=".cwl")
 
@@ -107,7 +108,7 @@ class CWLRecordType(CWLBaseType):
                         # heuristics to ignore $schemas, $namespaces and custom tags
                         problems += [
                             Diagnostic(
-                                _range=get_range_for_key(node, k),
+                                _range=key_range,
                                 message=f"Unknown field: {k} for type {self.name}",
                                 severity=DiagnosticSeverity.Warning)
                         ]
@@ -124,17 +125,17 @@ class CWLRecordType(CWLBaseType):
                 problems=problems,
                 node_key=k,
                 map_sp=map_sp,
-                key_range=get_range_for_key(node, k),
-                value_range=get_range_for_value(node, k),
+                key_range=key_range,
+                value_range=value_range,
                 requirements=requirements)
 
             if self.name == "WorkflowOutputParameter" and k == "outputSource":
-                ln = LookupNode(loc=get_range_for_value(node, k))
+                ln = LookupNode(loc=value_range)
                 ln.intelligence_node = intel_context.get_output_source_completer()
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStepInput" and k == "source":
-                ln = LookupNode(loc=get_range_for_value(node, k))
+                ln = LookupNode(loc=value_range)
                 ln.intelligence_node = intel_context.get_step_source_completer(child_node)
                 code_intel.add_lookup_node(ln)
 
