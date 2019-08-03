@@ -37,11 +37,6 @@ def test_ebi_wf_cmsearch_multimodel():
     cmsearch_symbol = next((symb for symb in step_symbols.children if symb.name == "cmsearch"), None)
     assert cmsearch_symbol.range.start.line == 33
 
-    linked_uri = pathlib.Path(current_path / "cwl" / "ebi" / "utils" / "concatenate.cwl")
-    doc_def_loc = doc.definition(loc=Position(50, 20))
-    assert isinstance(doc_def_loc, Location)
-    assert doc_def_loc.uri == linked_uri.as_uri()
-
 
 def test_mass_load():
     type_dicts = load_type_dicts()
