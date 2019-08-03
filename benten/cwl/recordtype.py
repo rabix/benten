@@ -131,7 +131,7 @@ class CWLRecordType(CWLBaseType):
 
             if self.name == "WorkflowOutputParameter" and k == "outputSource":
                 ln = LookupNode(loc=value_range)
-                ln.intelligence_node = intel_context.get_output_source_completer()
+                ln.intelligence_node = intel_context.get_output_source_completer(child_node)
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStepInput" and k == "source":
