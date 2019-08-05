@@ -18,7 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-latest_published_cwl_version = "v1.0"
+latest_published_cwl_version = "v1.1"
 process_types = ["CommandLineTool", "ExpressionTool", "Workflow"]
 
 

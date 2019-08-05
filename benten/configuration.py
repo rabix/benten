@@ -95,7 +95,7 @@ class Configuration(configparser.ConfigParser):
     #     self.write(self.path.open("w"))
 
     def _copy_missing_config_files(self):
-        for fn in ["schema-v1.0.json"]:
+        for fn in ["schema-v1.0.json", "schema-v1.1.json"]:
             src_file = P(default_config_data_dir, fn)
             dst_file = P(self.cfg_path, fn)
             if not dst_file.exists():
