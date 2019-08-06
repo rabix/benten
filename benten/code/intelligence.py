@@ -26,34 +26,6 @@ class LookupNode:
         self.intelligence_node = None
 
 
-class KeyLookup(LookupNode):
-
-    @classmethod
-    def from_key(cls, parent, key):
-        start = parent.lc.key(key)
-        end = (start[0], start[1] + len(key))
-        return cls(Range(Position(*start), Position(*end)))
-
-
-class ValueLookup(LookupNode):
-
-    @classmethod
-    def from_value(cls, parent, key):
-        if isinstance(parent, dict):
-            start = parent.lc.value(key)
-        else:
-            start = parent.lc.item(key)
-
-        v = parent[key]
-        if v is None:
-            v = ""
-        else:
-            v = str(v)  # How to handle multi line strings
-
-        end = (start[0], start[1] + len(v))
-        return cls(Range(Position(*start), Position(*end)))
-
-
 class IntelligenceNode:
 
     def __init__(self, completions: List[str]=None):
@@ -78,16 +50,9 @@ class Intelligence:
 
     def __init__(self):
         self.lookup_table: List[LookupNode] = []
-        self.nodes: List[IntelligenceNode] = []
-
-        self.wf_completer = None
-        # TODO: Refactor these in a more principled manner
 
     def add_lookup_node(self, node: LookupNode):
         self.lookup_table.append(node)
-
-    def add_intelligence_node(self, node: IntelligenceNode):
-        self.nodes.append(node)
 
     def get_doc_element(self, loc: Position):
         # O(n) algorithm, but should do fine for our file sizes
