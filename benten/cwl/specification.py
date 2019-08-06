@@ -82,7 +82,7 @@ def parse_enum(schema, lang_model):
 
     if enum_name == "Any":
         # This is a special type masquerading as an enum
-        lang_model[enum_name] = CWLAnyType(name=schema.get("name"))
+        lang_model[enum_name] = CWLAnyType(name=schema.get("name"), type_dict=lang_model)
         return lang_model.get(enum_name)
 
     if enum_name == "Expression":
