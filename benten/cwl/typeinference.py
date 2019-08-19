@@ -4,6 +4,7 @@ from typing import List
 
 from .basetype import CWLBaseType, MapSubjectPredicate, TypeCheck, Match
 from .unknowntype import CWLUnknownType
+from .anytype import CWLAnyType
 
 
 def infer_type(node, allowed_types,
@@ -25,6 +26,16 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
 
     if explicit_type is not None:
         for _type in allowed_types:
+            if isinstance(_type, CWLAnyType):
+                req_type = _type.if_you_can_be_anything_be_this_kind(explicit_type)
+                if req_type is not None:
+                    return [TypeCheck(req_type)]
+                else:
+                    return [TypeCheck(
+                        CWLUnknownType(name=explicit_type,
+                                       expected=_type.all_possible_type_names()),
+                        match=Match.No)]
+
             if isinstance(_type, str):
                 _type = CWLBaseType(name=_type)
             if explicit_type == _type.name:
