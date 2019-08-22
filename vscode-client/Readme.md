@@ -35,7 +35,7 @@ PATH env variable_
 
 To install from develop branch (or some other branch): 
 ```
-pipx install -spec git+https://github.com/rabix/benten.git@develop benten
+pipx install --spec git+https://github.com/rabix/benten.git@develop benten
 ```
 
 Or, if you have cloned the repository and want to play with the server
