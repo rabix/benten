@@ -1,26 +1,19 @@
-# Common Workflow Language extension for Visual Studio Code
+# VS Code plugin for Rabix/Benten CWL language server
 
-This is an alpha release of CWL support in VS Code via the Benten CWL
-[language server].
-
-[language server]: https://langserver.org/
-
-
-# Features
-
-![2019.04.23 screenshot](./benten-demo-1000px.png)
+![Screenshot](https://camo.githubusercontent.com/06c93fa4201b808ebe9176d97dce77bedd0bd7f7/68747470733a2f2f692e696d6775722e636f6d2f66674a4f58756d2e706e67)
 
 - CWL syntax highlighting, CWL grammar parsing _(1)_
 - Embedded JS expression highlighting _(2)_
 - Navigate to linked sub-workflows and `$include`s _(3)_
 - Outline view (Symbols) + Step symbols _(4)_
-- Code snippets for process types, inputs, requirements
-- Error squiggles indicating YAML and CWL issues
+- Auto-complete for ports, requirements and field names
+- Error squiggles indicating YAML and CWL issues including connection
+  issues
 
 
 # Server installation
 
-This plugin requires the Benten CWL Language Server to be installed.
+This plugin requires the [Benten CWL Language Server](https://github.com/rabix/benten) to be installed.
 
 Benten requires [Python 3.7 or later](https://www.python.org/downloads/)
 
@@ -37,8 +30,8 @@ pipx install --spec git+https://github.com/rabix/benten.git benten
 ```
 
 _Note: `pipx` installs the executables in `$HOME/.local/bin`
-(%HOMEPATH%\.local\bin for Windows). This needs to be added to your PATH
-env variable_
+(`%HOMEPATH%\.local\bin` for Windows). This needs to be added to your
+PATH env variable_
 
 To install from develop branch (or some other branch): 
 ```
@@ -55,5 +48,3 @@ pipx install -e benten
 <div align="right">
 <sub>(c) 2019 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
 </div>
-
-
