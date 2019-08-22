@@ -1,5 +1,11 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
+__all__ = [
+    'CWLBaseType', 'MapSubjectPredicate', 'TypeCheck', 'Match',
+    'CWLUnknownType', 'CWLAnyType', 'CWLExpressionType',
+    'CWLEnumType', 'CWLArrayType', 'CWLListOrMapType', 'CWLRecordType', 'CWLFieldType'
+]
+
 from .basetype import CWLBaseType, MapSubjectPredicate, TypeCheck, Match
 from .unknowntype import CWLUnknownType
 from .anytype import CWLAnyType

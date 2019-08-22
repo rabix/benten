@@ -4,7 +4,6 @@ import pathlib
 
 from benten.code.document import Document
 from benten.cwl.specification import parse_schema
-from benten.langserver.lspobjects import Position, Location
 
 
 current_path = pathlib.Path(__file__).parent
@@ -38,9 +37,9 @@ def test_ebi_wf_cmsearch_multimodel():
     assert cmsearch_symbol.range.start.line == 33
 
 
-def test_mass_load():
+def test_mass_wf_load():
     type_dicts = load_type_dicts()
     for wf_dir in ["ebi/workflows", "mgi/pipelines"]:
         path = current_path / "cwl" / wf_dir
         for fname in path.glob("*.cwl"):
-            doc = load(doc_path=fname, type_dicts=type_dicts)
+            _ = load(doc_path=fname, type_dicts=type_dicts)

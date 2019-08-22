@@ -7,7 +7,7 @@ from .intelligence import Intelligence
 from ..cwl.specification import latest_published_cwl_version, process_types
 from ..cwl.typeinference import infer_type
 from .symbols import extract_symbols, extract_step_symbols
-from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
+from ..langserver.lspobjects import Position
 
 
 import logging

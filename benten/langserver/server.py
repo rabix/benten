@@ -199,7 +199,8 @@ class LangServer(
             }
         }
 
-    def serve_initialized(self, client_query):
+    @staticmethod
+    def serve_initialized(client_query):
         return {}
 
     # def serve_doc_did_change(self, client_query):

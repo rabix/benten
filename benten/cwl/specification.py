@@ -3,13 +3,7 @@ set of types"""
 
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from typing import Union, List, Dict
 import json
-import pathlib
-import urllib.parse
-from dataclasses import dataclass
-from enum import IntEnum
-import shlex
 
 from .alltypes import *
 

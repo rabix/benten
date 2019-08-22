@@ -16,11 +16,9 @@ step information.
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 import pathlib
-from dataclasses import dataclass
 from typing import Dict
 
-from ..cwl.lib import (check_linked_file, get_range_for_key,
-                       get_range_for_value, list_as_map, ListOrMap)
+from ..cwl.lib import (get_range_for_value, list_as_map, ListOrMap)
 from .yaml import fast_load
 from .intelligence import IntelligenceNode, IntelligenceContext, CompletionItem
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity

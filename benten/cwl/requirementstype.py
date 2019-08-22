@@ -1,7 +1,7 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from .basetype import CWLBaseType, Workflow, Intelligence, MapSubjectPredicate, TypeCheck, Match
-from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
+from .basetype import CWLBaseType, Intelligence, MapSubjectPredicate
+from ..langserver.lspobjects import Range, CompletionItem
 from ..code.intelligence import LookupNode, IntelligenceContext
 
 import logging

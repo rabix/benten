@@ -1,8 +1,6 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from .basetype import CWLBaseType, Workflow, Intelligence, MapSubjectPredicate, TypeCheck, Match
-from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
-from ..code.intelligence import LookupNode
+from .basetype import CWLBaseType, MapSubjectPredicate, TypeCheck, Match
 
 import logging
 logger = logging.getLogger(__name__)

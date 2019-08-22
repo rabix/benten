@@ -3,7 +3,7 @@
 from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate, TypeCheck, Match
 from .unknowntype import CWLUnknownType
 from .requirementstype import CWLRequirementsType
-from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
+from ..langserver.lspobjects import Range
 from ..code.requirements import Requirements
 from ..code.intelligence import LookupNode
 from .lib import ListOrMap

@@ -9,8 +9,7 @@ For details see ../../docs/document-model.md
 
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from enum import IntEnum
-from typing import Union, List, Dict
+from typing import List
 
 from ..langserver.lspobjects import (Position, Range, CompletionItem)
 

@@ -8,8 +8,9 @@ current_path = pathlib.Path(__file__).parent
 
 name = 'benten'
 ver_path = pathlib.Path(current_path, "benten", "version.py")
-exec(ver_path.open("r").read())
-version = locals()["__version__"]
+_ver = {}
+exec(ver_path.open("r").read(), _ver)
+version = _ver["__version__"]
 now = datetime.utcnow()
 desc_path = pathlib.Path(current_path, "Readme.md")
 long_description = desc_path.open("r").read()

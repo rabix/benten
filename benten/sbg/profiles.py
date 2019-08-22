@@ -1,8 +1,6 @@
 """Provide interfaces to manage SBG contexts and pushing to SBG app store"""
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-import pathlib
-
 import sevenbridges as sbg
 
 from ..version import __version__

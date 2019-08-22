@@ -5,7 +5,6 @@ import pathlib
 
 from benten.code.document import Document
 from benten.cwl.specification import parse_schema
-from benten.langserver.lspobjects import Position, Location
 
 
 current_path = pathlib.Path(__file__).parent
@@ -28,9 +27,9 @@ def load_type_dicts():
     return type_dicts
 
 
-def test_mass_load():
+def test_mass_tool_load():
     type_dicts = load_type_dicts()
     for wf_dir in ["ebi/tools", "mgi/tools"]:
         path = current_path / "cwl" / wf_dir
         for fname in path.glob("*.cwl"):
-            doc = load(doc_path=fname, type_dicts=type_dicts)
+            _ = load(doc_path=fname, type_dicts=type_dicts)

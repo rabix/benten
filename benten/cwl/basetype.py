@@ -5,7 +5,6 @@ from enum import IntEnum
 
 from ..langserver.lspobjects import Range
 from ..code.intelligence import IntelligenceNode, IntelligenceContext, Intelligence
-from ..code.workflow import Workflow
 
 
 class MapSubjectPredicate:
