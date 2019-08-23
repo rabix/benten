@@ -13,6 +13,7 @@ def test_load_language_specification():
 
     lang_model = parse_schema(schema_fname)
 
+    assert "Array_symbol" in lang_model
     assert "CommandLineTool" in lang_model
     assert "Workflow" in lang_model
     assert "steps" in lang_model["Workflow"].fields
