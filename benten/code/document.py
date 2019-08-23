@@ -63,7 +63,9 @@ class Document:
             return de.completion()
 
     def hover(self, loc: Position):
-        pass
+        de = self.code_intelligence.get_doc_element(loc)
+        if de is not None:
+            return de.hover()
 
     def parse(self, cwl):
         cwl_v = cwl.get("cwlVersion")
