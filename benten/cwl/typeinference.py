@@ -10,12 +10,22 @@ from .anytype import CWLAnyType
 def infer_type(node, allowed_types,
                key: str = None, map_sp: MapSubjectPredicate = None) -> CWLBaseType:
     type_check_results = check_types(node, allowed_types, key, map_sp)
-    if len(type_check_results) == 1:
-        res = type_check_results[0]
-        return res.cwl_type
+    for tcr in type_check_results:
+        if tcr.match == Match.Yes:
+            res = tcr.cwl_type
+            break
     else:
-        return CWLUnknownType(name="(unknown)",
-                              expected=[tr.cwl_type.name for tr in type_check_results])
+        for tcr in type_check_results:
+            if tcr.match == Match.Maybe:
+                res = tcr.cwl_type
+                break
+        else:
+            if len(type_check_results) == 1:
+                res = type_check_results[0].cwl_type
+            else:
+                res = CWLUnknownType(name="(unknown)",
+                                     expected=[tr.cwl_type.name for tr in type_check_results])
+    return res
 
 
 def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:

@@ -23,6 +23,7 @@ class CWLRecordType(CWLBaseType):
         self.doc = doc
         self.fields = fields
         self.required_fields = set((k for k, v in self.fields.items() if v.required))
+        self.all_fields = set(self.fields.keys())
 
     def check(self, node, node_key: str=None, map_sp: MapSubjectPredicate=None) -> TypeCheck:
 
@@ -48,9 +49,13 @@ class CWLRecordType(CWLBaseType):
 
         fields_present = set(node.keys())
         missing_fields = required_fields - fields_present
+        extra_fields = fields_present - self.all_fields
         if len(missing_fields):
             return TypeCheck(cwl_type=self,
                              match=Match.Maybe, missing_req_fields=list(missing_fields))
+        elif len(extra_fields):
+            return TypeCheck(cwl_type=self,
+                             match=Match.Maybe)
         else:
             return TypeCheck(cwl_type=self)
 
