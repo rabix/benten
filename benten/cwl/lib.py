@@ -114,10 +114,19 @@ def check_linked_file(doc_uri: str, path: str, loc: Range, problems: list):
     return linked_file
 
 
+# doc_uri on windows takes the form "file:///c%3A/Users/me/a.cwl"
+# parsing the uri into components results in path being "/c%3A/Users/me/a.cwl"
+# This needs to be
+# a) decoded (so that c%3A -> c:)
+# b) The leading "/" needs to be chomped.
+# Step a) is redundant on *nix and b) should not be done
 def resolve_file_path(doc_uri, target_path):
     _path = pathlib.PurePosixPath(target_path)
     if not _path.is_absolute():
-        base_path = pathlib.Path(urllib.parse.urlparse(doc_uri).path).parent
+        _my_path = pathlib.Path(urllib.parse.unquote(urllib.parse.urlparse(doc_uri).path))
+        if isinstance(_my_path, pathlib.WindowsPath):
+            _my_path = pathlib.Path(str(_my_path)[1:])
+        base_path = _my_path.parent
     else:
         base_path = "."
     _path = pathlib.Path(base_path / _path).resolve().absolute()
