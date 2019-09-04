@@ -1,4 +1,4 @@
-# Benten (pre-alpha) 
+# Benten 
 
 This is a [language server] for [Common Workflow Language](https://www.commonwl.org/) documents.
 
@@ -9,7 +9,7 @@ and editing the resultant document and sub-documents can get tedious. Keeping
 track of the bigger picture (what components have been added, what connections
 have been set) can also get hard. 
 
-_Benten_ is a language server that offers help with code snippets, 
+_Benten_ is a language server that offers help with code completion,
 navigation and syntax checking of CWL documents.
 
 _Benten_ is written using Python3 and developed against VS Code. The language
@@ -23,9 +23,9 @@ extension. The VS Code extension is written in Typescript.
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
 
-# Features Implemented (version 2019.05.31)
+# Features
 
-![2019.04.23](https://i.imgur.com/fgJOXum.png)
+![2019.09.03](https://i.imgur.com/fgJOXum.png)
 
 - CWL syntax highlighting, CWL grammar parsing _(1)_
 - Embedded JS expression highlighting _(2)_
@@ -43,12 +43,21 @@ Benten requires [Python 3.7 or later](https://www.python.org/downloads/)
 If you will be installing from source you will need
 [git](https://git-scm.com/downloads) on your system
 
+## Special instructions for Ubuntu Linux
+
+```
+sudo apt install python3-pip python3-venv
+```
+
+## Using pipx
+
 A neat way to install `benten` in a virtual env (isolating it from your
 system python) and still be able to call it as a regular executable is
 to use `pipx`
 
 ```
 pip3 install pipx  # in case you don't have pipx
+pipx ensurepath # ensures CLI application directory is on your $PATH
 pipx install --spec git+https://github.com/rabix/benten.git benten
 ```
 
@@ -71,8 +80,8 @@ pipx install -e benten
 
 # Install VS Code extension
 
-- Download the VS Code extension file (.vsix) from the releases page
-- In the extensions pane on VS Code use "Install from VSIX..." to install this .vsix file
+Search for "Benten" in the marketplace. The name of the client extension
+if Rabix/benten. Follow the usual method to install the extension.
 
 # Using with VI/Vim
 
