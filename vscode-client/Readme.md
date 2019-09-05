@@ -15,6 +15,9 @@
 
 This plugin requires the [Benten CWL Language Server](https://github.com/rabix/benten) to be installed.
 
+**If you install the server after loading a CWL file you will have to
+restart VS Code**
+
 Benten requires [Python 3.7 or later](https://www.python.org/downloads/)
 
 If you will be installing from source you will need
@@ -26,6 +29,7 @@ to use `pipx`
 
 ```
 pip3 install pipx  # in case you don't have pipx
+pipx ensurepath
 pipx install --spec git+https://github.com/rabix/benten.git benten
 ```
 
