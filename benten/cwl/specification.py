@@ -19,8 +19,10 @@ process_types = ["CommandLineTool", "ExpressionTool", "Workflow"]
 def parse_schema(fname):
     type_dict = {}
     schema = json.load(open(fname, "r"))
-    parse_cwl_type(schema, type_dict)
-    parse_cwl_type(schema, type_dict)  # Two passes takes care of forward references
+
+    for n in range(3):
+        parse_cwl_type(schema, type_dict)
+
     clean_up_schema(type_dict)
     return type_dict
 
