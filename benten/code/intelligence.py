@@ -13,7 +13,6 @@ from typing import List
 
 from ..langserver.lspobjects import (Position, Range, CompletionItem)
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -57,8 +56,9 @@ class Intelligence:
         # O(n) algorithm, but should do fine for our file sizes
         # For now doing exact matches on lines, which is sufficient
         for n in self.lookup_table:
-            if n.loc.start.line == loc.line:
-                if n.loc.start.character <= loc.character <= n.loc.end.character:
-                    return n.intelligence_node
+            if n.loc.start.line <= loc.line <= n.loc.end.line:
+                if loc.line > n.loc.start.line or loc.character >= n.loc.start.character:
+                    if loc.line < n.loc.end.line or loc.character <= n.loc.end.character:
+                        return n.intelligence_node
 
         return None

@@ -21,11 +21,19 @@ def get_range_for_value(node, key):
 
     v = node[key]
     if v is None:
-        v = ""
+        end = (start[0], start[1])
     else:
-        v = str(v)  # How to handle multi line strings
+        v = str(v)
+        _lines = v.splitlines()
+        ln_cnt = len(_lines)
+        if ln_cnt == 1:
+            ln_cnt -= 1
+        # Multi-line strings begin from the next line as opposed to single line strings
 
-    end = (start[0], start[1] + len(v))
+        # Ideally we'd be carrying around the raw lines to compute the end of the last line
+        # but this is good enough and less cumbersome
+        end = (start[0] + ln_cnt, (len(_lines[-1]) + start[1]) if ln_cnt == 0 else 1000)
+
     return Range(Position(*start), Position(*end))
 
 
