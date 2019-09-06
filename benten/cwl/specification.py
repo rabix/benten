@@ -20,7 +20,9 @@ def parse_schema(fname):
     type_dict = {}
     schema = json.load(open(fname, "r"))
 
-    for n in range(3):
+    # we need multiple passes to resolve forward references
+    # todo: a way to determine how many passes are needed
+    for _ in range(3):
         parse_cwl_type(schema, type_dict)
 
     clean_up_schema(type_dict)
