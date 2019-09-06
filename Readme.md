@@ -3,11 +3,11 @@
 This is a [language server] for [Common Workflow Language](https://www.commonwl.org/) documents.
 
 <img align="right" height="150px" src="media/benten-icon.png"></img>
-Many advanced CWL users are comfortable creating tools and workflows "by hand"
-using a plain text editor. When creating complex enough workflows navigating 
-and editing the resultant document and sub-documents can get tedious. Keeping
-track of the bigger picture (what components have been added, what connections
-have been set) can also get hard. 
+Many advanced CWL users are comfortable creating tools and workflows "by
+hand" using a plain text editor. When creating complex enough workflows,
+navigating and editing the resultant document and sub-documents can get
+tedious. Keeping track of the bigger picture (what components have been
+added, what connections have been set) can also get hard.
 
 _Benten_ is a language server that offers help with code completion,
 navigation and syntax checking of CWL documents.
@@ -63,7 +63,7 @@ pipx install --spec git+https://github.com/rabix/benten.git benten
 
 _Note: `pipx` installs the executables in `$HOME/.local/bin`
 (`%HOMEPATH%\.local\bin` for Windows). This needs to be added to your
-PATH env variable_
+PATH env variable. `pipx ensurepath` does this for you_
 
 To install from develop branch (or some other branch): 
 ```
@@ -81,7 +81,7 @@ pipx install -e benten
 # Install VS Code extension
 
 Search for "Benten" in the marketplace. The name of the client extension
-if Rabix/benten. Follow the usual method to install the extension.
+is Rabix/benten. Follow the usual method to install the extension.
 
 # Using with VI/Vim
 
