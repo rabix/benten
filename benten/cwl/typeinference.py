@@ -65,8 +65,21 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
                 type_check_results += [TypeCheck(CWLBaseType(name=_type), match=Match.No)]
                 continue
 
+        # string greedily matches Expression, so we have to take care of this ...
+        if _type == "string":
+            if node is None:
+                return [TypeCheck(CWLBaseType(name=_type))]
+
+            elif isinstance(node, str):
+                type_check_results += [TypeCheck(CWLBaseType(name=_type), match=Match.Maybe)]
+
+            else:
+                type_check_results += [TypeCheck(CWLBaseType(name=_type), match=Match.No)]
+
+            continue
+
         # For now, don't closely validate these base types
-        if _type in ['string', 'boolean', 'int', 'long']:
+        if _type in ['boolean', 'int', 'long']:
             if node is None or isinstance(node, (str, bool, int)):
                 return [TypeCheck(CWLBaseType(name=_type))]
             else:
