@@ -24,7 +24,7 @@ def get_range_for_value(node, key):
         end = (start[0], start[1])
     else:
         v = str(v)
-        _lines = v.splitlines()
+        _lines = v.splitlines() or [""]
         ln_cnt = len(_lines)
         if ln_cnt == 1:
             ln_cnt -= 1
