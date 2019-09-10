@@ -16,7 +16,8 @@ def load(doc_path: pathlib.Path, type_dicts: dict):
         doc_uri=doc_path.as_uri(),
         text=doc_path.read_text(),
         version=1,
-        type_dicts=type_dicts)
+        type_dicts=type_dicts,
+        dont_create_input_job=True)
 
 
 def load_type_dicts():

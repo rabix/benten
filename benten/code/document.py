@@ -19,7 +19,8 @@ class Document:
                  doc_uri: str,
                  text: str,
                  version: int,
-                 type_dicts: dict):
+                 type_dicts: dict,
+                 dont_create_input_job=False):
         self.doc_uri = doc_uri
         self.text = text
         self.version = version
@@ -30,9 +31,9 @@ class Document:
         self.symbols = None
         self.wf_graph = None
 
-        self.update(text)
+        self.update(text, dont_create_input_job)
 
-    def update(self, new_text):
+    def update(self, new_text, dont_create_input_job=False):
         self.text = new_text
         self.code_intelligence = Intelligence()
         self.symbols = []
@@ -50,7 +51,8 @@ class Document:
         logger.debug(f"Took {t2 - t1:1.3}s to parse document")
 
         self.symbology(cwl)
-        self.code_intelligence.prepare_execution_context(self.doc_uri)
+        if not dont_create_input_job:
+            self.code_intelligence.prepare_execution_context(self.doc_uri)
 
     def definition(self, loc: Position):
         de = self.code_intelligence.get_doc_element(loc)
