@@ -23,6 +23,7 @@ setup(
     python_requires='>=3.7.0',
     install_requires=[
         "ruamel.yaml",
+        "dukpy",
         "sevenbridges-python"
     ],
     entry_points={

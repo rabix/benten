@@ -128,13 +128,17 @@ def check_linked_file(doc_uri: str, path: str, loc: Range, problems: list):
 # a) decoded (so that c%3A -> c:)
 # b) The leading "/" needs to be chomped.
 # Step a) is redundant on *nix and b) should not be done
+def un_mangle_uri(doc_uri):
+    _my_path = pathlib.Path(urllib.parse.unquote(urllib.parse.urlparse(doc_uri).path))
+    if isinstance(_my_path, pathlib.WindowsPath):
+        _my_path = pathlib.Path(str(_my_path)[1:])
+    return _my_path
+
+
 def resolve_file_path(doc_uri, target_path):
     _path = pathlib.PurePosixPath(target_path)
     if not _path.is_absolute():
-        _my_path = pathlib.Path(urllib.parse.unquote(urllib.parse.urlparse(doc_uri).path))
-        if isinstance(_my_path, pathlib.WindowsPath):
-            _my_path = pathlib.Path(str(_my_path)[1:])
-        base_path = _my_path.parent
+        base_path = un_mangle_uri(doc_uri).parent
     else:
         base_path = "."
     _path = pathlib.Path(base_path / _path).resolve().absolute()

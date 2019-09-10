@@ -9,7 +9,6 @@ from ..cwl.typeinference import infer_type
 from .symbols import extract_symbols, extract_step_symbols
 from ..langserver.lspobjects import Position
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -51,6 +50,7 @@ class Document:
         logger.debug(f"Took {t2 - t1:1.3}s to parse document")
 
         self.symbology(cwl)
+        self.code_intelligence.prepare_execution_context(self.doc_uri)
 
     def definition(self, loc: Position):
         de = self.code_intelligence.get_doc_element(loc)

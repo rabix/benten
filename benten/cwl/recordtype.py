@@ -104,6 +104,10 @@ class CWLRecordType(CWLBaseType):
                 # Exception for run field that is a string
                 inferred_type = CWLLinkedFile(prefix=child_node, extension=".cwl")
 
+            elif self.name == "InlineJavascriptRequirement" and k == "expressionLib":
+                # todo: this will fail for inlined nested workflows
+                code_intel.prepare_expression_lib(child_node)
+
             else:
 
                 # Regular processing
