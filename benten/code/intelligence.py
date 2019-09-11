@@ -12,6 +12,7 @@ For details see ../../docs/document-model.md
 from typing import List
 
 from ..langserver.lspobjects import (Position, Range, CompletionItem)
+from .schemadef import extract_schemadef
 from .executioncontext import ExecutionContext
 
 import logging
@@ -49,10 +50,14 @@ class Intelligence:
 
     def __init__(self):
         self.lookup_table: List[LookupNode] = []
+        self.type_defs = {}
         self.execution_context = ExecutionContext()
 
     def add_lookup_node(self, node: LookupNode):
         self.lookup_table.append(node)
+
+    def extract_schemadef(self, doc_uri: str, cwl: dict):
+        self.type_defs = extract_schemadef(doc_uri, cwl)
 
     def prepare_execution_context(self, doc_uri):
         self.execution_context.set_job_inputs(doc_uri)

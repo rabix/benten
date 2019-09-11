@@ -21,7 +21,11 @@ class CWLEnumType(CWLBaseType):
                 cwl_type=self,
                 match=Match.No)
         else:
-            return TypeCheck(cwl_type=self)
+            if self.name in ["PrimitiveType", "CWLType"]:
+                # Special treatment for data types
+                return TypeCheck(cwl_type=CWLDataType(self.name, self.symbols))
+            else:
+                return TypeCheck(cwl_type=self)
 
     def parse(self,
               doc_uri: str,
@@ -35,19 +39,23 @@ class CWLEnumType(CWLBaseType):
               value_range: Range = None,
               requirements=None):
 
-        symbols = self.symbols
+        if self.name in ["PrimitiveType", "CWLType"]:
+            # Special treatment for user defined types, if any
+            self.symbols = set(code_intel.type_defs.keys()).union(self.symbols)
+
+        all_symbols = self.symbols
         if self.name in ["PrimitiveType", "CWLType"]:
             # Special treatment for syntactic sugar around types
-            symbols = [
+            all_symbols = [
                 sy + ext for sy in self.symbols for ext in ["", "[]", "?", "[]?"]
             ]
 
-        if node not in symbols:
+        if node not in all_symbols:
 
             problems += [
                 Diagnostic(
                     _range=value_range,
-                    message=f"Expecting one of: {self.symbols}",
+                    message=f"Expecting one of: {sorted(self.symbols)}",
                     severity=DiagnosticSeverity.Error)
             ]
 
@@ -57,3 +65,7 @@ class CWLEnumType(CWLBaseType):
 
     def completion(self):
         return [CompletionItem(label=s) for s in self.symbols]
+
+
+class CWLDataType(CWLEnumType):
+    pass

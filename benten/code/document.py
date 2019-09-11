@@ -46,11 +46,14 @@ class Document:
         if not isinstance(cwl, dict):
             return
 
+        self.code_intelligence.extract_schemadef(self.doc_uri, cwl)
+        # Prepare the schemadef before regular parsing so we have the types at hand
         self.parse(cwl)
         t2 = time.time()
         logger.debug(f"Took {t2 - t1:1.3}s to parse document")
 
         self.symbology(cwl)
+
         if not dont_create_input_job:
             self.code_intelligence.prepare_execution_context(self.doc_uri)
 
