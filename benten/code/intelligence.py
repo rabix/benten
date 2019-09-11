@@ -59,8 +59,8 @@ class Intelligence:
     def extract_schemadef(self, doc_uri: str, cwl: dict):
         self.type_defs = extract_schemadef(doc_uri, cwl)
 
-    def prepare_execution_context(self, doc_uri):
-        self.execution_context.set_job_inputs(doc_uri)
+    def prepare_execution_context(self, doc_uri: str, cwl: dict):
+        self.execution_context.set_job_inputs(doc_uri, cwl, self.type_defs)
 
     def prepare_expression_lib(self, expression_lib: list):
         self.execution_context.set_expression_lib(expression_lib)

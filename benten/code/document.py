@@ -48,14 +48,19 @@ class Document:
 
         self.code_intelligence.extract_schemadef(self.doc_uri, cwl)
         # Prepare the schemadef before regular parsing so we have the types at hand
-        self.parse(cwl)
         t2 = time.time()
-        logger.debug(f"Took {t2 - t1:1.3}s to parse document")
-
-        self.symbology(cwl)
+        logger.debug(f"Took {t2 - t1:1.3}s to parse SchemaDef")
 
         if not dont_create_input_job:
-            self.code_intelligence.prepare_execution_context(self.doc_uri)
+            self.code_intelligence.prepare_execution_context(self.doc_uri, cwl)
+        t3 = time.time()
+        logger.debug(f"Took {t3 - t2:1.3}s to generate test data")
+
+        self.parse(cwl)
+        t4 = time.time()
+        logger.debug(f"Took {t4 - t3:1.3}s to parse document")
+
+        self.symbology(cwl)
 
     def definition(self, loc: Position):
         de = self.code_intelligence.get_doc_element(loc)
