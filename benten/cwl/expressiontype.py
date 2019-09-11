@@ -14,8 +14,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-parameter_ref = re.compile(r"\$\((.*)\)", flags=re.DOTALL | re.M)
-expression_ref = re.compile(r"\${(.*)\}", flags=re.DOTALL | re.M)
+parameter_ref = re.compile(r"(^.*?)\$\((.*)\)(.*?$)", flags=re.DOTALL | re.M)
+expression_ref = re.compile(r"(^.*?)\${(.*)\}(.*?$)", flags=re.DOTALL | re.M)
 
 
 class CWLExpressionType(CWLBaseType):
@@ -24,17 +24,19 @@ class CWLExpressionType(CWLBaseType):
         if isinstance(node, str):
             m = parameter_ref.match(node)
             if m is not None:
-                return TypeCheck(
-                    cwl_type=CWLExpression(
-                        m.groups()[0], ExpressionType.ParameterReference))
+                return _create_expression(m, ExpressionType.ParameterReference)
 
             m = expression_ref.match(node)
             if m is not None:
-                return TypeCheck(
-                    cwl_type=CWLExpression(
-                        m.groups()[0], ExpressionType.JSExpression))
+                return _create_expression(m, ExpressionType.JSExpression)
 
         return TypeCheck(cwl_type=self, match=Match.No)
+
+
+def _create_expression(m, exp_type):
+    grp = m.groups()
+    return TypeCheck(
+        cwl_type=CWLExpression(grp[1], exp_type, bracketing_terms=(grp[0], grp[2])))
 
 
 class ExpressionType(IntEnum):
@@ -44,8 +46,9 @@ class ExpressionType(IntEnum):
 
 class CWLExpression(CWLBaseType):
 
-    def __init__(self, expression: str, exp_type: ExpressionType):
+    def __init__(self, expression: str, exp_type: ExpressionType, bracketing_terms=None):
         super().__init__("Expression")
+        self.bracketing_terms = bracketing_terms or ["", ""]
         if exp_type is ExpressionType.ParameterReference:
             self.expression = \
                 f"""
@@ -63,13 +66,6 @@ function benten_eval_func() {{
 benten_eval_func()"""
         self.exp_type = exp_type
         self.execution_context = None
-
-    def check(self, node, node_key: str=None, map_sp: MapSubjectPredicate=None) -> TypeCheck:
-        if isinstance(node, str):
-            if "$(" in node or "${" in node:
-                return TypeCheck(cwl_type=self)
-
-        return TypeCheck(cwl_type=self, match=Match.No)
 
     def parse(self,
               doc_uri: str,
@@ -89,14 +85,14 @@ benten_eval_func()"""
         ln.intelligence_node = self
         code_intel.add_lookup_node(ln)
 
-    # Future expansion: expression evaluation on hover
     def hover(self):
         try:
             res = dukpy.evaljs(self.execution_context.expression_lib + [self.expression],
                                runtime=self.execution_context.runtime,
                                inputs=self.execution_context.job_inputs)
+            res = self.bracketing_terms[0] + str(res) + self.bracketing_terms[1]
         except dukpy.JSRuntimeError as e:
-            res = f"{self.expression} -> {str(e)}"
+            res = str(e).splitlines()[0]
             logger.error(res)
 
         return Hover(res)
