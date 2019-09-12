@@ -7,7 +7,7 @@ import dukpy
 
 from .basetype import (CWLBaseType, MapSubjectPredicate, TypeCheck, Match,
                        Intelligence, IntelligenceContext)
-from ..langserver.lspobjects import Range, Hover
+from ..langserver.lspobjects import Range, Hover, Location
 from ..code.intelligence import LookupNode
 
 import logging
@@ -86,13 +86,21 @@ benten_eval_func()"""
         code_intel.add_lookup_node(ln)
 
     def hover(self):
-        try:
-            res = dukpy.evaljs(self.execution_context.expression_lib + [self.expression],
-                               runtime=self.execution_context.runtime,
-                               inputs=self.execution_context.job_inputs)
-            res = self.bracketing_terms[0] + str(res) + self.bracketing_terms[1]
-        except dukpy.JSRuntimeError as e:
-            res = str(e).splitlines()[0]
-            logger.error(res)
+        job_inputs = self.execution_context.job_inputs
+        if job_inputs:
+            try:
+                res = dukpy.evaljs(self.execution_context.expression_lib + [self.expression],
+                                   runtime=self.execution_context.runtime,
+                                   inputs=job_inputs)
+                res = self.bracketing_terms[0] + str(res) + self.bracketing_terms[1]
+            except dukpy.JSRuntimeError as e:
+                res = str(e).splitlines()[0]
+                logger.error(res)
+        else:
+            res = "Job inputs have not been filled out"
 
         return Hover(res)
+
+    def definition(self):
+        # Hijacking this to show the sample inputs file
+        return Location(self.execution_context.get_sample_data_file_path().as_uri())

@@ -1,19 +1,4 @@
-"""Manages aspects related to test executions of the CWL and of JS expressions.
-
-One of the more interesting decisions to be taken is the test input
-auto-generation. We'd like the system to automatically create test
-inputs based on the input schema, but we'd like the user to be able
-to edit the schema to their liking. What happens when the schema
-is regenerated? It would be bad UI to overwrite the user's test data
-every time, but we need to discard stale inputs and auto=generate
-new inputs when the document changes.
-
-We do the following: we generate the test data afresh each time
-and we load the test data too. We then delete any keys in the
-test data that are absent in the schema, and we write in any
-keys that are present in the generated data, but absent in the
-existing test data.
-"""
+"""Manages aspects related to test executions of the CWL and of JS expressions."""
 
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
@@ -36,30 +21,15 @@ logger = logging.getLogger(__name__)
 job_inputs_ext = ".benten.test.job.yml"
 
 
-def merge(user, auto):
-    if isinstance(user, dict) and isinstance(auto, dict):
-        for k in list(user.keys()):
-            if k not in auto:
-                user.pop(k)
-
-        for k, v in auto.items():
-            if k not in user:
-                user[k] = v
-
-        for k in user.keys():
-            if (isinstance(auto[k], dict) and not isinstance(user[k], dict)) or \
-                    (not isinstance(auto[k], dict) and isinstance(user[k], dict)):
-                user[k] = auto[k]
-            elif isinstance(auto[k], dict) and isinstance(user[k], dict):
-                merge(user[k], auto[k])
-
-
 class ExecutionContext:
     """Carries the job object (sample inputs) and expression lib for this process"""
 
-    def __init__(self):
+    def __init__(self, doc_uri: str, cwl: dict, user_types: dict, scratch_path: str):
+        self.doc_uri = doc_uri
+        self.cwl = cwl
+        self.user_types = user_types
+        self.scratch_path = scratch_path
         self.context_error = None
-        self.job_inputs = {}
         self.runtime = {
             "outdir": "/out/dir",
             "tmpdir": "/tmp/dir",
@@ -70,32 +40,43 @@ class ExecutionContext:
         }
         self.expression_lib = []
 
-    def set_job_inputs(self, uri: str, cwl: dict, user_types: dict):
-        cwl_uri = un_mangle_uri(uri)
-        ex_job_file = cwl_uri.with_suffix(job_inputs_ext)
-        _inputs = cwl.get("inputs")
-        if not isinstance(_inputs, (list, dict)):
-            _inputs = {}
-        auto_set_inputs = {
-            k: example_value(k, _type_v, user_types)
-            for k, _type_v in list_as_map(_inputs, key_field="id", problems=[]).items()
-        }
+    @property
+    def job_inputs(self):
+        ex_job_file = self.get_sample_data_file_path()
+        if not ex_job_file.exists() or ex_job_file.stat().st_size == 0:
+            self.set_job_inputs()
 
         user_set_inputs = {}
         if ex_job_file.exists():
             try:
                 user_set_inputs = fast_load.load(ex_job_file.open().read() or "")
-                logger.debug(user_set_inputs)
             except (ParserError, ScannerError) as e:
-                logger.error(f"Parsing error loading test input file {ex_job_file}")
-                user_set_inputs = {}
+                logger.error(f"Error loading sample input file {ex_job_file}")
+        else:
+            logger.error(f"No sample input file {ex_job_file}")
 
-        merge(user_set_inputs, auto_set_inputs)
-        self.job_inputs = user_set_inputs
-        logger.debug(self.job_inputs)
+        return user_set_inputs
+
+    def set_job_inputs(self):
+        ex_job_file = self.get_sample_data_file_path()
+        ex_job_file.parent.mkdir(parents=True, exist_ok=True)
+
+        _inputs = self.cwl.get("inputs")
+        if not isinstance(_inputs, (list, dict)):
+            _inputs = {}
+        auto_set_inputs = {
+            k: example_value(k, _type_v, self.user_types)
+            for k, _type_v in list_as_map(_inputs, key_field="id", problems=[]).items()
+        }
+
+        fast_load.dump(auto_set_inputs, ex_job_file)
 
     def set_expression_lib(self, expression_lib: list=None):
         self.expression_lib = expression_lib
+
+    def get_sample_data_file_path(self) -> pathlib.Path:
+        return self.scratch_path / pathlib.Path(
+            *un_mangle_uri(self.doc_uri).with_suffix(job_inputs_ext).parts[1:])
 
 
 def basic_example_value(name, _type):

@@ -17,11 +17,12 @@ class Document:
 
     def __init__(self,
                  doc_uri: str,
+                 scratch_path: str,  # Needed for ExecutionContext's example input file
                  text: str,
                  version: int,
-                 type_dicts: dict,
-                 dont_create_input_job=False):
+                 type_dicts: dict):
         self.doc_uri = doc_uri
+        self.config = scratch_path
         self.text = text
         self.version = version
         self.type_dicts = type_dicts
@@ -31,9 +32,9 @@ class Document:
         self.symbols = None
         self.wf_graph = None
 
-        self.update(text, dont_create_input_job)
+        self.update(text)
 
-    def update(self, new_text, dont_create_input_job=False):
+    def update(self, new_text):
         self.text = new_text
         self.code_intelligence = Intelligence()
         self.symbols = []
@@ -51,14 +52,11 @@ class Document:
         t2 = time.time()
         logger.debug(f"Took {t2 - t1:1.3}s to parse SchemaDef")
 
-        if not dont_create_input_job:
-            self.code_intelligence.prepare_execution_context(self.doc_uri, cwl)
-        t3 = time.time()
-        logger.debug(f"Took {t3 - t2:1.3}s to generate test data")
+        self.code_intelligence.prepare_execution_context(self.doc_uri, cwl, self.config)
 
         self.parse(cwl)
-        t4 = time.time()
-        logger.debug(f"Took {t4 - t3:1.3}s to parse document")
+        t3 = time.time()
+        logger.debug(f"Took {t3 - t2:1.3}s to parse document")
 
         self.symbology(cwl)
 

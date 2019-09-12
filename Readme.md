@@ -87,8 +87,29 @@ is Rabix/benten. Follow the usual method to install the extension.
 
 See [this page](docs/vim.md) please.
 
+# Example input auto generation
 
-# Tips and Tricks
+Benten can auto generate an example input file for the CWL document you
+are working on. Whenever you hover over a JS expression, Benten looks
+for the example input file. If the file does not exist, or is empty then
+Benten will scan the input schema of the CWL file and autogenerate an
+example input file. 
+
+Activating "Goto definition" over any JS expression or parameter
+reference will open this example input file in the editor. You can edit
+this file to supply your own test data. **If you want the test data to
+be regenerated (e.g. you've changed the input schema of the CWL) you can
+delete the contents of the file (turn it into an empty file) and Benten
+will regenerate the input.**
+
+
+# Expression evaluations on hover
+
+Hovering over an expression will display the result of the evaluation or
+any errors that are encountered.
+
+
+# Other tips and Tricks
 
 Benten attaches onto your regular text editor and offers help by
 way of auto-completions and document validations, so most of its
