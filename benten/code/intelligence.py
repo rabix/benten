@@ -10,6 +10,7 @@ For details see ../../docs/document-model.md
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 from typing import List
+import pathlib
 
 from ..langserver.lspobjects import (Position, Range, CompletionItem)
 from .schemadef import extract_schemadef
@@ -41,9 +42,9 @@ class IntelligenceNode:
         pass
 
 
-# Children of maps need to track their ancestors for completions
-class IntelligenceContext:
-    pass
+# # Children of maps need to track their ancestors for completions
+# class IntelligenceContext:
+#     pass
 
 
 class Intelligence:
@@ -59,7 +60,7 @@ class Intelligence:
     def extract_schemadef(self, doc_uri: str, cwl: dict):
         self.type_defs = extract_schemadef(doc_uri, cwl)
 
-    def prepare_execution_context(self, doc_uri: str, cwl: dict, scratch_path: str):
+    def prepare_execution_context(self, doc_uri: str, cwl: dict, scratch_path: pathlib.Path):
         self.execution_context = ExecutionContext(
             doc_uri=doc_uri,
             scratch_path=scratch_path,

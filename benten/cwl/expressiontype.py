@@ -49,6 +49,7 @@ class CWLExpression(CWLBaseType):
     def __init__(self, expression: str, exp_type: ExpressionType, bracketing_terms=None):
         super().__init__("Expression")
         self.bracketing_terms = bracketing_terms or ["", ""]
+        self.self = ()  # the path to the 'self' variable as described in CWL specs
         if exp_type is ExpressionType.ParameterReference:
             self.expression = \
                 f"""

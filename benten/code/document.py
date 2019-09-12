@@ -4,6 +4,7 @@ import time
 
 from .yaml import parse_yaml
 from .intelligence import Intelligence
+from .intelligencecontext import IntelligenceContext
 from ..cwl.specification import latest_published_cwl_version, process_types
 from ..cwl.typeinference import infer_type
 from .symbols import extract_symbols, extract_step_symbols
@@ -89,7 +90,7 @@ class Document:
         inferred_type.parse(
             doc_uri=self.doc_uri,
             node=cwl,
-            intel_context=None,
+            intel_context=IntelligenceContext(path=[]),
             code_intel=self.code_intelligence,
             problems=self.problems)
 

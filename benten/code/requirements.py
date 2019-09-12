@@ -1,6 +1,7 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from .intelligence import IntelligenceNode, IntelligenceContext
+from .intelligence import IntelligenceNode
+from .intelligencecontext import IntelligenceContext
 
 
 class Requirements(IntelligenceContext):

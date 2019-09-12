@@ -3,7 +3,6 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 import pathlib
-import subprocess
 import random
 
 from ..cwl.lib import un_mangle_uri, list_as_map
@@ -24,12 +23,11 @@ job_inputs_ext = ".benten.test.job.yml"
 class ExecutionContext:
     """Carries the job object (sample inputs) and expression lib for this process"""
 
-    def __init__(self, doc_uri: str, cwl: dict, user_types: dict, scratch_path: str):
+    def __init__(self, doc_uri: str, cwl: dict, user_types: dict, scratch_path: pathlib.Path):
         self.doc_uri = doc_uri
         self.cwl = cwl
         self.user_types = user_types
         self.scratch_path = scratch_path
-        self.context_error = None
         self.runtime = {
             "outdir": "/out/dir",
             "tmpdir": "/tmp/dir",

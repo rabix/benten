@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 from ..langserver.lspobjects import Range
-from ..code.intelligence import IntelligenceNode, IntelligenceContext, Intelligence
+from ..code.intelligence import IntelligenceNode, Intelligence
+from ..code.intelligencecontext import IntelligenceContext
 
 
 class MapSubjectPredicate:
