@@ -54,3 +54,10 @@ def test_requirement_completion():
     doc = load(doc_path=path, type_dicts=type_dicts)
     cmpl = doc.completion(Position(8, 16))
     assert "InlineJavascriptRequirement" in [c.label for c in cmpl]
+
+
+def test_requirement_sub_completion():
+    this_path = current_path / "cwl" / "ebi" / "workflows" / "InterProScan-v5-chunked-wf.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+    cmpl = doc.completion(Position(8, 10))
+    assert "InlineJavascriptRequirement" in [c.label for c in cmpl]
