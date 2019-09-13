@@ -30,7 +30,7 @@ class LookupNode:
 class IntelligenceNode:
 
     def __init__(self, completions: List[str]=None):
-        self._completions = completions
+        self._completions = completions or []
 
     def completion(self):
         return [CompletionItem(label=c) for c in self._completions]
