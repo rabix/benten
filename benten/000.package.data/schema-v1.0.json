@@ -233,7 +233,9 @@
         "extends": "https://w3id.org/cwl/salad#PrimitiveType",
         "symbols": [
             "File",
-            "Directory"
+            "Directory",
+            "stdout",
+            "stderr"
         ],
         "doc": [
             "Extends primitive types with the concept of a file and directory as a builtin type.",
@@ -249,7 +251,9 @@
             "http://www.w3.org/2001/XMLSchema#double",
             "http://www.w3.org/2001/XMLSchema#string",
             "https://w3id.org/cwl/cwl#File",
-            "https://w3id.org/cwl/cwl#Directory"
+            "https://w3id.org/cwl/cwl#Directory",
+            "https://w3id.org/cwl/cwl#stdout",
+            "https://w3id.org/cwl/cwl#stderr"
         ]
     },
     {
@@ -358,7 +362,7 @@
                                 "name": "Directory",
                                 "type": "record",
                                 "docAfter": "https://w3id.org/cwl/cwl#File",
-                                "doc": "Represents a directory to present to a command line tool.\n\nDirectories are represented as objects with `class` of `Directory`.  Directory objects have\na number of properties that provide metadata about the directory.\n\nThe `location` property of a Directory is a URI that uniquely identifies\nthe directory.  Implementations must support the file:// URI scheme and may\nsupport other schemes such as http://.  Alternately to `location`,\nimplementations must also accept the `path` property on Direcotry, which\nmust be a filesystem path available on the same host as the CWL runner (for\ninputs) or the runtime environment of a command line tool execution (for\ncommand line tool outputs).\n\nA Directory object may have a `listing` field.  This is a list of File and\nDirectory objects that are contained in the Directory.  For each entry in\n`listing`, the `basename` property defines the name of the File or\nSubdirectory when staged to disk.  If `listing` is not provided, the\nimplementation must have some way of fetching the Directory listing at\nruntime based on the `location` field.\n\nIf a Directory does not have `location`, it is a Directory literal.  A\nDirectory literal must provide `listing`.  Directory literals must be\ncreated on disk at runtime as needed.\n\nThe resources in a Directory literal do not need to have any implied\nrelationship in their `location`.  For example, a Directory listing may\ncontain two files located on different hosts.  It is the responsibility of\nthe runtime to ensure that those files are staged to disk appropriately.\nSecondary files associated with files in `listing` must also be staged to\nthe same Directory.\n\nWhen executing a CommandLineTool, Directories must be recursively staged\nfirst and have local values of `path` assigend.\n\nDirectory objects in CommandLineTool output must provide either a\n`location` URI or a `path` property in the context of the tool execution\nruntime (local to the compute node, or within the executing container).\n\nAn ExpressionTool may forward file references from input to output by using\nthe same value for `location`.\n\nName conflicts (the same `basename` appearing multiple times in `listing`\nor in any entry in `secondaryFiles` in the listing) is a fatal error.\n",
+                                "doc": "Represents a directory to present to a command line tool.\n\nDirectories are represented as objects with `class` of `Directory`.  Directory objects have\na number of properties that provide metadata about the directory.\n\nThe `location` property of a Directory is a URI that uniquely identifies\nthe directory.  Implementations must support the file:// URI scheme and may\nsupport other schemes such as http://.  Alternately to `location`,\nimplementations must also accept the `path` property on Directory, which\nmust be a filesystem path available on the same host as the CWL runner (for\ninputs) or the runtime environment of a command line tool execution (for\ncommand line tool outputs).\n\nA Directory object may have a `listing` field.  This is a list of File and\nDirectory objects that are contained in the Directory.  For each entry in\n`listing`, the `basename` property defines the name of the File or\nSubdirectory when staged to disk.  If `listing` is not provided, the\nimplementation must have some way of fetching the Directory listing at\nruntime based on the `location` field.\n\nIf a Directory does not have `location`, it is a Directory literal.  A\nDirectory literal must provide `listing`.  Directory literals must be\ncreated on disk at runtime as needed.\n\nThe resources in a Directory literal do not need to have any implied\nrelationship in their `location`.  For example, a Directory listing may\ncontain two files located on different hosts.  It is the responsibility of\nthe runtime to ensure that those files are staged to disk appropriately.\nSecondary files associated with files in `listing` must also be staged to\nthe same Directory.\n\nWhen executing a CommandLineTool, Directories must be recursively staged\nfirst and have local values of `path` assigend.\n\nDirectory objects in CommandLineTool output must provide either a\n`location` URI or a `path` property in the context of the tool execution\nruntime (local to the compute node, or within the executing container).\n\nAn ExpressionTool may forward file references from input to output by using\nthe same value for `location`.\n\nName conflicts (the same `basename` appearing multiple times in `listing`\nor in any entry in `secondaryFiles` in the listing) is a fatal error.\n",
                                 "fields": [
                                     {
                                         "name": "class",
@@ -563,6 +567,14 @@
                                 "jsonldPredicate": "rdfs:label",
                                 "doc": "A short, human-readable label of this object.",
                                 "inherited_from": "https://w3id.org/cwl/cwl#SchemaBase"
+                            },
+                            {
+                                "name": "name",
+                                "type": [
+                                    "null",
+                                    "string"
+                                ],
+                                "jsonldPredicate": "@id"
                             }
                         ]
                     },
@@ -612,6 +624,14 @@
                                 "inherited_from": "https://w3id.org/cwl/cwl#SchemaBase"
                             },
                             {
+                                "name": "name",
+                                "type": [
+                                    "null",
+                                    "string"
+                                ],
+                                "jsonldPredicate": "@id"
+                            },
+                            {
                                 "name": "inputBinding",
                                 "type": [
                                     "null",
@@ -619,7 +639,7 @@
                                         "type": "record",
                                         "name": "CommandLineBinding",
                                         "extends": "https://w3id.org/cwl/cwl#InputBinding",
-                                        "doc": "\nWhen listed under `inputBinding` in the input schema, the term\n\"value\" refers to the the corresponding value in the input object.  For\nbinding objects listed in `CommandLineTool.arguments`, the term \"value\"\nrefers to the effective value after evaluating `valueFrom`.\n\nThe binding behavior when building the command line depends on the data\ntype of the value.  If there is a mismatch between the type described by\nthe input schema and the effective value, such as resulting from an\nexpression evaluation, an implementation must use the data type of the\neffective value.\n\n  - **string**: Add `prefix` and the string to the command line.\n\n  - **number**: Add `prefix` and decimal representation to command line.\n\n  - **boolean**: If true, add `prefix` to the command line.  If false, add\n      nothing.\n\n  - **File**: Add `prefix` and the value of\n    [`File.path`](#File) to the command line.\n\n  - **array**: If `itemSeparator` is specified, add `prefix` and the join\n      the array into a single string with `itemSeparator` separating the\n      items.  Otherwise first add `prefix`, then recursively process\n      individual elements.\n\n  - **object**: Add `prefix` only, and recursively add object fields for\n      which `inputBinding` is specified.\n\n  - **null**: Add nothing.\n",
+                                        "doc": "\nWhen listed under `inputBinding` in the input schema, the term\n\"value\" refers to the the corresponding value in the input object.  For\nbinding objects listed in `CommandLineTool.arguments`, the term \"value\"\nrefers to the effective value after evaluating `valueFrom`.\n\nThe binding behavior when building the command line depends on the data\ntype of the value.  If there is a mismatch between the type described by\nthe input schema and the effective value, such as resulting from an\nexpression evaluation, an implementation must use the data type of the\neffective value.\n\n  - **string**: Add `prefix` and the string to the command line.\n\n  - **number**: Add `prefix` and decimal representation to command line.\n\n  - **boolean**: If true, add `prefix` to the command line.  If false, add\n      nothing.\n\n  - **File**: Add `prefix` and the value of\n    [`File.path`](#File) to the command line.\n\n  - **Directory**: Add `prefix` and the value of\n    [`Directory.path`](#Directory) to the command line.\n\n  - **array**: If `itemSeparator` is specified, add `prefix` and the join\n      the array into a single string with `itemSeparator` separating the\n      items.  Otherwise first add `prefix`, then recursively process\n      individual elements.\n      If the array is empty, it does not add anything to command line.\n\n  - **object**: Add `prefix` only, and recursively add object fields for\n      which `inputBinding` is specified.\n\n  - **null**: Add nothing.\n",
                                         "fields": [
                                             {
                                                 "name": "loadContents",
@@ -1530,6 +1550,15 @@
                                 "jsonldPredicate": "rdfs:label",
                                 "doc": "A short, human-readable label of this object.",
                                 "inherited_from": "https://w3id.org/cwl/cwl#SchemaBase"
+                            },
+                            {
+                                "name": "name",
+                                "type": [
+                                    "null",
+                                    "string"
+                                ],
+                                "jsonldPredicate": "@id",
+                                "inherited_from": "https://w3id.org/cwl/cwl#InputRecordSchema"
                             }
                         ]
                     },
@@ -1580,6 +1609,15 @@
                                 "jsonldPredicate": "rdfs:label",
                                 "doc": "A short, human-readable label of this object.",
                                 "inherited_from": "https://w3id.org/cwl/cwl#SchemaBase"
+                            },
+                            {
+                                "name": "name",
+                                "type": [
+                                    "null",
+                                    "string"
+                                ],
+                                "jsonldPredicate": "@id",
+                                "inherited_from": "https://w3id.org/cwl/cwl#InputEnumSchema"
                             },
                             {
                                 "name": "inputBinding",
@@ -1813,6 +1851,14 @@
                                 "jsonldPredicate": "rdfs:label",
                                 "doc": "A short, human-readable label of this object.",
                                 "inherited_from": "https://w3id.org/cwl/cwl#SchemaBase"
+                            },
+                            {
+                                "name": "name",
+                                "type": [
+                                    "null",
+                                    "string"
+                                ],
+                                "jsonldPredicate": "@id"
                             }
                         ]
                     },
@@ -2379,7 +2425,7 @@
                                 "type": "record",
                                 "name": "DockerRequirement",
                                 "extends": "https://w3id.org/cwl/cwl#ProcessRequirement",
-                                "doc": "Indicates that a workflow component should be run in a\n[Docker](http://docker.com) container, and specifies how to fetch or build\nthe image.\n\nIf a CommandLineTool lists `DockerRequirement` under\n`hints` (or `requirements`), it may (or must) be run in the specified Docker\ncontainer.\n\nThe platform must first acquire or install the correct Docker image as\nspecified by `dockerPull`, `dockerImport`, `dockerLoad` or `dockerFile`.\n\nThe platform must execute the tool in the container using `docker run` with\nthe appropriate Docker image and tool command line.\n\nThe workflow platform may provide input files and the designated output\ndirectory through the use of volume bind mounts.  The platform may rewrite\nfile paths in the input object to correspond to the Docker bind mounted\nlocations.\n\nWhen running a tool contained in Docker, the workflow platform must not\nassume anything about the contents of the Docker container, such as the\npresence or absence of specific software, except to assume that the\ngenerated command line represents a valid command within the runtime\nenvironment of the container.\n\n## Interaction with other requirements\n\nIf [EnvVarRequirement](#EnvVarRequirement) is specified alongside a\nDockerRequirement, the environment variables must be provided to Docker\nusing `--env` or `--env-file` and interact with the container's preexisting\nenvironment as defined by Docker.\n",
+                                "doc": "Indicates that a workflow component should be run in a\n[Docker](http://docker.com) container, and specifies how to fetch or build\nthe image.\n\nIf a CommandLineTool lists `DockerRequirement` under\n`hints` (or `requirements`), it may (or must) be run in the specified Docker\ncontainer.\n\nThe platform must first acquire or install the correct Docker image as\nspecified by `dockerPull`, `dockerImport`, `dockerLoad` or `dockerFile`.\n\nThe platform must execute the tool in the container using `docker run` with\nthe appropriate Docker image and tool command line.\n\nThe workflow platform may provide input files and the designated output\ndirectory through the use of volume bind mounts.  The platform should rewrite\nfile paths in the input object to correspond to the Docker bind mounted\nlocations. That is, the platform should rewrite values in the parameter context\nsuch as `runtime.outdir`, `runtime.tmpdir` and others to be valid paths\nwithin the container.\n\nWhen running a tool contained in Docker, the workflow platform must not\nassume anything about the contents of the Docker container, such as the\npresence or absence of specific software, except to assume that the\ngenerated command line represents a valid command within the runtime\nenvironment of the container.\n\n## Interaction with other requirements\n\nIf [EnvVarRequirement](#EnvVarRequirement) is specified alongside a\nDockerRequirement, the environment variables must be provided to Docker\nusing `--env` or `--env-file` and interact with the container's preexisting\nenvironment as defined by Docker.\n",
                                 "fields": [
                                     {
                                         "name": "class",
@@ -3461,7 +3507,7 @@
                     "Expression"
                 ],
                 "jsonldPredicate": "cwl:valueFrom",
-                "doc": "To use valueFrom, [StepInputExpressionRequirement](#StepInputExpressionRequirement) must\nbe specified in the workflow or workflow step requirements.\n\nIf `valueFrom` is a constant string value, use this as the value for\nthis input parameter.\n\nIf `valueFrom` is a parameter reference or expression, it must be\nevaluated to yield the actual value to be assiged to the input field.\n\nThe `self` value of in the parameter reference or expression must be\nthe value of the parameter(s) specified in the `source` field, or\nnull if there is no `source` field.\n\nThe value of `inputs` in the parameter reference or expression must be\nthe input object to the workflow step after assigning the `source`\nvalues, applying `default`, and then scattering.  The order of\nevaluating `valueFrom` among step input parameters is undefined and the\nresult of evaluating `valueFrom` on a parameter must not be visible to\nevaluation of `valueFrom` on other parameters.\n"
+                "doc": "To use valueFrom, [StepInputExpressionRequirement](#StepInputExpressionRequirement) must\nbe specified in the workflow or workflow step requirements.\n\nIf `valueFrom` is a constant string value, use this as the value for\nthis input parameter.\n\nIf `valueFrom` is a parameter reference or expression, it must be\nevaluated to yield the actual value to be assiged to the input field.\n\nThe `self` value in the parameter reference or expression must be\n1. `null` if there is no `source` field\n2. the value of the parameter(s) specified in the `source` field when this\nworkflow input parameter **is not** specified in this workflow step's `scatter` field.\n3. an element of the parameter specified in the `source` field when this workflow input \nparameter **is** specified in this workflow step's `scatter` field.\n\nThe value of `inputs` in the parameter reference or expression must be\nthe input object to the workflow step after assigning the `source`\nvalues, applying `default`, and then scattering.  The order of\nevaluating `valueFrom` among step input parameters is undefined and the\nresult of evaluating `valueFrom` on a parameter must not be visible to\nevaluation of `valueFrom` on other parameters.\n"
             }
         ]
     },
