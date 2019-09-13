@@ -31,7 +31,7 @@ def test_ebi_wf_cmsearch_multimodel():
 
 def test_mass_wf_load():
     type_dicts = load_type_dicts()
-    for wf_dir in ["ebi/workflows", "mgi/pipelines"]:
+    for wf_dir in ["ebi/workflows", "mgi/subworkflows", "mgi/pipelines"]:
         path = current_path / "cwl" / wf_dir
         for fname in path.glob("*.cwl"):
             _ = load(doc_path=fname, type_dicts=type_dicts)
