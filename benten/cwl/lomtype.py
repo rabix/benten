@@ -6,6 +6,7 @@ from .requirementstype import CWLRequirementsType
 from ..langserver.lspobjects import Range
 from ..code.requirements import Requirements
 from ..code.intelligence import LookupNode, IntelligenceNode
+from ..code.intelligencecontext import copy_context
 from .lib import ListOrMap
 from .typeinference import infer_type
 from ..code import workflow
@@ -51,8 +52,6 @@ class CWLListOrMapType(CWLBaseType):
               value_range: Range = None,
               requirements=None):
 
-        intel_context.path += [self.name]
-
         obj = ListOrMap(node, key_field=self.map_subject_predicate.subject, problems=problems)
 
         # items expressed as a map can have a special case
@@ -86,7 +85,8 @@ class CWLListOrMapType(CWLBaseType):
 
         for k, v in obj.as_dict.items():
 
-            this_intel_context = intel_context
+            this_intel_context = copy_context(intel_context)
+            this_intel_context.path += [k]
 
             inferred_type = infer_type(
                 v,
@@ -95,6 +95,8 @@ class CWLListOrMapType(CWLBaseType):
                 map_sp=self.map_subject_predicate if obj.was_dict else None)
 
             if self.name == "requirements" and isinstance(inferred_type, CWLUnknownType):
+                # We've begun to type, and we can't formally infer this is a Requirement
+                # but we'd like to offer auto-completions of requirement types
                 inferred_type = CWLRequirementsType("requirement", self.types)
 
             if self.name == "steps":

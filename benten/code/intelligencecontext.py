@@ -16,4 +16,11 @@ class IntelligenceContext:
     workflow: Workflow = None
     workflow_step_intelligence: WFStepIntelligence = None
     requirements: IntelligenceNode = None
-    cwl_self: tuple = None
+
+
+def copy_context(old: IntelligenceContext) -> IntelligenceContext:
+    return IntelligenceContext(
+        path=list(old.path),
+        workflow=old.workflow,
+        workflow_step_intelligence=old.workflow_step_intelligence,
+        requirements=old.requirements)

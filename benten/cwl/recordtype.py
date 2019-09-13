@@ -6,6 +6,7 @@ from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubject
 from .linkedfiletype import CWLLinkedFile
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.intelligence import LookupNode
+from ..code.intelligencecontext import copy_context
 from ..code.requirements import Requirements
 from ..code.workflow import Workflow
 from .typeinference import infer_type
@@ -71,7 +72,7 @@ class CWLRecordType(CWLBaseType):
               value_range: Range = None,
               requirements=None):
 
-        intel_context.path += [self.name]
+        # intel_context.path += [self.name]
 
         if node is None or isinstance(node, str):
             if map_sp is not None:
@@ -86,6 +87,10 @@ class CWLRecordType(CWLBaseType):
 
         for k, child_node in field_iterator:
 
+            inferred_type = None
+            this_intel_context = copy_context(intel_context)
+            this_intel_context.path += [k]
+
             if isinstance(node, dict):
                 key_range = get_range_for_key(node, k)
                 value_range = get_range_for_value(node, k)
@@ -97,10 +102,13 @@ class CWLRecordType(CWLBaseType):
 
             # TODO: looks like this logic and the logic in lomtype can be combined
             # Special completers
-            if k == "class" and len(intel_context.path) > 2 and \
-                    intel_context.path[-2] == "requirements":
+
+            # These paths tend to look like
+            # ['requirements', 'XXRequirement', 'class']
+            if k == "class" and len(this_intel_context.path) > 2 and \
+                    this_intel_context.path[-3] == "requirements":
                 ln = LookupNode(loc=value_range)
-                ln.intelligence_node = intel_context.requirements
+                ln.intelligence_node = this_intel_context.requirements
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStep" and k == "run" and isinstance(child_node, str):
@@ -110,6 +118,7 @@ class CWLRecordType(CWLBaseType):
             elif self.name == "InlineJavascriptRequirement" and k == "expressionLib":
                 # todo: this will fail for inlined nested workflows
                 code_intel.prepare_expression_lib(child_node)
+                continue
 
             else:
 
@@ -132,7 +141,7 @@ class CWLRecordType(CWLBaseType):
             inferred_type.parse(
                 doc_uri=doc_uri,
                 node=child_node,
-                intel_context=intel_context,
+                intel_context=this_intel_context,
                 code_intel=code_intel,
                 problems=problems,
                 node_key=k,
@@ -143,12 +152,13 @@ class CWLRecordType(CWLBaseType):
 
             if self.name == "WorkflowOutputParameter" and k == "outputSource":
                 ln = LookupNode(loc=value_range)
-                ln.intelligence_node = intel_context.workflow.get_output_source_completer(child_node)
+                ln.intelligence_node = this_intel_context.workflow.get_output_source_completer(child_node)
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStepInput" and k == "source":
                 ln = LookupNode(loc=value_range)
-                ln.intelligence_node = intel_context.workflow_step_intelligence.get_step_source_completer(child_node)
+                ln.intelligence_node = this_intel_context.workflow_step_intelligence.get_step_source_completer(
+                    child_node)
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStep" and k == "run":
@@ -156,7 +166,8 @@ class CWLRecordType(CWLBaseType):
                 if isinstance(inferred_type, CWLLinkedFile):
                     lf_full_path = inferred_type.full_path
 
-                step_interface = workflow.parse_step_interface(doc_uri, child_node, lf_full_path, problems)
+                step_interface = workflow.parse_step_interface(
+                    doc_uri, child_node, lf_full_path, problems)
                 intel_context.workflow_step_intelligence.set_step_interface(step_interface)
 
         if self.name == "Workflow":

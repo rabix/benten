@@ -68,6 +68,7 @@ class Intelligence:
             user_types=self.type_defs)
 
     def prepare_expression_lib(self, expression_lib: list):
+        logger.debug("Bing!")
         self.execution_context.set_expression_lib(expression_lib)
 
     def get_doc_element(self, loc: Position):
