@@ -7,7 +7,6 @@ from .linkedfiletype import CWLLinkedFile
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.intelligence import LookupNode
 from ..code.intelligencecontext import copy_context
-from ..code.requirements import Requirements
 from ..code.workflow import Workflow
 from .typeinference import infer_type
 from .lib import get_range_for_key, get_range_for_value
@@ -38,14 +37,11 @@ class CWLRecordType(CWLBaseType):
 
         required_fields = self.required_fields - {map_sp.subject if map_sp else None}
 
-        if isinstance(node, str):
+        if not isinstance(node, dict):
             if map_sp is not None and node_key is not None:
                 if map_sp.predicate in self.required_fields and len(required_fields) <= 1:
                     return TypeCheck(cwl_type=self)
 
-            return TypeCheck(cwl_type=self, match=Match.No)
-
-        if not isinstance(node, dict):
             return TypeCheck(cwl_type=self, match=Match.No)
 
         fields_present = set(node.keys())
@@ -72,9 +68,7 @@ class CWLRecordType(CWLBaseType):
               value_range: Range = None,
               requirements=None):
 
-        # intel_context.path += [self.name]
-
-        if node is None or isinstance(node, str):
+        if not isinstance(node, dict):
             if map_sp is not None:
                 field_iterator = [(map_sp.predicate, node)]
             else:
