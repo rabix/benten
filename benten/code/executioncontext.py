@@ -11,11 +11,11 @@ from ruamel.yaml import YAML
 from ruamel.yaml.parser import ParserError
 from ruamel.yaml.scanner import ScannerError
 
-fast_load = YAML(typ='safe')
-
 import logging
 logger = logging.getLogger(__name__)
 
+fast_yaml_io = YAML(typ='safe')
+fast_yaml_io.default_flow_style = False
 
 job_inputs_ext = ".benten.test.job.yml"
 
@@ -47,7 +47,7 @@ class ExecutionContext:
         user_set_inputs = {}
         if ex_job_file.exists():
             try:
-                user_set_inputs = fast_load.load(ex_job_file.open().read() or "")
+                user_set_inputs = fast_yaml_io.load(ex_job_file.open().read() or "")
             except (ParserError, ScannerError) as e:
                 logger.error(f"Error loading sample input file {ex_job_file}")
         else:
@@ -67,7 +67,7 @@ class ExecutionContext:
             for k, _type_v in list_as_map(_inputs, key_field="id", problems=[]).items()
         }
 
-        fast_load.dump(auto_set_inputs, ex_job_file)
+        fast_yaml_io.dump(auto_set_inputs, ex_job_file)
 
     def set_expression_lib(self, expression_lib: list=None):
         self.expression_lib = expression_lib
