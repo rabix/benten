@@ -6,6 +6,7 @@ from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubject
 from .linkedfiletype import CWLLinkedFile
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.intelligence import LookupNode
+from ..code.intelligencecontext import copy_context
 from ..code.requirements import Requirements
 from ..code.workflow import Workflow
 from .typeinference import infer_type
@@ -71,6 +72,8 @@ class CWLRecordType(CWLBaseType):
               value_range: Range = None,
               requirements=None):
 
+        # intel_context.path += [self.name]
+
         if node is None or isinstance(node, str):
             if map_sp is not None:
                 field_iterator = [(map_sp.predicate, node)]
@@ -80,9 +83,13 @@ class CWLRecordType(CWLBaseType):
             field_iterator = node.items()
 
         if self.name == "Workflow":
-            intel_context = Workflow(node.get("inputs"), node.get("outputs"))
+            intel_context.workflow = Workflow(node.get("inputs"), node.get("outputs"))
 
         for k, child_node in field_iterator:
+
+            inferred_type = None
+            this_intel_context = copy_context(intel_context)
+            this_intel_context.path += [k]
 
             if isinstance(node, dict):
                 key_range = get_range_for_key(node, k)
@@ -95,14 +102,23 @@ class CWLRecordType(CWLBaseType):
 
             # TODO: looks like this logic and the logic in lomtype can be combined
             # Special completers
-            if k == "class" and isinstance(intel_context, Requirements):
+
+            # These paths tend to look like
+            # ['requirements', 'XXRequirement', 'class']
+            if k == "class" and len(this_intel_context.path) > 2 and \
+                    this_intel_context.path[-3] == "requirements":
                 ln = LookupNode(loc=value_range)
-                ln.intelligence_node = intel_context.get_completer()
+                ln.intelligence_node = this_intel_context.requirements
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStep" and k == "run" and isinstance(child_node, str):
                 # Exception for run field that is a string
                 inferred_type = CWLLinkedFile(prefix=child_node, extension=".cwl")
+
+            elif self.name == "InlineJavascriptRequirement" and k == "expressionLib":
+                # todo: this will fail for inlined nested workflows
+                code_intel.prepare_expression_lib(child_node)
+                continue
 
             else:
 
@@ -125,7 +141,7 @@ class CWLRecordType(CWLBaseType):
             inferred_type.parse(
                 doc_uri=doc_uri,
                 node=child_node,
-                intel_context=intel_context,
+                intel_context=this_intel_context,
                 code_intel=code_intel,
                 problems=problems,
                 node_key=k,
@@ -136,12 +152,13 @@ class CWLRecordType(CWLBaseType):
 
             if self.name == "WorkflowOutputParameter" and k == "outputSource":
                 ln = LookupNode(loc=value_range)
-                ln.intelligence_node = intel_context.get_output_source_completer(child_node)
+                ln.intelligence_node = this_intel_context.workflow.get_output_source_completer(child_node)
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStepInput" and k == "source":
                 ln = LookupNode(loc=value_range)
-                ln.intelligence_node = intel_context.get_step_source_completer(child_node)
+                ln.intelligence_node = this_intel_context.workflow_step_intelligence.get_step_source_completer(
+                    child_node)
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStep" and k == "run":
@@ -149,11 +166,12 @@ class CWLRecordType(CWLBaseType):
                 if isinstance(inferred_type, CWLLinkedFile):
                     lf_full_path = inferred_type.full_path
 
-                step_interface = workflow.parse_step_interface(doc_uri, child_node, lf_full_path, problems)
-                intel_context.set_step_interface(step_interface)
+                step_interface = workflow.parse_step_interface(
+                    doc_uri, child_node, lf_full_path, problems)
+                intel_context.workflow_step_intelligence.set_step_interface(step_interface)
 
         if self.name == "Workflow":
-            intel_context.validate_connections(node.get("steps"), problems=problems)
+            intel_context.workflow.validate_connections(node.get("steps"), problems=problems)
 
     def completion(self):
         return [CompletionItem(label=k) for k in self.fields.keys()]

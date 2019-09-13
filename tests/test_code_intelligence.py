@@ -2,21 +2,14 @@
 
 import pathlib
 
-from benten.code.document import Document
+from lib import load
+
 from benten.cwl.specification import parse_schema
 from benten.langserver.lspobjects import Position, Location
 
 
 current_path = pathlib.Path(__file__).parent
 schema_path = pathlib.Path(current_path, "../benten/000.package.data/")
-
-
-def load(doc_path: pathlib.Path, type_dicts: dict):
-    return Document(
-        doc_uri=doc_path.as_uri(),
-        text=doc_path.read_text(),
-        version=1,
-        type_dicts=type_dicts)
 
 
 def load_type_dicts():
@@ -60,4 +53,11 @@ def test_step_input_completion():
 def test_requirement_completion():
     doc = load(doc_path=path, type_dicts=type_dicts)
     cmpl = doc.completion(Position(8, 16))
+    assert "InlineJavascriptRequirement" in [c.label for c in cmpl]
+
+
+def test_requirement_sub_completion():
+    this_path = current_path / "cwl" / "ebi" / "workflows" / "InterProScan-v5-chunked-wf.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+    cmpl = doc.completion(Position(8, 10))
     assert "InlineJavascriptRequirement" in [c.label for c in cmpl]

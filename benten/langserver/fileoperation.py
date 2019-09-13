@@ -55,6 +55,7 @@ class FileOperation(CWLLangServerBase):
 
         document = Document(
             doc_uri=doc_uri,
+            scratch_path=self.config.scratch_path,
             text=params["textDocument"]["text"],
             version=params["textDocument"]["version"],
             type_dicts=self.config.lang_models)

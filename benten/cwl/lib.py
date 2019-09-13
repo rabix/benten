@@ -21,11 +21,19 @@ def get_range_for_value(node, key):
 
     v = node[key]
     if v is None:
-        v = ""
+        end = (start[0], start[1])
     else:
-        v = str(v)  # How to handle multi line strings
+        v = str(v)
+        _lines = v.splitlines() or [""]
+        ln_cnt = len(_lines)
+        if ln_cnt == 1:
+            ln_cnt -= 1
+        # Multi-line strings begin from the next line as opposed to single line strings
 
-    end = (start[0], start[1] + len(v))
+        # Ideally we'd be carrying around the raw lines to compute the end of the last line
+        # but this is good enough and less cumbersome
+        end = (start[0] + ln_cnt, (len(_lines[-1]) + start[1]) if ln_cnt == 0 else 1000)
+
     return Range(Position(*start), Position(*end))
 
 
@@ -120,13 +128,17 @@ def check_linked_file(doc_uri: str, path: str, loc: Range, problems: list):
 # a) decoded (so that c%3A -> c:)
 # b) The leading "/" needs to be chomped.
 # Step a) is redundant on *nix and b) should not be done
+def un_mangle_uri(doc_uri):
+    _my_path = pathlib.Path(urllib.parse.unquote(urllib.parse.urlparse(doc_uri).path))
+    if isinstance(_my_path, pathlib.WindowsPath):
+        _my_path = pathlib.Path(str(_my_path)[1:])
+    return _my_path
+
+
 def resolve_file_path(doc_uri, target_path):
     _path = pathlib.PurePosixPath(target_path)
     if not _path.is_absolute():
-        _my_path = pathlib.Path(urllib.parse.unquote(urllib.parse.urlparse(doc_uri).path))
-        if isinstance(_my_path, pathlib.WindowsPath):
-            _my_path = pathlib.Path(str(_my_path)[1:])
-        base_path = _my_path.parent
+        base_path = un_mangle_uri(doc_uri).parent
     else:
         base_path = "."
     _path = pathlib.Path(base_path / _path).resolve().absolute()

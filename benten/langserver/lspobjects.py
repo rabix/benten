@@ -233,3 +233,9 @@ class DocumentSymbol(LSPObject):
         self.range: Range = _range
         self.selectionRange: Range = selection_range
         self.children: List[DocumentSymbol] = children
+
+
+class Hover(LSPObject):
+    def __init__(self, contents, _range=None):
+        self.contents = contents
+        self.range = _range

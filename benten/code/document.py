@@ -4,11 +4,11 @@ import time
 
 from .yaml import parse_yaml
 from .intelligence import Intelligence
+from .intelligencecontext import IntelligenceContext
 from ..cwl.specification import latest_published_cwl_version, process_types
 from ..cwl.typeinference import infer_type
 from .symbols import extract_symbols, extract_step_symbols
 from ..langserver.lspobjects import Position
-
 
 import logging
 logger = logging.getLogger(__name__)
@@ -18,10 +18,12 @@ class Document:
 
     def __init__(self,
                  doc_uri: str,
+                 scratch_path: str,  # Needed for ExecutionContext's example input file
                  text: str,
                  version: int,
                  type_dicts: dict):
         self.doc_uri = doc_uri
+        self.config = scratch_path
         self.text = text
         self.version = version
         self.type_dicts = type_dicts
@@ -46,9 +48,16 @@ class Document:
         if not isinstance(cwl, dict):
             return
 
-        self.parse(cwl)
+        self.code_intelligence.extract_schemadef(self.doc_uri, cwl)
+        # Prepare the schemadef before regular parsing so we have the types at hand
         t2 = time.time()
-        logger.debug(f"Took {t2 - t1:1.3}s to parse document")
+        logger.debug(f"Took {t2 - t1:1.3}s to parse SchemaDef")
+
+        self.code_intelligence.prepare_execution_context(self.doc_uri, cwl, self.config)
+
+        self.parse(cwl)
+        t3 = time.time()
+        logger.debug(f"Took {t3 - t2:1.3}s to parse document")
 
         self.symbology(cwl)
 
@@ -81,7 +90,7 @@ class Document:
         inferred_type.parse(
             doc_uri=self.doc_uri,
             node=cwl,
-            intel_context=None,
+            intel_context=IntelligenceContext(path=[]),
             code_intel=self.code_intelligence,
             problems=self.problems)
 

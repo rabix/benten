@@ -2,20 +2,12 @@
 
 import pathlib
 
-from benten.code.document import Document
 from benten.cwl.specification import parse_schema
 
+from lib import load
 
 current_path = pathlib.Path(__file__).parent
 schema_path = pathlib.Path(current_path, "../benten/000.package.data/")
-
-
-def load(doc_path: pathlib.Path, type_dicts: dict):
-    return Document(
-        doc_uri=doc_path.as_uri(),
-        text=doc_path.read_text(),
-        version=1,
-        type_dicts=type_dicts)
 
 
 def load_type_dicts():

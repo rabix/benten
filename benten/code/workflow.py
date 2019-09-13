@@ -20,7 +20,7 @@ from typing import Dict
 
 from ..cwl.lib import (get_range_for_value, list_as_map, ListOrMap)
 from .yaml import fast_load
-from .intelligence import IntelligenceNode, IntelligenceContext, CompletionItem
+from .intelligence import IntelligenceNode, CompletionItem
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity
 
 
@@ -35,7 +35,7 @@ class StepInterface:
         self.outputs = outputs or set()
 
 
-class Workflow(IntelligenceContext):
+class Workflow:
     def __init__(self, inputs, outputs):
         self.step_intels: Dict[str, WFStepIntelligence] = {}
         self.wf_inputs = set(list_as_map(inputs, key_field="id", problems=[]).keys())
@@ -75,7 +75,7 @@ class Workflow(IntelligenceContext):
         return WFOutputSourceCompleter(self, prefix)
 
 
-class WFStepIntelligence(IntelligenceContext):
+class WFStepIntelligence:
     def __init__(self, step_id):
         super().__init__()
         self.step_id = step_id

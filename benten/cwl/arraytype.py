@@ -2,7 +2,7 @@
 
 from .basetype import CWLBaseType, Intelligence, MapSubjectPredicate, TypeCheck, Match
 from ..langserver.lspobjects import Range
-from ..code.intelligence import IntelligenceContext
+from ..code.intelligencecontext import IntelligenceContext
 from .typeinference import infer_type
 from .lib import get_range_for_value
 

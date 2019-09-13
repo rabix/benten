@@ -242,7 +242,9 @@
         "extends": "https://w3id.org/cwl/salad#PrimitiveType",
         "symbols": [
             "File",
-            "Directory"
+            "Directory",
+            "stdout",
+            "stderr"
         ],
         "doc": [
             "Extends primitive types with the concept of a file and directory as a builtin type.",
@@ -258,7 +260,9 @@
             "http://www.w3.org/2001/XMLSchema#double",
             "http://www.w3.org/2001/XMLSchema#string",
             "https://w3id.org/cwl/cwl#File",
-            "https://w3id.org/cwl/cwl#Directory"
+            "https://w3id.org/cwl/cwl#Directory",
+            "https://w3id.org/cwl/cwl#stdout",
+            "https://w3id.org/cwl/cwl#stderr"
         ]
     },
     {

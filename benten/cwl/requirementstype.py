@@ -2,7 +2,8 @@
 
 from .basetype import CWLBaseType, Intelligence, MapSubjectPredicate
 from ..langserver.lspobjects import Range, CompletionItem
-from ..code.intelligence import LookupNode, IntelligenceContext
+from ..code.intelligence import LookupNode
+from ..code.intelligencecontext import IntelligenceContext
 
 import logging
 logger = logging.getLogger(__name__)
