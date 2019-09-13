@@ -51,6 +51,10 @@ class CWLExpression(CWLBaseType):
         super().__init__("Expression")
         self.bracketing_terms = bracketing_terms or ["", ""]
         self.self_path = ()  # the path to the 'self' variable as described in CWL specs
+        self.exp_type = exp_type
+        self.execution_context = None
+        self.range = None
+
         if exp_type is ExpressionType.ParameterReference:
             self.expression = \
                 f"""
@@ -68,8 +72,6 @@ function benten_eval_func() {{
     {expression} 
 }}; 
 benten_eval_func()"""
-        self.exp_type = exp_type
-        self.execution_context = None
 
     def parse(self,
               doc_uri: str,
@@ -84,6 +86,7 @@ benten_eval_func()"""
               requirements=None):
 
         self.execution_context = code_intel.execution_context
+        self.range = value_range  # For the highlighting of the expression
 
         # Deal with filling out self
         if intel_context.path[-1] in ["secondaryFiles"]:
@@ -132,7 +135,7 @@ benten_eval_func()"""
         else:
             res = "Job inputs have not been filled out"
 
-        return Hover(res)
+        return Hover(res, self.range)
 
     def definition(self):
         # Hijacking this to show the sample inputs file

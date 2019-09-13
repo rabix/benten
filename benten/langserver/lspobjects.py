@@ -236,5 +236,6 @@ class DocumentSymbol(LSPObject):
 
 
 class Hover(LSPObject):
-    def __init__(self, contents):
+    def __init__(self, contents, _range=None):
         self.contents = contents
+        self.range = _range
