@@ -133,7 +133,7 @@ def example_value(name, cwl_type, user_types, array_of=False):
     elif isinstance(cwl_type, dict) and "type" in cwl_type:
         _type = cwl_type.get("type")
         if _type == "array":
-            return example_value(name, _type.get("items"), user_types, array_of=True)
+            return example_value(name, cwl_type.get("items"), user_types, array_of=True)
         elif _type == "enum":
             return enum_example_value(cwl_type.get("symbols"))
         elif _type == "record":
