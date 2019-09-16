@@ -1,6 +1,7 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 import time
+import pathlib
 
 from .yaml import parse_yaml
 from .intelligence import Intelligence
@@ -18,7 +19,7 @@ class Document:
 
     def __init__(self,
                  doc_uri: str,
-                 scratch_path: str,  # Needed for ExecutionContext's example input file
+                 scratch_path: pathlib.Path,  # Needed for ExecutionContext's example input file
                  text: str,
                  version: int,
                  type_dicts: dict):
@@ -48,7 +49,7 @@ class Document:
         if not isinstance(cwl, dict):
             return
 
-        self.code_intelligence.extract_schemadef(self.doc_uri, cwl)
+        self.code_intelligence.extract_schemadef(self.doc_uri, cwl, self.problems)
         # Prepare the schemadef before regular parsing so we have the types at hand
         t2 = time.time()
         logger.debug(f"Took {t2 - t1:1.3}s to parse SchemaDef")
