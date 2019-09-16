@@ -25,3 +25,10 @@ def test_mass_tool_load():
         path = current_path / "cwl" / wf_dir
         for fname in path.glob("*.cwl"):
             _ = load(doc_path=fname, type_dicts=type_dicts)
+
+
+def test_troublesome_tool_load():
+    type_dicts = load_type_dicts()
+    path = current_path / "cwl" / "misc"
+    for fname in path.glob("*.cwl"):
+        _ = load(doc_path=fname, type_dicts=type_dicts)
