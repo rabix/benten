@@ -10,7 +10,7 @@ from ..cwl.lib import resolve_file_path
 fast_load = YAML(typ='safe')
 
 
-def extract_schemadef(doc_uri: str, cwl: dict):
+def extract_schemadef(doc_uri: str, cwl: dict, problems: list):
     _req = cwl.get("requirements")
     _types = []
     types_dict = {}
@@ -26,12 +26,15 @@ def extract_schemadef(doc_uri: str, cwl: dict):
     if isinstance(_types, list):
         for _type in _types:
             if isinstance(_type, dict):
-                if len(_type.keys()) == 1:
+                name = None
+                if list(_type.keys()) == ["$import"]:
                     path = _type.get("$import")
-                    _type = load_typedefs_from_file(doc_uri, path)
-                    name = path + "#" + _type.pop("name")
+                    _type = load_typedefs_from_file(doc_uri, path, problems)
+                    if isinstance(_type, dict):
+                        if "name" in _type:
+                            name = path + "#" + _type.pop("name")
                 else:
-                    name = _type.pop("name")
+                    name = _type.pop("name", None)
 
                 if name is not None:
                     types_dict[name] = _type
@@ -39,13 +42,18 @@ def extract_schemadef(doc_uri: str, cwl: dict):
     return types_dict
 
 
-def load_typedefs_from_file(doc_uri, path):
+def load_typedefs_from_file(doc_uri, path, problems):
     linked_file = resolve_file_path(doc_uri, path)
+    type_def = {}
     if linked_file.exists() and linked_file.is_file():
         try:
             type_def = fast_load.load(linked_file.open("r").read())
         except (ParserError, ScannerError) as e:
             type_def = {}
+            # todo: flag errors in imported typedefs
+    else:
+        pass
+        # The missing file error should already be flagged by the main parse
 
-        return type_def
+    return type_def
 
