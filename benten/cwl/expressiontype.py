@@ -205,6 +205,8 @@ def evaluate_expression(
 
             if res is None and exp_type == ExpressionType.JSExpression:
                 res = "Got a 'null' result. Do you have a `return` for your JS expression?"
+            else:
+                res = str(res)
 
         except dukpy.JSRuntimeError as e:
             res = str(e).splitlines()[0]
