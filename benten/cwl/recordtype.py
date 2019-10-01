@@ -69,7 +69,7 @@ class CWLRecordType(CWLBaseType):
               requirements=None):
 
         if not isinstance(node, dict):
-            if map_sp is not None:
+            if map_sp is not None and map_sp.predicate is not None:
                 field_iterator = [(map_sp.predicate, node)]
             else:
                 return
