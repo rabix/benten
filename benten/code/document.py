@@ -49,7 +49,7 @@ class Document:
         if not isinstance(cwl, dict):
             return
 
-        self.code_intelligence.extract_schemadef(self.doc_uri, cwl, self.problems)
+        self.code_intelligence.extract_schemadef(self.doc_uri, cwl)
         # Prepare the schemadef before regular parsing so we have the types at hand
         t2 = time.time()
         logger.debug(f"Took {t2 - t1:1.3}s to parse SchemaDef")

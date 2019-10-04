@@ -10,7 +10,7 @@ from ..cwl.lib import resolve_file_path
 fast_load = YAML(typ='safe')
 
 
-def extract_schemadef(doc_uri: str, cwl: dict, problems: list):
+def extract_schemadef(doc_uri: str, cwl: dict):
     _req = cwl.get("requirements")
     _types = []
     types_dict = {}
@@ -29,7 +29,7 @@ def extract_schemadef(doc_uri: str, cwl: dict, problems: list):
                 name = None
                 if list(_type.keys()) == ["$import"]:
                     path = _type.get("$import")
-                    _type = load_typedefs_from_file(doc_uri, path, problems)
+                    _type = load_typedefs_from_file(doc_uri, path)
                     if isinstance(_type, dict):
                         if "name" in _type:
                             name = path + "#" + _type.pop("name")
@@ -42,7 +42,7 @@ def extract_schemadef(doc_uri: str, cwl: dict, problems: list):
     return types_dict
 
 
-def load_typedefs_from_file(doc_uri, path, problems):
+def load_typedefs_from_file(doc_uri, path):
     linked_file = resolve_file_path(doc_uri, path)
     type_def = {}
     if linked_file.exists() and linked_file.is_file():
