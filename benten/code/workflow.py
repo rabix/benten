@@ -213,7 +213,7 @@ def _validate_one_source(src, value_range, step_id, workflow, problems):
     if src in workflow.wf_inputs:
         return
 
-    err_msg = "No such workflow input"
+    err_msg = f"No such workflow input. Expecting one of {workflow.wf_inputs}"
 
     if "/" in src:
         src_step, src_port = src.split("/")
