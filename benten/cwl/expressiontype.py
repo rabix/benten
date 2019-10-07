@@ -15,8 +15,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-parameter_ref = re.compile(r"\$\((.*?)\)", flags=re.DOTALL | re.M)
-expression_ref = re.compile(r"\${(.*?)}", flags=re.DOTALL | re.M)
+parameter_ref = re.compile(r"\$\(((.(?<!\$({|\()))*)\)", flags=re.DOTALL | re.M)
+expression_ref = re.compile(r"\${((.(?<!\$({|\()))*)}", flags=re.DOTALL | re.M)
 
 
 class CWLExpressionType(CWLBaseType):
