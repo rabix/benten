@@ -40,6 +40,16 @@ CMD + Shift + P to bring up the command bar and then type "Reload Window".
 |-- package.json      - declares entry points etc.
 ```
 
+## JS evaluation
+
+If `dukpy` ever fails us we could consider simply doing
+
+```
+import subprocess
+subprocess.check_output(['node', '-p', "function foo() {return 'hi';}; foo()"])
+```
+
+
 ## VS Code: embedding one language in another
 
 https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#embedded-languages
