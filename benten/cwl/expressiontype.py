@@ -9,7 +9,7 @@ from .basetype import (CWLBaseType, MapSubjectPredicate, TypeCheck, Match,
                        Intelligence, IntelligenceContext)
 from ..langserver.lspobjects import Range, Hover, Location
 from ..code.intelligence import LookupNode
-from ..code.executioncontext import basic_example_value
+from ..code.sampledata import basic_example_value
 
 import logging
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class CWLExpression(CWLBaseType):
         self.text = text
         self.intel_context = None
         self.execution_context = None
-        self.self_path = ()  # the path to the 'self' variable as described in CWL specs
+        # self.self_path = ()  # the path to the 'self' variable as described in CWL specs
         self.range = None
 
     def parse(self,
@@ -67,29 +67,47 @@ class CWLExpression(CWLBaseType):
 
     def hover(self):
 
-        # Deal with filling out self
-        if self.intel_context.path[-1] in ["secondaryFiles"]:
-            self.self_path = ('inputs', self.intel_context.path[-2])
+        def _self_is_io(_path):
+            if "in" in _path:
+                return False
 
-        if self.intel_context.path[-1] in ["position", "valueFrom"]:
-            if self.intel_context.path[-2] == "inputBinding":
-                self.self_path = ('inputs', self.intel_context.path[-3])
+            for _component in ["secondaryFiles", "position", "valueFrom"]:
+                if _component in _path:
+                    return True
+            else:
+                return False
 
-        if self.intel_context.path[-1] in ["outputEval"]:
-            self.self_path = ('outputs', self.intel_context.path[-3])
-            logger.warning("Benten can't properly simulate globbed files yet")
-            pass
-            # todo: Check for the glob and then simulate globbed files
+        def _self_is_outputEval(_path):
+            return "in" not in _path and "outputEval" in _path
+
+        def _self_is_in_step(_path):
+            if "in" in _path and "valueFrom" in _path:
+                return True
+            else:
+                return False
 
         job_inputs = self.execution_context.job_inputs
         cwl_self = None
 
-        if self.self_path:
-            if self.self_path[0] == 'inputs':
-                cwl_self = job_inputs[self.self_path[1]]
-            if self.self_path[0] == 'outputs':
-                cwl_self = [basic_example_value(self.self_path[1] + "/" + str(i), "File")
+        # Deal with filling out self
+        try:
+            if _self_is_io(self.intel_context.path):
+                logger.debug(self.intel_context.path)
+                if "inputs" in self.intel_context.path:
+                    cwl_self = job_inputs[self.intel_context.path[1]]
+                elif "outputs" in self.intel_context.path:
+                    cwl_self = self.execution_context.job_outputs[self.intel_context.path[1]]
+
+            elif _self_is_outputEval(self.intel_context.path):
+                # todo: Need to check for `glob`
+                cwl_self = [basic_example_value(self.intel_context.path[1] + "/" + str(i), "File")
                             for i in range(4)]
+
+            elif _self_is_in_step(self.intel_context.path):
+                pass
+
+        except (ValueError, IndexError) as e:
+            pass
 
         if job_inputs:
             res = "".join(
@@ -97,7 +115,7 @@ class CWLExpression(CWLBaseType):
                     expression=fragment["exp"],
                     exp_type=fragment["type"],
                     expression_lib=self.execution_context.expression_lib,
-                    runtime=self.execution_context.runtime,
+                    runtime=self.execution_context.runtime(self.intel_context.path),
                     inputs=job_inputs,
                     cwl_self=cwl_self)
                 for fragment in self._split_fragments())
