@@ -40,6 +40,7 @@ class ExecutionContext:
     def job_inputs(self):
         ex_job_file = self.get_sample_data_file_path()
         if not ex_job_file.exists() or ex_job_file.stat().st_size == 0:
+            ex_job_file.parent.mkdir(parents=True, exist_ok=True)
             auto_set_inputs = generate_sample_inputs(self.cwl, self.user_types)
             fast_yaml_io.dump(auto_set_inputs, ex_job_file)
 
