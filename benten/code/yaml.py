@@ -7,6 +7,7 @@ from typing import Tuple, List
 from ruamel.yaml import YAML
 from ruamel.yaml.parser import ParserError
 from ruamel.yaml.scanner import ScannerError
+from ruamel.yaml.composer import ComposerError
 
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
 
@@ -25,7 +26,7 @@ def parse_yaml(text, retries=3) -> Tuple[dict, List[Diagnostic]]:
     problems = []
     try:
         cwl = _yaml_loader.load(text)
-    except (ParserError, ScannerError) as e:
+    except (ParserError, ScannerError, ComposerError) as e:
 
         if retries:
 
