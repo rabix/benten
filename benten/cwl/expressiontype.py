@@ -92,7 +92,6 @@ class CWLExpression(CWLBaseType):
         # Deal with filling out self
         try:
             if _self_is_io(self.intel_context.path):
-                logger.debug(self.intel_context.path)
                 if "inputs" in self.intel_context.path:
                     cwl_self = job_inputs[self.intel_context.path[1]]
                 elif "outputs" in self.intel_context.path:
@@ -100,8 +99,11 @@ class CWLExpression(CWLBaseType):
 
             elif _self_is_outputEval(self.intel_context.path):
                 # todo: Need to check for `glob`
-                cwl_self = [basic_example_value(self.intel_context.path[1] + "/" + str(i), "File")
-                            for i in range(4)]
+                cwl_self = [
+                    basic_example_value(
+                        self.intel_context.path[1] + "/globbed_file_" + str(i), "File")
+                    for i in range(4)
+                ]
 
             elif _self_is_in_step(self.intel_context.path):
                 pass
