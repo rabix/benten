@@ -9,6 +9,7 @@ Outputs and intermediate products are generated de-novo each time and
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 import random
+import string
 
 from ..cwl.lib import resolve_file_path, list_as_map
 from .schemadef import extract_schemadef
@@ -44,10 +45,11 @@ def generate_sample_outputs(cwl: dict, user_types):
     return generate_values(cwl.get("outputs"), user_types)
 
 
-def generate_sample_step_outputs_all(doc_uri: str, cwl: dict, parent_user_types):
-    step_sample_outputs = {}
+def generate_sample_step_outputs_all(doc_uri: str, cwl: dict, parent_user_types, job_inputs):
+    step_sample_outputs = {k: v for k, v in job_inputs.items()}
     for step_id, step in list_as_map(cwl.get("steps"), key_field="id", problems=[]).items():
-        step_sample_outputs[step_id] = extract_step_sample_outputs(doc_uri, step, parent_user_types)
+        for k, v in extract_step_sample_outputs(doc_uri, step.get("run"), parent_user_types).items():
+            step_sample_outputs[step_id + "/" + k] = v
     return step_sample_outputs
 
 
@@ -69,16 +71,17 @@ def extract_step_sample_outputs(doc_uri: str, run_field, parent_user_types):
         linked_file = resolve_file_path(doc_uri, run_field)
         if linked_file.exists() and linked_file.is_file():
             run_field = fast_load.load(linked_file)
-            user_types = extract_schemadef(linked_file, run_field)
+            user_types = extract_schemadef(linked_file.as_uri(), run_field)
 
     outputs = {}
     if isinstance(run_field, dict):
-        outputs = list_as_map(run_field.get("outputs"), key_field="id", problems=[])
+        outputs = generate_sample_outputs(run_field, user_types)
 
-    return generate_sample_outputs(outputs, user_types)
+    return outputs
 
 
 def basic_example_value(name, _type):
+    name = name + "_" + "".join(random.choices(string.ascii_letters, k=5))
     if _type == 'null':
         return 'null'
     elif _type == 'Any':
