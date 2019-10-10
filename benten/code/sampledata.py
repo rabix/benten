@@ -1,9 +1,16 @@
 """
-For a given process object generate inputs or outputs. Used to generate sample input files
-and to generate outputs and intermediate products.
+Generate inputs, outputs for processes, including intermediate outputs for workflows
 
-Inputs are generated
-Outputs and intermediate products are generated de-novo each time and
+The sample data is stored in a dictionary with the following structure
+
+{
+    "inputs":
+        "in1": ...,
+        "step1/out1": ...
+    "outputs":
+        "out1": ...,
+        "out2": ...
+}
 """
 
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
@@ -37,20 +44,37 @@ def get_sample_runtime(cwl: dict, doc_path: tuple):
     return runtime
 
 
-def generate_sample_inputs(cwl: dict, user_types):
+def get_sample_data(doc_uri: str, cwl: dict, user_types: dict):
+    return {
+        "inputs": {
+            **generate_sample_inputs(cwl, user_types),
+            **generate_sample_intermediate_results(doc_uri, cwl, user_types)
+        },
+        "outputs": generate_sample_outputs(cwl, user_types)
+    }
+
+
+def get_sample_globbed_files(name):
+    return [
+        basic_example_value(name + "/globbed_file_" + str(i), "File")
+        for i in range(random.randint(0, 4))
+    ]
+
+
+def generate_sample_inputs(cwl: dict, user_types: dict):
     return generate_values(cwl.get("inputs"), user_types)
 
 
-def generate_sample_outputs(cwl: dict, user_types):
+def generate_sample_outputs(cwl: dict, user_types: dict):
     return generate_values(cwl.get("outputs"), user_types)
 
 
-def generate_sample_step_outputs_all(doc_uri: str, cwl: dict, parent_user_types, job_inputs):
-    step_sample_outputs = {k: v for k, v in job_inputs.items()}
-    for step_id, step in list_as_map(cwl.get("steps"), key_field="id", problems=[]).items():
-        for k, v in extract_step_sample_outputs(doc_uri, step.get("run"), parent_user_types).items():
-            step_sample_outputs[step_id + "/" + k] = v
-    return step_sample_outputs
+def generate_sample_intermediate_results(doc_uri: str, cwl: dict, parent_user_types):
+    return {
+        step_id + "/" + k: v
+        for step_id, step in list_as_map(cwl.get("steps"), key_field="id", problems=[]).items()
+        for k, v in extract_step_sample_outputs(doc_uri, step.get("run"), parent_user_types).items()
+    }
 
 
 def generate_values(_ports: dict, user_types: dict):
@@ -95,24 +119,40 @@ def basic_example_value(name, _type):
     elif _type == 'string':
         return name
     elif _type == 'File':
-        return {
-            'class': 'File',
-            'path': f'/path/to/{name}.ext',
-            'location': f'/location/of/{name}.ext',
-            'basename': f'{name}.ext',
-            'dirname': '/path/to/',
-            'nameroot': name,
-            'nameext': '.ext',
-            'checksum': "sha1$deadbeef",
-            'size': random.randint(0, 4096),
-            'format': 'someformat',
-            'contents': 'To be, or not to be. That is the question.'
-        }
+        return file_example_value(name, _type)
     elif _type == 'Directory':
         return {
             'class': 'Directory',
             'path': f'/path/to/{name}'
         }
+
+
+def file_example_value(name, cwl_type, ext=".ext"):
+    ex_file = _example_file(name, ext)
+    if isinstance(cwl_type, dict) and "secondaryFiles" in cwl_type:
+        ex_file["secondaryFiles"] = [
+            _example_file(name, sec_ext)
+            for sec_ext in cwl_type.get("secondaryFiles")
+        ]
+    return ex_file
+
+
+def _example_file(name, ext):
+    fsize = random.randint(0, 100)
+    contents = "".join(random.choices(string.ascii_letters, k=fsize))
+    return {
+        'class': 'File',
+        'path': f'/path/to/{name}.ext',
+        'location': f'/location/of/{name}.ext',
+        'basename': f'{name}.ext',
+        'dirname': '/path/to/',
+        'nameroot': name,
+        'nameext': '.ext',
+        'checksum': "sha1$deadbeef",
+        'size': fsize,
+        'format': 'someformat',
+        'contents': contents
+    }
 
 
 def enum_example_value(symbols):
@@ -142,6 +182,8 @@ def example_value(name, cwl_type, user_types, array_of=False):
             return enum_example_value(cwl_type.get("symbols"))
         elif _type == "record":
             return record_example_value(name, cwl_type, user_types)
+        elif _type == "File":
+            return file_example_value(name, cwl_type)
         else:
             return example_value(name, _type, user_types)
 

@@ -87,27 +87,39 @@ is Rabix/benten. Follow the usual method to install the extension.
 
 See [this page](docs/vim.md) please.
 
-# Example input auto-generation
-
-Benten can auto generate an example input file for the CWL document you
-are working on. Whenever you hover over a JS expression, Benten looks
-for the example input file. If the file does not exist, or is empty,
-Benten will scan the input schema of the CWL file and auto-generate an
-example input file. 
-
-Activating "Goto definition" over any JS expression or parameter
-reference will open this example input file in the editor. You can edit
-this file to supply your own test data. **If you want the test data to
-be regenerated (e.g. you've changed the input schema of the CWL) you can
-delete the contents of the file (turn it into an empty file) and Benten
-will regenerate the input.**
-
 
 # Expression evaluations on hover
 
 Hovering over an expression will display the result of the evaluation or
-any errors that are encountered. The evaluation uses the auto-generated
-input files.
+any errors that are encountered. Benten auto-generates sample process
+inputs, outputs and intermediate outputs (if the process is a workflow).
+Note that these are all randomly generated sample data meant for quick
+sanity checking of expressions.
+
+
+## Over-riding auto-generated sample data
+ 
+The sample data is auto-generated on demand when an evaluation is
+requested. The generated sample data is also stored in a scratch file.
+This scratch file can be accessed by clicking "go to definition" when
+over any expression. Normally this file is just overwritten each time
+with fresh, randomly generated data.
+
+If you wish to customize some of the sample data (for example you have
+specific test cases you want to check as you code the workflow) if you
+add the string (exactly)
+
+```
+#custom
+```
+
+to the first line of the sample data file, Benten will stop overwriting
+the file and use the contents of this customized file instead. 
+
+**Once you add this line to the sample data file, Benten will no longer
+overwrite this file. If you want the test data to be regenerated (e.g.
+you've changed the input schema of the CWL) you need to remove this
+first sentinel line and Benten will regenerate the input.**
 
 
 # Other tips and Tricks

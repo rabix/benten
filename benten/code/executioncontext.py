@@ -6,7 +6,10 @@ import pathlib
 import random
 
 from ..cwl.lib import un_mangle_uri, list_as_map
-from .sampledata import get_sample_runtime, generate_sample_inputs, generate_sample_outputs
+from .sampledata import (
+    get_sample_runtime,
+    get_sample_data,
+    get_sample_globbed_files)
 
 from ruamel.yaml import YAML
 from ruamel.yaml.parser import ParserError
@@ -31,33 +34,81 @@ class ExecutionContext:
         self.user_types = user_types
         self.scratch_path = scratch_path
         self.expression_lib = []
-        self._intermediate_outputs = {}
+        self._sample_data = None
+        # self._intermediate_outputs = None
 
     def runtime(self, doc_path: tuple):
         return get_sample_runtime(self.cwl, doc_path)
 
     @property
-    def job_inputs(self):
+    def sample_data(self):
         ex_job_file = self.get_sample_data_file_path()
-        if not ex_job_file.exists() or ex_job_file.stat().st_size == 0:
-            ex_job_file.parent.mkdir(parents=True, exist_ok=True)
-            auto_set_inputs = generate_sample_inputs(self.cwl, self.user_types)
-            fast_yaml_io.dump(auto_set_inputs, ex_job_file)
-
-        user_set_inputs = {}
         if ex_job_file.exists():
-            try:
-                user_set_inputs = fast_yaml_io.load(ex_job_file.open().read() or "")
-            except (ParserError, ScannerError) as e:
-                logger.error(f"Error loading sample input file {ex_job_file}")
-        else:
-            logger.error(f"No sample input file {ex_job_file}")
+            if ex_job_file.open().readline().startswith("#custom"):
+                self._sample_data = fast_yaml_io.load(ex_job_file.open().read() or "")
+                return self._sample_data
 
-        return user_set_inputs
+        if self._sample_data is None:
+            self._sample_data = get_sample_data(self.doc_uri, self.cwl, self.user_types)
+            ex_job_file.parent.mkdir(parents=True, exist_ok=True)
+            fast_yaml_io.dump(self._sample_data, ex_job_file)
 
-    @property
-    def job_outputs(self):
-        return generate_sample_outputs(self.cwl, self.user_types)
+        return self._sample_data
+
+    # @property
+    # def job_inputs(self):
+    #     ex_job_file = self.get_sample_data_file_path()
+    #     if not ex_job_file.exists() or ex_job_file.stat().st_size == 0:
+    #         ex_job_file.parent.mkdir(parents=True, exist_ok=True)
+    #         auto_set_inputs = generate_sample_inputs(self.cwl, self.user_types)
+    #         fast_yaml_io.dump(auto_set_inputs, ex_job_file)
+    #
+    #     user_set_inputs = {}
+    #     if ex_job_file.exists():
+    #         try:
+    #             user_set_inputs = fast_yaml_io.load(ex_job_file.open().read() or "")
+    #         except (ParserError, ScannerError) as e:
+    #             logger.error(f"Error loading sample input file {ex_job_file}")
+    #     else:
+    #         logger.error(f"No sample input file {ex_job_file}")
+    #
+    #     return user_set_inputs
+    #
+    # @property
+    # def job_outputs(self):
+    #     return generate_sample_outputs(self.cwl, self.user_types)
+    #
+    # @property
+    # def intermediate_outputs(self):
+    #     if self._intermediate_outputs is None:
+    #         self._intermediate_outputs = generate_sample_step_outputs_all(
+    #             self.doc_uri, self.cwl, self.user_types, self.job_inputs)
+    #     return self._intermediate_outputs
+
+    def get_workflow_step_inputs(self, doc_path: tuple):
+        step_id = doc_path[1]
+        step_sample_outputs = self.sample_data["inputs"]
+        step_obj = list_as_map(self.cwl.get("steps"), key_field="id", problems=[]).get(step_id)
+        input_obj = {}
+        for k, in_obj in list_as_map(step_obj.get("in"), key_field="id", problems=[]).items():
+            if isinstance(in_obj, dict):
+                src = in_obj.get("source")
+            else:
+                src = in_obj
+
+            if isinstance(src, list):
+                logger.debug(step_sample_outputs.keys())
+                input_obj[k] = [step_sample_outputs.get(s) for s in src]
+            else:
+                input_obj[k] = step_sample_outputs.get(src)
+
+        self_obj = input_obj.get(doc_path[3])
+
+        return input_obj, self_obj
+
+    @staticmethod
+    def get_sample_globbed_files(name):
+        return get_sample_globbed_files(name)
 
     def set_expression_lib(self, expression_lib: list=None):
         self.expression_lib = expression_lib

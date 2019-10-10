@@ -9,7 +9,6 @@ from .basetype import (CWLBaseType, MapSubjectPredicate, TypeCheck, Match,
                        Intelligence, IntelligenceContext)
 from ..langserver.lspobjects import Range, Hover, Location
 from ..code.intelligence import LookupNode
-from ..code.sampledata import basic_example_value
 
 import logging
 logger = logging.getLogger(__name__)
@@ -86,27 +85,27 @@ class CWLExpression(CWLBaseType):
             else:
                 return False
 
-        job_inputs = self.execution_context.job_inputs
+        job_inputs = self.execution_context.sample_data["inputs"]
+        job_outputs = self.execution_context.sample_data["outputs"]
         cwl_self = None
 
         # Deal with filling out self
         try:
             if _self_is_io(self.intel_context.path):
                 if "inputs" in self.intel_context.path:
-                    cwl_self = job_inputs[self.intel_context.path[1]]
+                    cwl_self = job_inputs.get(self.intel_context.path[1])
                 elif "outputs" in self.intel_context.path:
-                    cwl_self = self.execution_context.job_outputs[self.intel_context.path[1]]
+                    cwl_self = job_outputs[self.intel_context.path[1]]
 
             elif _self_is_outputEval(self.intel_context.path):
                 # todo: Need to check for `glob`
-                cwl_self = [
-                    basic_example_value(
-                        self.intel_context.path[1] + "/globbed_file_" + str(i), "File")
-                    for i in range(4)
-                ]
+                cwl_self = self.execution_context.get_sample_globbed_files(self.intel_context.path[1])
 
             elif _self_is_in_step(self.intel_context.path):
-                pass
+                job_inputs, cwl_self = \
+                    self.execution_context.get_workflow_step_inputs(self.intel_context.path)
+                logger.debug(self.intel_context.path)
+                logger.debug(job_inputs)
 
         except (ValueError, IndexError) as e:
             pass
