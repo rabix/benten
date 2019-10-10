@@ -2,7 +2,6 @@
 
 import pathlib
 
-from benten.cwl.specification import parse_schema
 from benten.langserver.lspobjects import Position
 
 from lib import load, load_type_dicts

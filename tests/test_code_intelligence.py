@@ -4,7 +4,6 @@ import pathlib
 
 from lib import load, load_type_dicts
 
-from benten.cwl.specification import parse_schema
 from benten.langserver.lspobjects import Position, Location
 
 

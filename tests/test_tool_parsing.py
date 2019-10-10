@@ -1,9 +1,6 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-
 import pathlib
-
-from benten.cwl.specification import parse_schema
 
 from lib import load, load_type_dicts
 

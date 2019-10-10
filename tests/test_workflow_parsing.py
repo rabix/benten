@@ -2,8 +2,6 @@
 
 import pathlib
 
-from benten.cwl.specification import parse_schema
-
 from lib import load, load_type_dicts
 
 current_path = pathlib.Path(__file__).parent
