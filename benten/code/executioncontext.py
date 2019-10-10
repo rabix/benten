@@ -3,7 +3,6 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 import pathlib
-import random
 
 from ..cwl.lib import un_mangle_uri, list_as_map
 from .sampledata import (
@@ -54,36 +53,6 @@ class ExecutionContext:
             fast_yaml_io.dump(self._sample_data, ex_job_file)
 
         return self._sample_data
-
-    # @property
-    # def job_inputs(self):
-    #     ex_job_file = self.get_sample_data_file_path()
-    #     if not ex_job_file.exists() or ex_job_file.stat().st_size == 0:
-    #         ex_job_file.parent.mkdir(parents=True, exist_ok=True)
-    #         auto_set_inputs = generate_sample_inputs(self.cwl, self.user_types)
-    #         fast_yaml_io.dump(auto_set_inputs, ex_job_file)
-    #
-    #     user_set_inputs = {}
-    #     if ex_job_file.exists():
-    #         try:
-    #             user_set_inputs = fast_yaml_io.load(ex_job_file.open().read() or "")
-    #         except (ParserError, ScannerError) as e:
-    #             logger.error(f"Error loading sample input file {ex_job_file}")
-    #     else:
-    #         logger.error(f"No sample input file {ex_job_file}")
-    #
-    #     return user_set_inputs
-    #
-    # @property
-    # def job_outputs(self):
-    #     return generate_sample_outputs(self.cwl, self.user_types)
-    #
-    # @property
-    # def intermediate_outputs(self):
-    #     if self._intermediate_outputs is None:
-    #         self._intermediate_outputs = generate_sample_step_outputs_all(
-    #             self.doc_uri, self.cwl, self.user_types, self.job_inputs)
-    #     return self._intermediate_outputs
 
     def get_workflow_step_inputs(self, doc_path: tuple):
         step_id = doc_path[1]

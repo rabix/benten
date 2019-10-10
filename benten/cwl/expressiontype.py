@@ -104,8 +104,6 @@ class CWLExpression(CWLBaseType):
             elif _self_is_in_step(self.intel_context.path):
                 job_inputs, cwl_self = \
                     self.execution_context.get_workflow_step_inputs(self.intel_context.path)
-                logger.debug(self.intel_context.path)
-                logger.debug(job_inputs)
 
         except (ValueError, IndexError) as e:
             pass
