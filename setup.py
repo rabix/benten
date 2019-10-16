@@ -23,8 +23,7 @@ setup(
     python_requires='>=3.7.0',
     install_requires=[
         "ruamel.yaml",
-        "dukpy",
-        "sevenbridges-python"
+        "dukpy"
     ],
     entry_points={
         'console_scripts': [
@@ -42,7 +41,7 @@ setup(
     include_package_data=True,
     license='Copyright (c) {} Seven Bridges'.format(now.year),
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
