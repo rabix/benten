@@ -2,8 +2,11 @@
 
 import pathlib
 import urllib.parse
+import urllib.request
+import urllib.error
 
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
+from ..code.yaml import fast_yaml_load
 
 
 def get_range_for_key(parent, key):
@@ -102,7 +105,24 @@ def list_as_map(node, key_field, problems):
     return new_node
 
 
-def check_linked_file(doc_uri: str, path: str, loc: Range, problems: list):
+def validate_and_load_linked_file(doc_uri: str, path: str, loc: Range, problems: list) -> (str, str, dict):
+
+    full_path, contents, node_dict = path, "", {}
+
+    if urllib.parse.urlparse(path).scheme != "":
+        try:
+            contents = urllib.request.urlopen(path).read().decode('utf-8')
+            node_dict = fast_yaml_load(contents)
+        except urllib.error.HTTPError:
+            problems += [
+                Diagnostic(
+                    _range=loc,
+                    message=f"Missing URL: {path}",
+                    severity=DiagnosticSeverity.Error)
+            ]
+
+        return full_path, contents, node_dict
+
     linked_file = resolve_file_path(doc_uri, path)
     if not linked_file.exists():
         problems += [
@@ -118,8 +138,11 @@ def check_linked_file(doc_uri: str, path: str, loc: Range, problems: list):
                 message=f"Linked document must be file: {path}",
                 severity=DiagnosticSeverity.Error)
         ]
+    else:
+        contents = linked_file.open("r").read()
+        node_dict = fast_yaml_load(contents)
 
-    return linked_file
+    return linked_file, contents, node_dict
 
 
 # doc_uri on windows takes the form "file:///c%3A/Users/me/a.cwl"

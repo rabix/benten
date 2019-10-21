@@ -156,12 +156,12 @@ class CWLRecordType(CWLBaseType):
                 code_intel.add_lookup_node(ln)
 
             if self.name == "WorkflowStep" and k == "run":
-                lf_full_path = None
                 if isinstance(inferred_type, CWLLinkedFile):
-                    lf_full_path = inferred_type.full_path
+                    linked_process = inferred_type.node_dict
+                else:
+                    linked_process = child_node
 
-                step_interface = workflow.parse_step_interface(
-                    doc_uri, child_node, lf_full_path, problems)
+                step_interface = workflow.parse_step_interface(linked_process, problems)
                 intel_context.workflow_step_intelligence.set_step_interface(step_interface)
 
         if self.name == "Workflow":

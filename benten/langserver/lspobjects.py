@@ -236,6 +236,19 @@ class DocumentSymbol(LSPObject):
 
 
 class Hover(LSPObject):
-    def __init__(self, contents, _range=None):
-        self.contents = contents
+    def __init__(self, contents, _range=None, wrap_as_code_block=True):
+        if wrap_as_code_block:
+            self.contents = MarkupContent(
+                kind="markdown",
+                value="```\n" + contents + "\n```"
+            )
+        else:
+            self.contents = contents
+
         self.range = _range
+
+
+class MarkupContent(LSPObject):
+    def __init__(self, value, kind="markdown"):
+        self.kind = kind
+        self.value = value

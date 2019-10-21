@@ -17,6 +17,9 @@ step information.
 
 import pathlib
 from typing import Dict
+import urllib.parse
+import urllib.request
+import urllib.error
 
 from ..cwl.lib import (get_range_for_value, list_as_map, ListOrMap)
 from .yaml import fast_load
@@ -169,13 +172,9 @@ class WFOutputSourceCompleter(PortSourceCompleterBase):
 
 
 # This should be invoked when we arrive at the "run" field of a workflow
-def parse_step_interface(doc_uri, run_field, linked_file: pathlib.Path, problems):
+def parse_step_interface(run_field: dict, problems: list):
 
     step_interface = StepInterface()
-
-    if isinstance(run_field, str):
-        if linked_file.exists() and linked_file.is_file():
-            run_field = fast_load.load(linked_file)
 
     if isinstance(run_field, dict):
         step_interface = StepInterface(

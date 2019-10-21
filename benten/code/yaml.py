@@ -22,6 +22,13 @@ _yaml_loader.allow_duplicate_keys = True
 fast_load = YAML(typ='safe')
 
 
+def fast_yaml_load(txt):
+    try:
+        return fast_load.load(txt)
+    except (ParserError, ScannerError) as e:
+        pass
+
+
 def parse_yaml(text, retries=3) -> Tuple[dict, List[Diagnostic]]:
     problems = []
     try:
