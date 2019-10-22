@@ -4,6 +4,7 @@ from typing import Dict
 
 from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate, TypeCheck, Match
 from .linkedfiletype import CWLLinkedFile
+from .linkedschemadeftype import CWLLinkedSchemaDef
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.intelligence import LookupNode
 from ..code.intelligencecontext import copy_context
@@ -33,7 +34,10 @@ class CWLRecordType(CWLBaseType):
         # Exception for $import/$include etc.
         if isinstance(node, dict):
             if "$import" in node:
-                return TypeCheck(cwl_type=CWLLinkedFile(node.get("$import")))
+                if self.name == "InputRecordSchema":
+                    return TypeCheck(cwl_type=CWLLinkedSchemaDef(node.get("$import")))
+                else:
+                    return TypeCheck(cwl_type=CWLLinkedFile(node.get("$import")))
 
         required_fields = self.required_fields - {map_sp.subject if map_sp else None}
 
@@ -70,11 +74,14 @@ class CWLRecordType(CWLBaseType):
 
         if not isinstance(node, dict):
             if map_sp is not None and map_sp.predicate is not None:
-                field_iterator = [(map_sp.predicate, node)]
+                _field_iterator = [(map_sp.predicate, node)]
             else:
                 return
         else:
-            field_iterator = node.items()
+            _field_iterator = node.items()
+
+        field_iterator = _put_requirements_first(_field_iterator)
+        # We need to process the requirements first so that we resolve typedefs and JS libraries
 
         if self.name == "Workflow":
             intel_context.workflow = Workflow(node.get("inputs"), node.get("outputs"))
@@ -180,3 +187,15 @@ class CWLFieldType(CWLBaseType):
         if not isinstance(allowed_types, list):
             allowed_types = [allowed_types]
         self.types = allowed_types
+
+
+def _put_requirements_first(_field_iterator):
+    field_iterator = []
+    for k, v in _field_iterator:
+        if k == "requirements":
+            field_iterator = [(k, v)]
+            break
+    for k, v in _field_iterator:
+        if k != "requirements":
+            field_iterator += [(k, v)]
+    return field_iterator

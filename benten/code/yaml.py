@@ -8,6 +8,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.parser import ParserError
 from ruamel.yaml.scanner import ScannerError
 from ruamel.yaml.composer import ComposerError
+from ruamel.yaml.compat import StringIO
 
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range, Position
 
@@ -20,6 +21,8 @@ _yaml_loader = YAML(typ="rt")
 _yaml_loader.allow_duplicate_keys = True
 
 fast_load = YAML(typ='safe')
+fast_load.indent(mapping=2, sequence=4, offset=2)
+fast_load.default_flow_style = False
 
 
 def fast_yaml_load(txt):
@@ -27,6 +30,12 @@ def fast_yaml_load(txt):
         return fast_load.load(txt)
     except (ParserError, ScannerError) as e:
         pass
+
+
+def yaml_to_string(v: dict):
+    s = StringIO()
+    fast_load.dump(v, s)
+    return s.getvalue()
 
 
 def parse_yaml(text, retries=3) -> Tuple[dict, List[Diagnostic]]:

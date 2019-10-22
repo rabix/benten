@@ -57,9 +57,6 @@ class Intelligence:
     def add_lookup_node(self, node: LookupNode):
         self.lookup_table.append(node)
 
-    def extract_schemadef(self, doc_uri: str, cwl: dict):
-        self.type_defs = extract_schemadef(doc_uri, cwl)
-
     def prepare_execution_context(self, doc_uri: str, cwl: dict, scratch_path: pathlib.Path):
         self.execution_context = ExecutionContext(
             doc_uri=doc_uri,
