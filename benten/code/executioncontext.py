@@ -11,8 +11,6 @@ from .sampledata import (
     get_sample_globbed_files)
 
 from ruamel.yaml import YAML
-from ruamel.yaml.parser import ParserError
-from ruamel.yaml.scanner import ScannerError
 
 import logging
 logger = logging.getLogger(__name__)

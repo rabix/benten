@@ -4,7 +4,6 @@ from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubject
 from .unknowntype import CWLUnknownType
 from .requirementstype import CWLRequirementsType
 from ..langserver.lspobjects import Range
-from ..code.requirements import Requirements
 from ..code.intelligence import LookupNode, IntelligenceNode
 from ..code.intelligencecontext import copy_context
 from .lib import ListOrMap

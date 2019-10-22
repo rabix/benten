@@ -1,8 +1,8 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
 from .linkedfiletype import CWLLinkedFile
-from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate
-from ..langserver.lspobjects import Range, Location, CompletionItem, Hover
+from .basetype import IntelligenceContext, Intelligence, MapSubjectPredicate
+from ..langserver.lspobjects import Range
 
 import logging
 logger = logging.getLogger(__name__)

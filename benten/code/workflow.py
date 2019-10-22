@@ -15,14 +15,9 @@ step information.
 
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-import pathlib
 from typing import Dict
-import urllib.parse
-import urllib.request
-import urllib.error
 
 from ..cwl.lib import (get_range_for_value, list_as_map, ListOrMap)
-from .yaml import fast_load
 from .intelligence import IntelligenceNode, CompletionItem
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity
 

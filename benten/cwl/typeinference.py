@@ -54,12 +54,12 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
                 _type = CWLBaseType(name=_type)
             if explicit_type == _type.name:
                 return [TypeCheck(_type)]
-        else:
-            return [
-                TypeCheck(CWLUnknownType(
-                    name=explicit_type,
-                    expected=[t.name for t in allowed_types]),
-                    match=Match.No)]
+
+        return [
+            TypeCheck(CWLUnknownType(
+                name=explicit_type,
+                expected=[t.name for t in allowed_types]),
+                match=Match.No)]
 
     for _type in allowed_types:
         if _type == 'null':

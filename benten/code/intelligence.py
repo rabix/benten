@@ -13,7 +13,6 @@ from typing import List
 import pathlib
 
 from ..langserver.lspobjects import (Position, Range, CompletionItem)
-from .schemadef import extract_schemadef
 from .executioncontext import ExecutionContext
 
 import logging

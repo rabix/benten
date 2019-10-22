@@ -1,6 +1,6 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from .basetype import CWLBaseType, MapSubjectPredicate, TypeCheck
+from .basetype import CWLBaseType, MapSubjectPredicate
 from ..code.intelligence import Intelligence
 from ..code.intelligencecontext import IntelligenceContext
 from ..langserver.lspobjects import Range, Diagnostic, DiagnosticSeverity

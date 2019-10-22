@@ -73,8 +73,8 @@ class CWLExpression(CWLBaseType):
             for _component in ["secondaryFiles", "position", "valueFrom"]:
                 if _component in _path:
                     return True
-            else:
-                return False
+
+            return False
 
         def _self_is_outputEval(_path):
             return "in" not in _path and "outputEval" in _path
