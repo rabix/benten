@@ -27,13 +27,14 @@ extension. The VS Code extension is written in Typescript.
 
 ![2019.09.03](https://i.imgur.com/fgJOXum.png)
 
-- CWL syntax highlighting, CWL grammar parsing _(1)_
-- Embedded JS expression highlighting _(2)_
-- Navigate to linked sub-workflows _(3)_
-- Outline view (Symbols) + Step symbols _(4)_
-- Code snippets for process types, inputs, requirements
-- Error squiggles indicating YAML and CWL issues
+- CWL syntax highlighting, CWL grammar parsing
+- JS Expression highlighting
+- Evaluate expression on hover
 - File path autocomplete for linked files in `run` field
+- Port completion for workflow
+- Navigate to linked sub-workflows and includes
+- Outline view (Symbols) + Step symbols
+- Error squiggles indicating YAML and CWL issues
 
 
 # Server installation
