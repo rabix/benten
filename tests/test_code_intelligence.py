@@ -52,3 +52,11 @@ def test_requirement_sub_completion():
     doc = load(doc_path=this_path, type_dicts=type_dicts)
     cmpl = doc.completion(Position(8, 10))
     assert "InlineJavascriptRequirement" in [c.label for c in cmpl]
+
+
+def test_missing_name_space():
+    this_path = current_path / "cwl" / "misc" / "cl-missing-namespace.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+    assert len(doc.problems) == 1
+    namespace_problem = next(p for p in doc.problems if p.range.start.line == 15)
+    assert namespace_problem.message.startswith("Expecting one of")

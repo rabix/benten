@@ -5,6 +5,7 @@ from typing import Dict
 from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate, TypeCheck, Match
 from .linkedfiletype import CWLLinkedFile
 from .linkedschemadeftype import CWLLinkedSchemaDef
+from .namespacedtype import CWLNameSpacedType
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.intelligence import LookupNode
 from ..code.intelligencecontext import copy_context
@@ -120,6 +121,12 @@ class CWLRecordType(CWLBaseType):
                 # todo: this will fail for inlined nested workflows
                 code_intel.prepare_expression_lib(child_node)
                 continue
+
+            elif k in ["$schemas", "$namespaces"]:
+                continue
+
+            elif ":" in k:
+                inferred_type = CWLNameSpacedType(k)
 
             else:
 

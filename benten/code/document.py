@@ -50,6 +50,7 @@ class Document:
             return
 
         t2 = time.time()
+        self.code_intelligence.load_namespaces(cwl)
         self.code_intelligence.prepare_execution_context(self.doc_uri, cwl, self.config)
 
         self.parse(cwl)

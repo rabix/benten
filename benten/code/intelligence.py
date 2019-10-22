@@ -52,10 +52,15 @@ class Intelligence:
     def __init__(self):
         self.lookup_table: List[LookupNode] = []
         self.type_defs = {}
+        self.namespaces = {}
         self.execution_context: ExecutionContext = None
 
     def add_lookup_node(self, node: LookupNode):
         self.lookup_table.append(node)
+
+    def load_namespaces(self, cwl: dict):
+        if "$namespaces" in cwl:
+            self.namespaces = cwl["$namespaces"]
 
     def prepare_execution_context(self, doc_uri: str, cwl: dict, scratch_path: pathlib.Path):
         self.execution_context = ExecutionContext(

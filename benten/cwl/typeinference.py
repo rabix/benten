@@ -5,6 +5,7 @@ from typing import List
 from .basetype import CWLBaseType, MapSubjectPredicate, TypeCheck, Match
 from .unknowntype import CWLUnknownType
 from .anytype import CWLAnyType
+from .namespacedtype import CWLNameSpacedType
 
 
 def infer_type(node, allowed_types,
@@ -35,6 +36,9 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
     explicit_type = get_explicit_type_str(node, key, map_sp)
 
     if explicit_type is not None:
+        if ":" in explicit_type:
+            return [TypeCheck(CWLNameSpacedType(explicit_type))]
+
         for _type in allowed_types:
             if isinstance(_type, CWLAnyType):
                 req_type = _type.if_you_can_be_anything_be_this_kind(explicit_type)
