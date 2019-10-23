@@ -3,6 +3,7 @@
 import pathlib
 
 from benten.cwl.specification import parse_schema
+from benten.cwl.basetype import CWLBaseType
 
 
 current_path = pathlib.Path(__file__).parent
@@ -13,6 +14,7 @@ def test_load_language_specification():
 
     lang_model = parse_schema(schema_fname)
 
+    assert isinstance(lang_model.get("null"), CWLBaseType)
     assert "Array_symbol" in lang_model
     assert "CommandLineTool" in lang_model
     assert "Workflow" in lang_model

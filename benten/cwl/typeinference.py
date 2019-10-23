@@ -50,8 +50,6 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
                                        expected=_type.all_possible_type_names()),
                         match=Match.No)]
 
-            if isinstance(_type, str):
-                _type = CWLBaseType(name=_type)
             if explicit_type == _type.name:
                 return [TypeCheck(_type)]
 
@@ -62,7 +60,7 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
                 match=Match.No)]
 
     for _type in allowed_types:
-        if _type == 'null':
+        if _type.name == 'null':
             if node is None:
                 return [TypeCheck(CWLBaseType(name=_type))]
             else:
@@ -70,24 +68,24 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
                 continue
 
         # string greedily matches Expression, so we have to take care of this ...
-        if _type == "string":
+        if _type.name == "string":
             if node is None:
-                return [TypeCheck(CWLBaseType(name=_type))]
+                return [TypeCheck(_type)]
 
             elif isinstance(node, str):
-                type_check_results += [TypeCheck(CWLBaseType(name=_type), match=Match.Maybe)]
+                type_check_results += [TypeCheck(_type, match=Match.Maybe)]
 
             else:
-                type_check_results += [TypeCheck(CWLBaseType(name=_type), match=Match.No)]
+                type_check_results += [TypeCheck(_type, match=Match.No)]
 
             continue
 
         # For now, don't closely validate these base types
-        if _type in ['boolean', 'int', 'long']:
+        if _type.name in ['boolean', 'int', 'long']:
             if node is None or isinstance(node, (str, bool, int)):
-                return [TypeCheck(CWLBaseType(name=_type))]
+                return [TypeCheck(_type)]
             else:
-                type_check_results += [TypeCheck(CWLBaseType(name=_type), match=Match.No)]
+                type_check_results += [TypeCheck(_type, match=Match.No)]
                 continue
 
         check_result = _type.check(node, key, map_sp)

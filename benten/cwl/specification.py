@@ -24,9 +24,15 @@ def parse_schema(fname):
     # todo: a way to determine how many passes are needed
     for _ in range(3):
         parse_cwl_type(schema, type_dict)
+        add_formal_primitive_types_to_type_dict(type_dict)
 
     clean_up_schema(type_dict)
     return type_dict
+
+
+def add_formal_primitive_types_to_type_dict(type_dict):
+    for pt in type_dict.get("PrimitiveType").symbols:
+        type_dict[pt] = CWLBaseType(name=pt)
 
 
 # CWL grows hairy. It needs to be shaved periodically
