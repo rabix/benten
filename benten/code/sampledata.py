@@ -161,7 +161,7 @@ def enum_example_value(symbols):
 
 def record_example_value(name, _type, user_types):
     return {
-        k: example_value(name, _type_v, user_types)
+        k: example_value(f"{name}/{k}", _type_v, user_types)
         for k, _type_v in list_as_map(_type.get("fields"), key_field="name", problems=[]).items()
     }
 
