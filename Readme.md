@@ -2,7 +2,7 @@
 
 This is a [language server] for [Common Workflow Language](https://www.commonwl.org/) documents.
 
-<img align="right" height="150px" src="media/benten-icon.png"></img>
+<img align="right" height="150px" src="https://github.com/rabix/benten/blob/master/media/benten-icon.png"></img>
 Many advanced CWL users are comfortable creating tools and workflows "by
 hand" using a plain text editor. When creating complex enough workflows,
 navigating and editing the resultant document and sub-documents can get
@@ -23,19 +23,84 @@ extension. The VS Code extension is written in Typescript.
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
 
+<img height="400px" src="https://github.com/rabix/benten/blob/master/media/2019.10.22/full-window.png"></img>
+
 # Features
 
-![2019.09.03](https://i.imgur.com/fgJOXum.png)
+<style type="text/css" rel="stylesheet">
+.features {
+    float: left; 
+    height: 200px; 
+    width: 450px;
+}
+</style>
 
-- CWL syntax highlighting, CWL grammar parsing
-- JS Expression highlighting
-- Evaluate expression on hover
-- File path autocomplete for linked files in `run` field
-- Port completion for workflow
-- Navigate to linked sub-workflows and includes
-- Outline view (Symbols) + Step symbols
-- Error squiggles indicating YAML and CWL issues
+<div>
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/syntax-highlighting.png"></img>    
+    <figcaption>Syntax highlighting (CWL and JS)</figcaption>
+</figure>  
+</div>
 
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/expression-evaluation-on-hover.png"></img>    
+    <figcaption>Evaluate expression on hover</figcaption>
+</figure>  
+</div>
+
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/file-picker.png"></img>
+    <figcaption>File path autocomplete for linked files in `run` field</figcaption>
+</figure>  
+</div>
+ 
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/port-connection-picker.png"></img>
+    <figcaption>Port completion for workflow</figcaption>
+</figure>  
+</div>
+
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/port-connection-picker.png"></img>
+    <figcaption>Port completion for workflow</figcaption>
+</figure>  
+</div>
+
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/jump-to-definition.gif"></img>
+    <figcaption>Navigate to linked sub-workflows and includes</figcaption>
+</figure>  
+</div>
+
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/outline-view.png"></img>
+    <figcaption>Outline view (Symbols) + Step symbols</figcaption>
+</figure>  
+</div>
+
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/type-warnings.png"></img>
+    <figcaption>Type validations</figcaption>
+</figure>  
+</div>
+
+<div class="features">
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/workflow-connection-validations.png"></img>
+    <figcaption>Port validations</figcaption>
+</figure>  
+</div>
+</div>
+
+<div style="clear: left"></div>
 
 # Server installation
 
@@ -66,6 +131,8 @@ _Note: `pipx` installs the executables in `$HOME/.local/bin`
 (`%HOMEPATH%\.local\bin` for Windows). This needs to be added to your
 PATH env variable. `pipx ensurepath` does this for you_
 
+## Installing experimental versions
+
 To install from develop branch (or some other branch): 
 ```
 pipx install --spec git+https://github.com/rabix/benten.git@develop benten
@@ -86,7 +153,7 @@ is Rabix/benten. Follow the usual method to install the extension.
 
 # Using with VI/Vim
 
-See [this page](docs/vim.md) please.
+See [this page](https://github.com/rabix/benten/blob/master/docs/vim.md) please.
 
 
 # Expression evaluations on hover

@@ -1,5 +1,9 @@
 # Running Benten with vim 
 
+<img height="400px"
+src="https://github.com/rabix/benten/blob/master/media/2019.10.22/vi-type-hover.png"></img>
+
+
 ## Ensure you have a recent version of VIM
 
 The LSP client plugin requires vim8/neovim. It is best to
