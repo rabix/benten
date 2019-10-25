@@ -27,80 +27,17 @@ extension. The VS Code extension is written in Typescript.
 
 # Features
 
-<style type="text/css" rel="stylesheet">
-.features {
-    float: left; 
-    height: 200px; 
-    width: 450px;
-}
-</style>
+[(Click for feature screenshot gallery)](https://github.com/rabix/benten/blob/master/docs/features.md)
 
-<div>
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/syntax-highlighting.png"></img>    
-    <figcaption>Syntax highlighting (CWL and JS)</figcaption>
-</figure>  
-</div>
+- Syntax highlighting (CWL and JS)
+- Evaluate expression on hover
+- File path autocomplete for linked files in `run` field
+- Port completion for workflow
+- Navigate to linked sub-workflows and includes (Jump to definition)
+- Outline view (Symbols) + Step symbols
+- Type validations
+- Port validations
 
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/expression-evaluation-on-hover.png"></img>    
-    <figcaption>Evaluate expression on hover</figcaption>
-</figure>  
-</div>
-
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/file-picker.png"></img>
-    <figcaption>File path autocomplete for linked files in `run` field</figcaption>
-</figure>  
-</div>
- 
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/port-connection-picker.png"></img>
-    <figcaption>Port completion for workflow</figcaption>
-</figure>  
-</div>
-
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/port-connection-picker.png"></img>
-    <figcaption>Port completion for workflow</figcaption>
-</figure>  
-</div>
-
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/jump-to-definition.gif"></img>
-    <figcaption>Navigate to linked sub-workflows and includes</figcaption>
-</figure>  
-</div>
-
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/outline-view.png"></img>
-    <figcaption>Outline view (Symbols) + Step symbols</figcaption>
-</figure>  
-</div>
-
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/type-warnings.png"></img>
-    <figcaption>Type validations</figcaption>
-</figure>  
-</div>
-
-<div class="features">
-<figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/workflow-connection-validations.png"></img>
-    <figcaption>Port validations</figcaption>
-</figure>  
-</div>
-</div>
-
-<div style="clear: left"></div>
 
 # Server installation
 
