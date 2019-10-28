@@ -22,8 +22,8 @@ setup(
     platforms=['POSIX', 'MacOS', 'Windows'],
     python_requires='>=3.7.0',
     install_requires=[
-        "ruamel.yaml",
-        "dukpy"
+        "ruamel.yaml >= 0.15.77",
+        "dukpy >= 0.2.2"
     ],
     entry_points={
         'console_scripts': [
@@ -36,6 +36,7 @@ setup(
     maintainer_email='kaushik.ghose@sbgenomics.com',
     author_email='kaushik.ghose@sbgenomics.com',
     description='CWL language server developed by Seven Bridges',
+    url='https://github.com/rabix/benten',
     long_description=long_description,
     long_description_content_type="text/markdown",
     include_package_data=True,

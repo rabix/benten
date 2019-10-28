@@ -1,31 +1,11 @@
 # Benten 
 
-This is a [language server] for [Common Workflow Language](https://www.commonwl.org/) documents.
-
-<img align="right" height="150px" src="https://github.com/rabix/benten/blob/master/media/benten-icon.png"></img>
-Many advanced CWL users are comfortable creating tools and workflows "by
-hand" using a plain text editor. When creating complex enough workflows,
-navigating and editing the resultant document and sub-documents can get
-tedious. Keeping track of the bigger picture (what components have been
-added, what connections have been set) can also get hard.
-
-_Benten_ is a language server that offers help with code completion,
-navigation and syntax checking of CWL documents.
-
-_Benten_ is written using Python3 and developed against VS Code. The language
-server component will work with any editor/IDE that offers language server
-support. Syntax highlighting is currently only available for the VS Code
-extension. The VS Code extension is written in Typescript.
+This is a [language server] for
+[Common Workflow Language](https://www.commonwl.org/) documents. 
 
 [language server]: https://langserver.org/
 
-[![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
-[![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
-
-<img height="400px" src="https://github.com/rabix/benten/blob/master/media/2019.10.22/full-window.png"></img>
-
-# Features
+## Features
 
 [(Click for feature screenshot gallery)](https://github.com/rabix/benten/blob/master/docs/features.md)
 
@@ -38,6 +18,17 @@ extension. The VS Code extension is written in Typescript.
 - Type validations
 - Port validations
 
+![Benten Screenshot](https://raw.githubusercontent.com/rabix/benten/master/media/2019.10.22/full-window.png)
+
+[![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
+[![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
+[![PyPI version](https://badge.fury.io/py/benten.svg)](https://badge.fury.io/py/benten)
+
+_Benten_ is written using Python3 and developed against VS Code. The language
+server component will work with any editor/IDE that offers language server
+support. Syntax highlighting is currently only available for the VS Code
+extension. The VS Code extension is written in Typescript.
 
 # Server installation
 
@@ -46,11 +37,6 @@ Benten requires [Python 3.7 or later](https://www.python.org/downloads/)
 If you will be installing from source you will need
 [git](https://git-scm.com/downloads) on your system
 
-## Special instructions for Ubuntu Linux
-
-```
-sudo apt install python3-pip python3-venv
-```
 
 ## Using pipx
 
@@ -61,14 +47,39 @@ to use `pipx`
 ```
 pip3 install pipx  # in case you don't have pipx
 pipx ensurepath # ensures CLI application directory is on your $PATH
-pipx install --spec git+https://github.com/rabix/benten.git benten
+pipx install benten
 ```
 
-_Note: `pipx` installs the executables in `$HOME/.local/bin`
-(`%HOMEPATH%\.local\bin` for Windows). This needs to be added to your
-PATH env variable. `pipx ensurepath` does this for you_
+Notes: 
 
-## Installing experimental versions
+1. `pipx` installs the executables in `$HOME/.local/bin`
+   (`%HOMEPATH%\.local\bin` for Windows). This needs to be added to your
+   PATH env variable. `pipx ensurepath` does this for you
+2. `pipx install` can be done from within another virtual environment.
+   This is helpful when you have an incompatible global version of
+   Python which you wish to keep but still want to install Benten. You
+   can create a virtual env with Python > 3.7 and invoke the
+   installation commands from there.
+
+
+### Special instructions for Ubuntu Linux
+
+```
+sudo apt install python3-pip python3-venv
+```
+
+### Note for Windows
+If you are trying to reinstall or updating the server on windows with
+the server running (e.g. because you have VS Code running), you will
+have to shutdown the server (e.g. by exiting VS Code) before updating.
+
+
+### Installing versions directly from github
+
+To install from the master branch
+```
+pipx install --spec git+https://github.com/rabix/benten.git benten
+```
 
 To install from develop branch (or some other branch): 
 ```
@@ -85,8 +96,9 @@ pipx install -e benten
 
 # Install VS Code extension
 
-Search for "Benten" in the marketplace. The name of the client extension
-is Rabix/benten. Follow the usual method to install the extension.
+Search for "[Benten](https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl)" in the marketplace. The name of the client
+extension is Rabix/benten. Follow the usual method to install the
+extension.
 
 # Using with VI/Vim
 
