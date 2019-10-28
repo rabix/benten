@@ -64,7 +64,6 @@ class ExecutionContext:
                 src = in_obj
 
             if isinstance(src, list):
-                logger.debug(step_sample_outputs.keys())
                 input_obj[k] = [step_sample_outputs.get(s) for s in src]
             else:
                 input_obj[k] = step_sample_outputs.get(src)

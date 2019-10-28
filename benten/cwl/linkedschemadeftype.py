@@ -26,4 +26,3 @@ class CWLLinkedSchemaDef(CWLLinkedFile):
             if "name" in self.node_dict:
                 name = self.prefix + "#" + self.node_dict.pop("name")
                 code_intel.type_defs[name] = self.node_dict
-                logger.debug(name)
