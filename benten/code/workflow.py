@@ -199,7 +199,7 @@ def _validate_source(port, src_key, value_range, step_id, workflow, problems):
     if isinstance(src, list):
         for n, _src in enumerate(src):
             _validate_one_source(_src, get_range_for_value(src, n), step_id, workflow, problems)
-    else:
+    elif isinstance(src, str):
         _validate_one_source(src, value_range, step_id, workflow, problems)
 
 
