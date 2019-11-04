@@ -85,7 +85,7 @@ class CWLRecordType(CWLBaseType):
         # We need to process the requirements first so that we resolve typedefs and JS libraries
 
         if self.name == "Workflow":
-            intel_context.workflow = Workflow(node.get("inputs"), node.get("outputs"))
+            intel_context.workflow = Workflow(node.get("inputs"), node.get("outputs"), node.get("steps"))
 
         for k, child_node in field_iterator:
 
@@ -179,7 +179,7 @@ class CWLRecordType(CWLBaseType):
                 intel_context.workflow_step_intelligence.set_step_interface(step_interface)
 
         if self.name == "Workflow":
-            intel_context.workflow.validate_connections(node.get("steps"), problems=problems)
+            intel_context.workflow.validate_connections(problems=problems)
 
     def completion(self):
         return [CompletionItem(label=k) for k in self.fields.keys()]

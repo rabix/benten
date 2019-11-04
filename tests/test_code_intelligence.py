@@ -60,3 +60,11 @@ def test_missing_name_space():
     assert len(doc.problems) == 1
     namespace_problem = next(p for p in doc.problems if p.range.start.line == 15)
     assert namespace_problem.message.startswith("Expecting one of")
+
+
+def test_unused_input():
+    this_path = current_path / "cwl" / "misc" / "wf-unused-input.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+    assert len(doc.problems) == 1
+    namespace_problem = next(p for p in doc.problems if p.range.start.line == 4)
+    assert namespace_problem.message.startswith("Unused input")

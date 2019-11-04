@@ -34,25 +34,23 @@ class StepInterface:
 
 
 class Workflow:
-    def __init__(self, inputs, outputs):
+    def __init__(self, inputs, outputs, steps):
+        self._inputs = inputs
+        self._outputs = outputs
+        self._steps = steps
+
         self.step_intels: Dict[str, WFStepIntelligence] = {}
         self.wf_inputs = set(list_as_map(inputs, key_field="id", problems=[]).keys())
         self.wf_outputs = set(list_as_map(outputs, key_field="id", problems=[]).keys())
-        self._output_node = outputs
 
-    def validate_connections(self, steps, problems):
-        self.validate_outputs(problems)
+    def validate_connections(self, problems):
+        unused_ports = set(self.wf_inputs)
+        self.validate_step_connections(unused_ports, problems)
+        self.validate_outputs(unused_ports, problems)
+        self.flag_unused_inputs(unused_ports, problems)
 
-        _steps = ListOrMap(steps, key_field="id", problems=[])
-        for step_id, step in _steps.as_dict.items():
-            step_intel = self.step_intels.get(step_id)
-            if step_intel and isinstance(step, dict):
-                step_intel.validate_connections(
-                    ListOrMap(step.get("in"), key_field="id", problems=[]),
-                    problems=problems)
-
-    def validate_outputs(self, problems):
-        outputs = ListOrMap(self._output_node, key_field="id", problems=[])
+    def validate_outputs(self, unused_ports, problems):
+        outputs = ListOrMap(self._outputs, key_field="id", problems=[])
         for output_id, output in outputs.as_dict.items():
             _validate_source(
                 port=output,
@@ -60,7 +58,29 @@ class Workflow:
                 value_range=outputs.get_range_for_value(output_id),
                 step_id=None,
                 workflow=self,
+                unused_ports=unused_ports,
                 problems=problems)
+
+    def validate_step_connections(self, unused_ports, problems):
+        _steps = ListOrMap(self._steps, key_field="id", problems=[])
+        for step_id, step in _steps.as_dict.items():
+            step_intel = self.step_intels.get(step_id)
+            if step_intel and isinstance(step, dict):
+                step_intel.validate_connections(
+                    ListOrMap(step.get("in"), key_field="id", problems=[]),
+                    unused_ports=unused_ports,
+                    problems=problems)
+
+    def flag_unused_inputs(self, unused_ports, problems):
+        inputs = ListOrMap(self._inputs, key_field="id", problems=[])
+        for inp in unused_ports:
+            if inp in inputs.as_dict:
+                problems += [
+                    Diagnostic(
+                        _range=inputs.get_range_for_id(inp),
+                        message=f"Unused input",
+                        severity=DiagnosticSeverity.Warning)
+                ]
 
     def add_step_intel(self, step_id, step_intel: 'WFStepIntelligence'):
         step_intel.workflow = self
@@ -83,7 +103,7 @@ class WFStepIntelligence:
     def set_step_interface(self, step_interface: StepInterface):
         self.step_interface = step_interface
 
-    def validate_connections(self, inputs: ListOrMap, problems):
+    def validate_connections(self, inputs: ListOrMap, unused_ports, problems):
         if self.workflow is None:
             raise RuntimeError("Need to attach workflow first")
 
@@ -103,6 +123,7 @@ class WFStepIntelligence:
                     value_range=inputs.get_range_for_value(port_id),
                     step_id=self.step_id,
                     workflow=self.workflow,
+                    unused_ports=unused_ports,
                     problems=problems)
 
     def get_step_inport_completer(self):
@@ -183,7 +204,7 @@ def parse_step_interface(run_field: dict, problems: list):
     return step_interface
 
 
-def _validate_source(port, src_key, value_range, step_id, workflow, problems):
+def _validate_source(port, src_key, value_range, step_id, workflow, unused_ports, problems):
 
     src = None
     if isinstance(port, str):
@@ -198,12 +219,15 @@ def _validate_source(port, src_key, value_range, step_id, workflow, problems):
 
     if isinstance(src, list):
         for n, _src in enumerate(src):
-            _validate_one_source(_src, get_range_for_value(src, n), step_id, workflow, problems)
+            _validate_one_source(_src, get_range_for_value(src, n), step_id, workflow, unused_ports, problems)
     elif isinstance(src, str):
-        _validate_one_source(src, value_range, step_id, workflow, problems)
+        _validate_one_source(src, value_range, step_id, workflow, unused_ports, problems)
 
 
-def _validate_one_source(src, value_range, step_id, workflow, problems):
+def _validate_one_source(src, value_range, step_id, workflow, unused_ports, problems):
+
+    unused_ports.discard(src)
+
     if src in workflow.wf_inputs:
         return
 
