@@ -112,7 +112,10 @@ class WFStepIntelligence:
                 problems += [
                     Diagnostic(
                         _range=inputs.get_range_for_id(port_id),
-                        message=f"Expecting one of: {self.step_interface.inputs}",
+                        message=
+                        f"Expecting one of: {self.step_interface.inputs}"
+                        if self.step_interface.inputs else
+                        "No input ports found for this step",
                         severity=DiagnosticSeverity.Error)
                 ]
 
