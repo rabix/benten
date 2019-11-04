@@ -44,7 +44,7 @@ class Document:
         t0 = time.time()
         cwl, self.problems = parse_yaml(self.text)
         t1 = time.time()
-        logger.debug(f"Took {t1 - t0:1.3}s to load document")
+        logger.debug(f"Took {t1 - t0:1.3}s to load {self.doc_uri}")
 
         if not isinstance(cwl, dict):
             return
@@ -55,7 +55,7 @@ class Document:
 
         self.parse(cwl)
         t3 = time.time()
-        logger.debug(f"Took {t3 - t2:1.3}s to parse document")
+        logger.debug(f"Took {t3 - t2:1.3}s to parse {self.doc_uri}")
 
         self.symbology(cwl)
 
