@@ -210,7 +210,7 @@ def parse_step_interface(run_field: dict, problems: list):
 def _validate_source(port, src_key, value_range, step_id, workflow, unused_ports, problems):
 
     src = None
-    if isinstance(port, str):
+    if isinstance(port, (str, list)):
         src = port
     elif isinstance(port, dict):
         if src_key in port:
