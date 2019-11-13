@@ -9,6 +9,7 @@ from .intelligencecontext import IntelligenceContext
 from ..cwl.specification import latest_published_cwl_version, process_types
 from ..cwl.typeinference import infer_type
 from .symbols import extract_symbols, extract_step_symbols
+from .workflowgraph import cwl_graph
 from ..langserver.lspobjects import Position
 
 import logging
@@ -104,9 +105,4 @@ class Document:
                 symbols = extract_step_symbols(cwl, symbols)
 
         self.symbols = list(symbols.values())
-
-    def graphology(self, cwl):
-        pass
-        # _typ = cwl.get("class")
-        # if _typ == "Workflow":
-        #     self.wf_graph = analyze_connectivity(completer, self.problems)
+        self.wf_graph = cwl_graph(cwl)

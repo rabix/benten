@@ -91,8 +91,6 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(
 		commands.registerCommand('cwl.show_graph', () => {
 
-			const activeEditor = window.activeTextEditor;
-
 			// Create and show panel
 			const panel = window.createWebviewPanel(
 				'preview',
@@ -118,17 +116,15 @@ export function activate(context: ExtensionContext) {
 			// And set its HTML content
 			updateWebviewContent(panel, on_disk_files)
 
-			/*
 			// When we switch tabs we want the view to update
 			// But we don't need this because we have onDidChangeTextEditorSelection
 			window.onDidChangeActiveTextEditor(
 				e => {
-					panel.webview.html = getWebviewContent()
+					updateWebviewContent(panel, on_disk_files)
 				},
 				null,
 				context.subscriptions
 			)
-			*/
 			
 			// We update the diagram each time we change the text 
 			window.onDidChangeTextEditorSelection(
@@ -153,8 +149,8 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 	}
 	const graph_name = Md5.hashStr(activeEditor.document.uri.toString()) + ".json"
 
-	const data_uri = path.join(preview_scratch_directory, graph_name)
-	var json_as_text = fs.readFileSync(data_uri, "utf8")
+	const data_uri = path.join(preview_scratch_directory, graph_name);
+	var graph_data = JSON.parse(fs.readFileSync(data_uri, "utf8"));
 
   panel.webview.html = `<!DOCTYPE html>
 <html lang="en">
@@ -181,16 +177,9 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 
 	<script type="text/javascript">
 
-	var graph_data = JSON.parse(\`${json_as_text}\`)
-
   // create an array with nodes
-  var nodes = new vis.DataSet(graph_data["nodes"])
-
-	// create an array with edges
-	function _extract_edges(e) {
-		return {from: e[0], to: e[1], arrows: 'to'}
-	}
-	var edges = new vis.DataSet(graph_data["edges"].map(_extract_edges))
+  var nodes = new vis.DataSet(${JSON.stringify(graph_data["nodes"])})
+	var edges = new vis.DataSet(${JSON.stringify(graph_data["edges"])})
 
   // create a network
   var container = document.getElementById('cwl-graph');
@@ -198,38 +187,57 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
     nodes: nodes,
     edges: edges
   };
-	var options = {
-		nodes: {
-			shape: 'dot',
-			// shape: 'box',
-			// scaling: {
-			// 	customScalingFunction: function (min,max,total,value) {
-			// 		return value/total;
-			// 	},
-			// 	min:5,
-			// 	max:150
-			// }
-		},
-		edges: {
-			smooth: {
-					type: 'cubicBezier',
-					forceDirection: 'vertical',
-					roundness: 0.9
-			}
-		},
-		layout: {
-			hierarchical: {
-				direction: "UD",
-				// sortMethod: "hubsize",
-				nodeSpacing: 10
-			}
-		},
-		physics: {
-			barnesHut: {
-				avoidOverlap: 1
-			}
-		}
-	}
+
+  var options = {
+    "autoResize": true,
+    "interaction": {
+      "tooltipDelay": 50,
+      "navigationButtons": true
+    },
+    "nodes": {
+      "shape": "dot",
+      "borderWidth": 2
+    },
+    "manipulation": {
+      "enabled": false
+    },
+    "edges": {
+      "arrows": {
+        "to": {
+          "enabled": true,
+          "scaleFactor": 0.5
+        }
+      },
+      "smooth": {
+        "type": "cubicBezier",
+        "roundness": 0.6
+      }
+    },
+    "groups": {
+      "useDefaultGroups": true,
+      "inputs": {
+        "color": "#00AA28",
+        "shadow": {"enabled": true}
+      },
+      "outputs": {
+        "color": "#FF8F00",
+        "shadow": {"enabled": true}
+      },
+      "steps": {
+        "color": "#333333",
+        "shadow": {"enabled": true}
+      }
+    },
+    "layout": {
+      "hierarchical": {
+        "enabled": true,
+        "levelSeparation": 100,
+        "direction": "LR",
+        "sortMethod": "directed"
+      }
+    }  
+  }
+
   var network = new vis.Network(container, data, options);
 </script>
 

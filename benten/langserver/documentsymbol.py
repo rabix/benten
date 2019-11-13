@@ -21,8 +21,7 @@ class DocumentSymbol(CWLLangServerBase):
 
         doc = self.open_documents[doc_uri]
 
-        # TODO: Put back graph writing
-        # self._write_out_graph(doc)
+        self._write_out_graph(doc)
         return doc.symbols
 
     def _write_out_graph(self, doc):
@@ -30,4 +29,4 @@ class DocumentSymbol(CWLLangServerBase):
             self.config.scratch_path,
             hashlib.md5(doc.doc_uri.encode()).hexdigest() + ".json")
         with graph_data_file.open("w") as f:
-            json.dump(doc.model.graph(), f, indent=2)
+            json.dump(doc.wf_graph, f, indent=2)

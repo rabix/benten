@@ -10,8 +10,8 @@ client.
 ## How to setup and develop with VS Code
 
 - Install benten (as outlined on the main Readme)
-- Run `npm install` in this folder. This installs all the npm modules needed to
-  compile the VS Code client extension.
+- Run `npm install` from the `vscode-client`. This installs all the npm
+  modules needed to compile the VS Code client extension.
 - Run `tsc -b`
 - Open VS Code on this folder.
 - Press Ctrl+Shift+B to compile the client and server.
