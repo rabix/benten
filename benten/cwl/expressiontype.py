@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 parameter_ref = re.compile(r"\$\(((.(?<!\$({|\()))*)\)", flags=re.DOTALL | re.M)
 expression_ref = re.compile(r"\${((.(?<!\$({|\()))*)}", flags=re.DOTALL | re.M)
 
+inputs_scan = re.compile(r"inputs\.([\w]*)", flags=re.DOTALL | re.M)
+
 
 class CWLExpressionType(CWLBaseType):
 
@@ -41,8 +43,10 @@ class CWLExpression(CWLBaseType):
         self.text = text
         self.intel_context = None
         self.execution_context = None
-        # self.self_path = ()  # the path to the 'self' variable as described in CWL specs
         self.range = None
+
+    def guess_inputs(self):
+        return [inp.groups()[0] for inp in inputs_scan.finditer(self.text)]
 
     def parse(self,
               doc_uri: str,
@@ -121,6 +125,7 @@ class CWLExpression(CWLBaseType):
         else:
             res = "Job inputs have not been filled out"
 
+        logger.debug(f"Guessing expression inputs are: {self.guess_inputs()}")
         return Hover(res, self.range)
 
     def definition(self):
