@@ -29,6 +29,18 @@ Currently (04.2019) the only way to do this in VS Code is to use the
 "Reload Window" command:
 CMD + Shift + P to bring up the command bar and then type "Reload Window".
 
+### Release on PyPi
+
+```
+python3 setup.py sdist bdist_wheel
+twine upload dist/...
+```
+
+### Release on VS Code Marketplace
+
+`vsce package` and then upload the `.vsix` file
+
+
 ### Code organization
 
 ```
