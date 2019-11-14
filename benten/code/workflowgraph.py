@@ -40,7 +40,7 @@ def _add_edges(graph, inputs, outputs, steps):
 
     for k, v in steps.as_dict.items():
         _to = k
-        for prtid, prt in ListOrMap(v.get("in", {}), key_field="id", problems=[]).as_dict.items():
+        for _, prt in ListOrMap(v.get("in", {}), key_field="id", problems=[]).as_dict.items():
             graph["edges"] += [{"from": _f, "to": _to} for _f in _get_source_step(prt, "source")]
 
     for k, v in outputs.as_dict.items():

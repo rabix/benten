@@ -6,6 +6,7 @@ from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubject
 from .linkedfiletype import CWLLinkedFile
 from .linkedschemadeftype import CWLLinkedSchemaDef
 from .namespacedtype import CWLNameSpacedType
+from .expressiontype import CWLExpression
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
 from ..code.intelligence import LookupNode
 from ..code.intelligencecontext import copy_context
@@ -81,8 +82,14 @@ class CWLRecordType(CWLBaseType):
         else:
             _field_iterator = node.items()
 
-        field_iterator = _put_requirements_first(_field_iterator)
+        field_iterator = _put_this_field_first(_field_iterator, "requirements")
         # We need to process the requirements first so that we resolve typedefs and JS libraries
+
+        field_iterator = _put_this_field_first(field_iterator, "when")
+        # The when field may use input ports not present in the underlying tool
+        # we process this first and have the extra inputs at hand so we can add them
+        # to the step interface
+        extra_inputs_for_when = []
 
         if self.name == "Workflow":
             intel_context.workflow = Workflow(node.get("inputs"), node.get("outputs"), node.get("steps"))
@@ -158,6 +165,10 @@ class CWLRecordType(CWLBaseType):
                 value_range=value_range,
                 requirements=requirements)
 
+            if self.name == "WorkflowStep" and k == "when" \
+                    and isinstance(inferred_type, CWLExpression):
+                extra_inputs_for_when = inferred_type.guess_inputs()
+
             if self.name == "WorkflowOutputParameter" and k == "outputSource":
                 ln = LookupNode(loc=value_range)
                 ln.intelligence_node = this_intel_context.workflow.get_output_source_completer(child_node)
@@ -176,6 +187,7 @@ class CWLRecordType(CWLBaseType):
                     linked_process = child_node
 
                 step_interface = workflow.parse_step_interface(linked_process, problems)
+                step_interface.inputs.update(extra_inputs_for_when)
                 intel_context.workflow_step_intelligence.set_step_interface(step_interface)
 
         if self.name == "Workflow":
@@ -196,13 +208,11 @@ class CWLFieldType(CWLBaseType):
         self.types = allowed_types
 
 
-def _put_requirements_first(_field_iterator):
+def _put_this_field_first(_field_iterator, field_name):
     field_iterator = []
     for k, v in _field_iterator:
-        if k == "requirements":
-            field_iterator = [(k, v)]
-            break
-    for k, v in _field_iterator:
-        if k != "requirements":
+        if k == field_name:
+            field_iterator = [(k, v)] + field_iterator
+        else:
             field_iterator += [(k, v)]
     return field_iterator

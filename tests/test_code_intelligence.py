@@ -68,3 +68,12 @@ def test_unused_input():
     assert len(doc.problems) == 1
     namespace_problem = next(p for p in doc.problems if p.range.start.line == 4)
     assert namespace_problem.message.startswith("Unused input")
+
+
+def test_implicit_inputs():
+    this_path = current_path / "cwl" / "misc" / "wf-when-input.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+    assert len(doc.problems) == 0
+
+    cmpl = doc.completion(Position(12, 8))
+    assert "new_input" in [c.label for c in cmpl]
