@@ -1,0 +1,1 @@
+Simulates what happens when we start typing
