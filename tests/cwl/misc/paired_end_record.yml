@@ -1,0 +1,9 @@
+- name: paired_end_options
+  type: record
+  fields:
+    paired:
+      type: boolean?
+      label: "Are reads paired?"
+    paired_end_designator:
+      type: string?
+      label: "Regular expression denoting the read pair"
