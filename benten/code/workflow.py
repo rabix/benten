@@ -229,6 +229,9 @@ def _validate_source(port, src_key, value_range, step_id, workflow, unused_ports
 
 def _validate_one_source(src, value_range, step_id, workflow, unused_ports, problems):
 
+    if src is None:
+        return
+
     unused_ports.discard(src)
 
     if src in workflow.wf_inputs:
@@ -236,7 +239,7 @@ def _validate_one_source(src, value_range, step_id, workflow, unused_ports, prob
 
     err_msg = f"No such workflow input. Expecting one of {workflow.wf_inputs}"
 
-    if "/" in src:
+    if isinstance(src, str) and "/" in src:
         src_step, src_port = src.split("/")
         err_msg = "Port can not connect to same step"
         if src_step != step_id:

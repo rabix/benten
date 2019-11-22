@@ -52,4 +52,4 @@ def _get_source_step(v, key):
     src = v.get(key) if isinstance(v, dict) else v
     if not isinstance(src, list):
         src = [src]
-    return [s.split("/")[0] if s is not None else s for s in src]
+    return [s.split("/")[0] for s in src if isinstance(s, str)]

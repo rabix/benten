@@ -77,3 +77,9 @@ def test_implicit_inputs():
 
     cmpl = doc.completion(Position(12, 8))
     assert "new_input" in [c.label for c in cmpl]
+
+
+def test_invalid_input():
+    this_path = current_path / "cwl" / "misc" / "wf-invalid-input.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+    assert len(doc.problems) == 1
