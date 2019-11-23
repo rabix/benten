@@ -157,15 +157,25 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 <head>
     <meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Benten: CWL preview</title>
+		<title>Benten: ${activeEditor.document.uri.toString()}</title>
 		
 		<script type="text/javascript" src="${on_disk_files["vis.js"]}"></script>
 		<link href="${on_disk_files["vis-network.min.css"]}" rel="stylesheet" type="text/css" />
 
 		<style type="text/css">
+
+		html, body {
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			font-family: sans-serif;
+		}
+
     #cwl-graph {
       width: 100%;
-      height: 1000px;
+      height: 100%;
       border: 1px solid lightgray;
     }
   </style>
@@ -179,7 +189,7 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 
   // create an array with nodes
   var nodes = new vis.DataSet(${JSON.stringify(graph_data["nodes"])})
-	var edges = new vis.DataSet(${JSON.stringify(graph_data["edges"])})
+  var edges = new vis.DataSet(${JSON.stringify(graph_data["edges"])})
 
   // create a network
   var container = document.getElementById('cwl-graph');
@@ -217,14 +227,14 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
       "useDefaultGroups": true,
       "inputs": {
         "color": "#00AA28",
-        "shadow": {"enabled": true}
+        "shadow": {"enabled": false}
       },
       "outputs": {
-        "color": "#FF8F00",
-        "shadow": {"enabled": true}
+        "color": "#FFFF00",
+        "shadow": {"enabled": false}
       },
       "steps": {
-        "color": "#333333",
+        "color": "#0000FF",
         "shadow": {"enabled": true}
       }
     },
