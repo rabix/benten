@@ -32,6 +32,7 @@ def _add_nodes(graph, grp, grp_id):
     for k, v in grp.as_dict.items():
         graph["nodes"] += [{
             "id": k,
+            "label": v.get("label", k) if isinstance(v, dict) else k,
             "title": v.get("label", k) if isinstance(v, dict) else k,
             "group": grp_id}]
 
