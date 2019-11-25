@@ -170,15 +170,12 @@ class CWLRecordType(CWLBaseType):
                 extra_inputs_for_when = inferred_type.guess_inputs()
 
             if self.name == "WorkflowOutputParameter" and k == "outputSource":
-                ln = LookupNode(loc=value_range)
-                ln.intelligence_node = this_intel_context.workflow.get_output_source_completer(child_node)
-                code_intel.add_lookup_node(ln)
+                set_port_completers(code_intel, child_node, value_range,
+                                    this_intel_context.workflow.get_output_source_completer)
 
             if self.name == "WorkflowStepInput" and k == "source":
-                ln = LookupNode(loc=value_range)
-                ln.intelligence_node = this_intel_context.workflow_step_intelligence.get_step_source_completer(
-                    child_node)
-                code_intel.add_lookup_node(ln)
+                set_port_completers(code_intel, child_node, value_range,
+                                    this_intel_context.workflow_step_intelligence.get_step_source_completer)
 
             if self.name == "WorkflowStep" and k == "run":
                 if isinstance(inferred_type, CWLLinkedFile):
@@ -195,6 +192,19 @@ class CWLRecordType(CWLBaseType):
 
     def completion(self):
         return [CompletionItem(label=k) for k in self.fields.keys()]
+
+
+# Our sources can be singular or a list: we need to handle both
+def set_port_completers(code_intel, node, value_range, get_source_completer):
+    if isinstance(node, list):
+        _iterator = ((_node, get_range_for_value(node, n)) for n, _node in enumerate(node))
+    else:
+        _iterator = [(node, value_range)]
+
+    for _node, _value_range in _iterator:
+        ln = LookupNode(loc=_value_range)
+        ln.intelligence_node = get_source_completer(_node)
+        code_intel.add_lookup_node(ln)
 
 
 class CWLFieldType(CWLBaseType):
