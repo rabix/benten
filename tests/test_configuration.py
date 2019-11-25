@@ -29,5 +29,7 @@ def test_basic(monkeypatch):
     config = Configuration()
     config.initialize()
 
-    assert config.getpath("executions", "command_alias_file") == \
-           pathlib.Path(test_dir, "sevenbridges", "benten", "aliases.yaml")
+    assert config.log_path.exists()
+    assert config.scratch_path.exists()
+
+    assert "v1.0" in config.lang_models

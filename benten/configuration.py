@@ -38,7 +38,6 @@ class Configuration(configparser.ConfigParser):
         self.cfg_path = P(os.getenv(xdg_config_dir["env"], xdg_config_dir["default"]), sbg_config_dir)
         self.log_path = P(os.getenv(xdg_data_home["env"], xdg_data_home["default"]), sbg_config_dir, "logs")
         self.scratch_path = P(os.getenv(xdg_data_home["env"], xdg_data_home["default"]), sbg_config_dir, "scratch")
-        self.path = P(self.cfg_path, "config.ini")
 
         if not self.log_path.exists():
             self.log_path.mkdir(parents=True)
@@ -46,20 +45,13 @@ class Configuration(configparser.ConfigParser):
         if not self.scratch_path.exists():
             self.scratch_path.mkdir(parents=True)
 
-        if not self.path.exists():
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            self.create_default_config_file()
-
         self.lang_models = {}
 
     # We do this separately to give the caller a chance to set up logging
     def initialize(self):
 
-        logging.info("Loading config ...")
-        self.load()
-
-        logging.info("Copying data files ...")
-        self._copy_missing_config_files()
+        logging.info("Copying language schema files ...")
+        self._copy_missing_language_files()
 
         # TODO: allow multiple language specifications
         logging.info("Loading language model ...")
@@ -81,21 +73,8 @@ class Configuration(configparser.ConfigParser):
         else:
             return P(self.cfg_path, path)
 
-    def create_default_config_file(self):
-        os.makedirs(os.path.dirname(self.path), exist_ok=True)
-        shutil.copy(P(default_config_data_dir, "config.ini"), self.path)
-
-    def load(self):
-        # https://docs.python.org/3/library/configparser.html#configparser.ConfigParser.read
-        self.read_file(P(default_config_data_dir, "config.ini").open("r"))
-        self.read(self.path)
-
-    # We don't do this because we don't want to mess with the user's original formatting
-    # def save(self):
-    #     self.write(self.path.open("w"))
-
-    def _copy_missing_config_files(self):
-        for fn in ["schema-v1.0.json", "schema-v1.1.json"]:
+    def _copy_missing_language_files(self):
+        for fn in ["schema-v1.0.json", "schema-v1.1.json", "schema-v1.2.0-dev1.json"]:
             src_file = P(default_config_data_dir, fn)
             dst_file = P(self.cfg_path, fn)
             if not dst_file.exists():
