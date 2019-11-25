@@ -38,7 +38,9 @@ twine upload dist/...
 
 ### Release on VS Code Marketplace
 
-`vsce package` and then upload the `.vsix` file
+`vsce package` and then upload the `.vsix` file to [Marketplace]
+[Marketplace]: 
+https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl
 
 
 ### Code organization
