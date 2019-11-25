@@ -98,7 +98,8 @@ class LangServer(
         except ServerError as e:
             logger.error(e.server_error_message)
 
-            if is_a_request:
+            let_client_know_of_errors = False
+            if let_client_know_of_errors:
                 self.conn.write_error(
                     client_query["id"],
                     code=e.json_rpc_error.code,
@@ -203,31 +204,3 @@ class LangServer(
     def serve_initialized(client_query):
         return {}
 
-    # def serve_doc_did_change(self, client_query):
-    #     params = client_query["params"]
-    #     doc_uri = params["textDocument"]["uri"]
-    #     self._validate_doc_present(doc_uri)
-    #     self.open_documents[doc_uri].did_change(params)
-    #
-    # def serve_completion(self, client_query):
-    #     params = client_query["params"]
-    #     doc_uri = params["textDocument"]["uri"]
-    #
-    #     self._validate_doc_present(doc_uri)
-    #
-    #     return self.open_documents[doc_uri].auto_complete(params)
-    #
-    # def serve_hover(self, client_query):
-    #     return {}
-    #
-    # def serve_available_commands(self, client_query):
-    #     return {}
-    #
-    # def _validate_doc_present(self, doc_uri):
-    #     if doc_uri not in self.open_documents:
-    #         msg = "No such document {} referred to in change".format(doc_uri)
-    #         raise ServerError(
-    #             server_error_message=msg,
-    #             json_rpc_error=JSONRPC2Error(
-    #                 code=LSPErrCode.InvalidRequest,
-    #                 message=msg))
