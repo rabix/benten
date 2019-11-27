@@ -34,7 +34,7 @@ to use `pipx`
 ```
 pip3 install pipx  # in case you don't have pipx
 pipx ensurepath # ensures CLI application directory is on your $PATH
-pipx install benten
+pipx upgrade benten
 ```
 
 For more detailed information please see the [project page](https://github.com/rabix/benten).
