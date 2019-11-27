@@ -11,7 +11,8 @@ def cwl_graph(cwl: dict):
 
     graph = {
         "nodes": [],
-        "edges": []
+        "edges": [],
+        "lines": {}
     }
 
     inputs = ListOrMap(cwl.get("inputs", {}), key_field="id", problems=[])
@@ -34,7 +35,9 @@ def _add_nodes(graph, grp, grp_id):
             "id": k,
             "label": v.get("label", k) if isinstance(v, dict) else k,
             "title": v.get("label", k) if isinstance(v, dict) else k,
-            "group": grp_id}]
+            "group": grp_id
+        }]
+        graph["lines"][k] = grp.get_range_for_value(k).start.line
 
 
 def _add_edges(graph, inputs, outputs, steps):

@@ -89,6 +89,21 @@ vsce package
 ```
 and pass around the `.vsix` file for installing in VS Code
 
+## VS Code: Message passing between extension and web view + scroll to line
+
+- https://code.visualstudio.com/api/extension-guides/webview#scripts-and-message-passing
+	canonical message passing reference
+
+- https://github.com/Microsoft/vscode/issues/6695
+	Shows simple code snippet for scrolling document
+
+- https://github.com/Microsoft/vscode/issues/63073
+	Has a code snippet showing how to scroll document to a line as
+	well as message passing
+
+- https://github.com/microsoft/vscode/issues/8886
+	Discussion about window.visibleTextEditors
+
 
 # Things I learned
 

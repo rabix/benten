@@ -15,7 +15,8 @@
 
 import * as net from 'net';
 
-import { 
+import {
+	Selection, TextEditorRevealType,
 	workspace, Disposable, ExtensionContext, 
 	commands, window, ViewColumn,
 	Uri, 
@@ -106,7 +107,7 @@ export function activate(context: ExtensionContext) {
 			);
 
 			const on_disk_files: any = {}
-			const files = ["vis.js", "vis-network.min.css"]
+			const files = ["vis-network.min.js", "vis-network.min.css"]
 			for(let f of files) {
 				on_disk_files[f] = Uri.file(
 					path.join(context.extensionPath, 'include', f))
@@ -115,6 +116,22 @@ export function activate(context: ExtensionContext) {
 
 			// And set its HTML content
 			updateWebviewContent(panel, on_disk_files)
+
+			// Handle interactions on the graph
+			panel.webview.onDidReceiveMessage(
+				message => {
+					for(let te of window.visibleTextEditors) {
+						if(te.document.uri.toString() === message.uri) {
+							let line = te.document.lineAt(parseInt(message.line))
+							te.selection = new Selection(line.range.start, line.range.end)
+							te.revealRange(line.range, TextEditorRevealType.InCenter)
+							break
+						}
+					}
+				},
+				undefined,
+				context.subscriptions
+			);
 
 			// When we switch tabs we want the view to update
 			// But we don't need this because we have onDidChangeTextEditorSelection
@@ -159,7 +176,7 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Benten: ${activeEditor.document.uri.toString()}</title>
 		
-		<script type="text/javascript" src="${on_disk_files["vis.js"]}"></script>
+		<script type="text/javascript" src="${on_disk_files["vis-network.min.js"]}"></script>
 		<link href="${on_disk_files["vis-network.min.css"]}" rel="stylesheet" type="text/css" />
 
 		<style type="text/css">
@@ -191,6 +208,9 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
   var nodes = new vis.DataSet(${JSON.stringify(graph_data["nodes"])})
   var edges = new vis.DataSet(${JSON.stringify(graph_data["edges"])})
 
+	// metadata for scrolling to nodes
+	var lines = ${JSON.stringify(graph_data["lines"])}
+
   // create a network
   var container = document.getElementById('cwl-graph');
   var data = {
@@ -202,14 +222,12 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
     "autoResize": true,
     "interaction": {
       "tooltipDelay": 50,
-      "navigationButtons": true
+			"navigationButtons": false
     },
-    "nodes": {
+		"manipulation": { "enabled": false },
+		"nodes": {
       "shape": "dot",
       "borderWidth": 2
-    },
-    "manipulation": {
-      "enabled": false
     },
     "edges": {
       "arrows": {
@@ -249,6 +267,18 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
   }
 
   var network = new vis.Network(container, data, options);
+	const vscode = acquireVsCodeApi();
+
+	// From https://visjs.github.io/vis-network/examples/network/events/interactionEvents.html
+	// From https://code.visualstudio.com/api/extension-guides/webview#passing-messages-from-a-webview-to-an-extension
+
+	network.on("selectNode", function (params) {
+		const node_id = params.nodes[0]
+		vscode.postMessage({
+			"uri": "${activeEditor.document.uri.toString()}",
+			"line": lines[node_id]});
+	});
+
 </script>
 
 </body>
