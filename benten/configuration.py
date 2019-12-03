@@ -39,6 +39,9 @@ class Configuration(configparser.ConfigParser):
         self.log_path = P(os.getenv(xdg_data_home["env"], xdg_data_home["default"]), sbg_config_dir, "logs")
         self.scratch_path = P(os.getenv(xdg_data_home["env"], xdg_data_home["default"]), sbg_config_dir, "scratch")
 
+        if not self.cfg_path.exists():
+            self.cfg_path.mkdir(parents=True)        
+        
         if not self.log_path.exists():
             self.log_path.mkdir(parents=True)
 
