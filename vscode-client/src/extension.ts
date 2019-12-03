@@ -209,7 +209,7 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
   var edges = new vis.DataSet(${JSON.stringify(graph_data["edges"])})
 
 	// metadata for scrolling to nodes
-	var lines = ${JSON.stringify(graph_data["lines"])}
+	var line_numbers = ${JSON.stringify(graph_data["line-numbers"])}
 
   // create a network
   var container = document.getElementById('cwl-graph');
@@ -276,7 +276,7 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 		const node_id = params.nodes[0]
 		vscode.postMessage({
 			"uri": "${activeEditor.document.uri.toString()}",
-			"line": lines[node_id]});
+			"line": line_numbers[node_id]});
 	});
 
 </script>

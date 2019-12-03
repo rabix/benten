@@ -33,7 +33,7 @@ CMD + Shift + P to bring up the command bar and then type "Reload Window".
 
 ```
 python3 setup.py sdist bdist_wheel
-twine upload dist/...
+twine upload dist/*
 ```
 
 ### Release on VS Code Marketplace

@@ -12,7 +12,7 @@ def cwl_graph(cwl: dict):
     graph = {
         "nodes": [],
         "edges": [],
-        "lines": {}
+        "line-numbers": {}
     }
 
     inputs = ListOrMap(cwl.get("inputs", {}), key_field="id", problems=[])
@@ -34,10 +34,32 @@ def _add_nodes(graph, grp, grp_id):
         graph["nodes"] += [{
             "id": k,
             "label": v.get("label", k) if isinstance(v, dict) else k,
-            "title": v.get("label", k) if isinstance(v, dict) else k,
             "group": grp_id
         }]
-        graph["lines"][k] = grp.get_range_for_value(k).start.line
+        _mark_step_modifiers(graph["nodes"][-1], v)
+        graph["line-numbers"][k] = grp.get_range_for_value(k).start.line
+
+
+def _mark_step_modifiers(node_data, node):
+    if not isinstance(node, dict):
+        return
+
+    code, title = "", []
+    _scatter = node.get("scatter")
+    _conditional = node.get("when")
+    if _scatter:
+        code += "S"
+        title += [f"Scatter on {_scatter}"]
+    if _conditional:
+        code += "?"
+        title += [f"Conditional on {_conditional}"]
+    if code:
+        node_data["icon"] = {
+            "code": code,
+            "color": "#ffffff"
+        }
+    if title:
+        node_data["title"] = "<br/>".join(title)
 
 
 def _add_edges(graph, inputs, outputs, steps):

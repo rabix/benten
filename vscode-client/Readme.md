@@ -1,6 +1,6 @@
 # VS Code plugin for Rabix/Benten CWL language server
 
-<img height="400px" src="https://raw.githubusercontent.com/rabix/benten/master/media/2019.10.22/full-window.png"></img>
+<img height="400px" src="https://raw.githubusercontent.com/rabix/benten/master/media/2019.12.03/full-window.png"></img>
 
 - Syntax highlighting (CWL and JS)
 - Evaluate expression on hover
