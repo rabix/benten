@@ -29,6 +29,7 @@ def test_basic(monkeypatch):
     config = Configuration()
     config.initialize()
 
+    assert config.cfg_path.exists()    
     assert config.log_path.exists()
     assert config.scratch_path.exists()
 
