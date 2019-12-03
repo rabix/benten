@@ -18,7 +18,7 @@ This is a [language server] for
 - Type validations
 - Port validations
 
-![Benten Screenshot](https://raw.githubusercontent.com/rabix/benten/master/media/2019.10.22/full-window.png)
+![Benten + VS Code](https://raw.githubusercontent.com/rabix/benten/master/media/2019.12.03/full-window.png)
 
 [![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
