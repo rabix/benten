@@ -17,21 +17,20 @@ process_types = ["CommandLineTool", "ExpressionTool", "Workflow"]
 
 
 def parse_schema(fname):
-    type_dict = {}
     schema = json.load(open(fname, "r"))
 
-    # we need multiple passes to resolve forward references
-    # todo: a way to determine how many passes are needed
-    for _ in range(3):
-        parse_cwl_type(schema, type_dict)
-        add_formal_primitive_types_to_type_dict(type_dict)
-
+    type_dict = {}
+    add_formal_primitive_types_to_type_dict(schema, type_dict)
+    parse_cwl_type(schema, type_dict)
     clean_up_schema(type_dict)
     return type_dict
 
 
-def add_formal_primitive_types_to_type_dict(type_dict):
-    for pt in type_dict.get("PrimitiveType").symbols:
+def add_formal_primitive_types_to_type_dict(schema, type_dict):
+    _primitive_type_definition = next(
+        (s for s in schema if s.get("name") == "PrimitiveType"), None)
+
+    for pt in _primitive_type_definition.get("symbols"):
         type_dict[pt] = CWLBaseType(name=pt)
 
 
@@ -51,8 +50,10 @@ def clean_up_schema(type_dict):
 
 def parse_cwl_type(schema, lang_model, map_subject_predicate=None, field_name=None):
 
+    # There are no forward references in the schema. Every object is defined the
+    # first time it is encountered
     if isinstance(schema, str):
-        return lang_model.get(schema, schema)
+        return lang_model[schema]
 
     elif isinstance(schema, list):
         return [
@@ -61,7 +62,7 @@ def parse_cwl_type(schema, lang_model, map_subject_predicate=None, field_name=No
         ]
 
     elif schema.get("type") == "array":
-        name = field_name  # schema.get("name")
+        name = field_name
         if map_subject_predicate is None:
             return CWLArrayType(
                 name=name,
@@ -115,15 +116,17 @@ def parse_record(schema, lang_model):
         if extends in lang_model:
             fields.update(**lang_model[extends].fields)
 
-    fields.update(**{
-        k: v
-        for field in schema.get("fields") for k, v in [parse_field(field, lang_model)]
-    })
-
+    # It is important to add the still-being-created type to the type dict
+    # so as to handle self-references
     lang_model[record_name] = CWLRecordType(
         name=record_name,
         doc=schema.get("doc"),
         fields=fields)
+
+    lang_model[record_name].fields.update(**{
+        k: v
+        for field in schema.get("fields") for k, v in [parse_field(field, lang_model)]
+    })
 
     return lang_model.get(record_name)
 
@@ -144,6 +147,7 @@ def parse_field(field, lang_model):
     _allowed_types = field.get("type")
     if isinstance(_allowed_types, list) and "null" in _allowed_types:
         required = False
+        _allowed_types.remove("null")
 
     map_subject_predicate = None
     jldp = field.get("jsonldPredicate")

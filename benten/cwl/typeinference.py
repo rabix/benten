@@ -7,6 +7,9 @@ from .unknowntype import CWLUnknownType
 from .anytype import CWLAnyType
 from .namespacedtype import CWLNameSpacedType
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def infer_type(node, allowed_types,
                key: str = None, map_sp: MapSubjectPredicate = None) -> CWLBaseType:

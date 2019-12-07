@@ -20,3 +20,26 @@ def test_load_language_specification():
     assert "Workflow" in lang_model
     assert "steps" in lang_model["Workflow"].fields
     assert lang_model["Workflow"].fields["steps"].required
+
+
+def test_forward_reference_resolution():
+    type_dict = parse_schema(schema_fname)
+    for _, _type in type_dict.items():
+        check_for_unresolved_references(_type, type_dict, set())
+
+
+def check_for_unresolved_references(_type, type_dict, parents):
+    assert not isinstance(_type, str)
+
+    if _type in parents:
+        return
+    else:
+        parents.add(_type)
+
+    if hasattr(_type, "types"):
+        for _t in _type.types:
+            check_for_unresolved_references(_t, type_dict, parents)
+
+    if hasattr(_type, "fields"):
+        for _, field in _type.fields.items():
+            check_for_unresolved_references(field, type_dict, parents)
