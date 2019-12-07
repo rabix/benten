@@ -5,6 +5,9 @@ inputs:
   in1: string
 
 steps:
+
+  # There is a YAML syntax error here
+
   - id: step1:
     run: clt1.cwl
     in:
