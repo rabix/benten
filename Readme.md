@@ -24,6 +24,7 @@ This is a [language server] for
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
 [![PyPI version](https://badge.fury.io/py/benten.svg)](https://badge.fury.io/py/benten)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/benten.svg)](https://anaconda.org/conda-forge/benten)
 
 _Benten_ is written using Python3 and developed against VS Code. The language
 server component will work with any editor/IDE that offers language server
@@ -161,6 +162,9 @@ See the [development documentation](docs/developer.md)
 The low level client-server communication [code][jsonrpc-code] is taken from [Sourcegraph's
 (now defunct) Python Language Server][sourcegraph-python] as is the VS Code client code (which
 was based originally off Microsoft's example code). The CWL preview uses [vis.js]
+
+Thanks go to [Peter van Heusden](https://github.com/pvanheus/) for the
+Benten Conda [distribution](https://github.com/conda-forge/benten-feedstock).
 
 [jsonrpc-code]: https://github.com/sourcegraph/python-langserver/blob/master/langserver/jsonrpc.py
 [sourcegraph-python]: https://github.com/sourcegraph/python-langserver
