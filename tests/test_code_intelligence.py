@@ -97,3 +97,20 @@ def test_port_completer():
 
     cmpl = doc.completion(Position(24, 9))  # Is a list
     assert "in1" in [c.label for c in cmpl]
+
+
+# This test is somewhat brittle because it assumes the
+# existence of this repository on github. If github
+# disappears, or this repository is no longer hosted there
+# the CWL for this test will have to be updated.
+def test_remote_files():
+    this_path = current_path / "cwl" / "misc" / "wf-remote-steps.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+
+    # Refers to an earlier commit
+    hov = doc.hover(Position(13, 32))
+    assert "class:" in hov.contents.value
+
+    # Non existent commit
+    hov = doc.hover(Position(19, 32))
+    assert hov.contents.value == "```\n\n```"
