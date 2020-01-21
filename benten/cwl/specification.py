@@ -1,7 +1,7 @@
 """Code to load the CWL specification from JSON and represent it as a
 set of types"""
 
-#  Copyright (c) 2019 Seven Bridges. See LICENSE
+#  Copyright (c) 2019-2020 Seven Bridges. See LICENSE
 
 import json
 
@@ -127,6 +127,8 @@ def parse_record(schema, lang_model):
         k: v
         for field in schema.get("fields") for k, v in [parse_field(field, lang_model)]
     })
+
+    lang_model[record_name].init()
 
     return lang_model.get(record_name)
 

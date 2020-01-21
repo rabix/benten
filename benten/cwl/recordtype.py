@@ -1,4 +1,4 @@
-#  Copyright (c) 2019 Seven Bridges. See LICENSE
+#  Copyright (c) 2019-2020 Seven Bridges. See LICENSE
 
 from typing import Dict
 
@@ -25,6 +25,10 @@ class CWLRecordType(CWLBaseType):
         super().__init__(name)
         self.doc = doc
         self.fields = fields
+        self.required_fields = set((k for k, v in self.fields.items() if v.required))
+        self.all_fields = set(self.fields.keys())
+
+    def init(self):
         self.required_fields = set((k for k, v in self.fields.items() if v.required))
         self.all_fields = set(self.fields.keys())
 

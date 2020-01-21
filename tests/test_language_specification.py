@@ -1,4 +1,4 @@
-#  Copyright (c) 2019 Seven Bridges. See LICENSE
+#  Copyright (c) 2019-2020 Seven Bridges. See LICENSE
 
 import pathlib
 
@@ -20,6 +20,9 @@ def test_load_language_specification():
     assert "Workflow" in lang_model
     assert "steps" in lang_model["Workflow"].fields
     assert lang_model["Workflow"].fields["steps"].required
+
+    # Ensure type is properly initialized after forward construction
+    assert "entry" in lang_model["Dirent"].required_fields
 
 
 def test_forward_reference_resolution():
