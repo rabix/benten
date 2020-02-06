@@ -10,4 +10,4 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: SchemaDefRequirement
     types:
-      - $import: paired_end_record.yml
+      - $import: ./paired_end_record.yml

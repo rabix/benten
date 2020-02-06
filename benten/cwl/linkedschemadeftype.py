@@ -1,5 +1,8 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
+import pathlib
+from urllib.parse import urlparse
+
 from .linkedfiletype import CWLLinkedFile
 from .basetype import IntelligenceContext, Intelligence, MapSubjectPredicate
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range
@@ -36,7 +39,9 @@ class CWLLinkedSchemaDef(CWLLinkedFile):
             ]
             return
 
+        fname = pathlib.Path(urlparse(self.prefix).path).name
+
         for _type in _type_list:
             if "name" in _type:
-                name = self.prefix + "#" + _type.pop("name")
+                name = fname + "#" + _type.pop("name")
                 code_intel.type_defs[name] = _type
