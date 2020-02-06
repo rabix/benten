@@ -189,5 +189,5 @@ _References_
 ---
 
 <div align="right">
-<sub>(c) 2019 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
+<sub>(c) 2019-2020 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
 </div>
