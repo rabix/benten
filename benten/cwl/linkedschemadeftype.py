@@ -2,7 +2,7 @@
 
 from .linkedfiletype import CWLLinkedFile
 from .basetype import IntelligenceContext, Intelligence, MapSubjectPredicate
-from ..langserver.lspobjects import Range
+from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range
 
 import logging
 logger = logging.getLogger(__name__)
@@ -22,7 +22,21 @@ class CWLLinkedSchemaDef(CWLLinkedFile):
               value_range: Range = None,
               requirements=None):
         super().parse(doc_uri, node, intel_context, code_intel, problems, node_key, map_sp, key_range, value_range, requirements)
-        if isinstance(self.node_dict, dict):
-            if "name" in self.node_dict:
-                name = self.prefix + "#" + self.node_dict.pop("name")
-                code_intel.type_defs[name] = self.node_dict
+
+        if isinstance(self.node_dict, list):
+            _type_list = self.node_dict
+        elif isinstance(self.node_dict, dict):
+            _type_list = [self.node_dict]
+        else:
+            problems += [
+                Diagnostic(
+                    _range=value_range,
+                    message=f"Problem parsing SchemaDef file",
+                    severity=DiagnosticSeverity.Error)
+            ]
+            return
+
+        for _type in _type_list:
+            if "name" in _type:
+                name = self.prefix + "#" + _type.pop("name")
+                code_intel.type_defs[name] = _type
