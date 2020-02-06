@@ -114,3 +114,27 @@ def test_remote_files():
     # Non existent commit
     hov = doc.hover(Position(19, 32))
     assert hov.contents.value == "```\n\n```"
+
+
+def test_schemadef_import():
+    this_path = current_path / "cwl" / "misc" / "cl-schemadef-import.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+
+    assert len(doc.problems) == 0
+
+    cmpl = doc.completion(Position(12, 21))
+    assert "cl-schemadef-import.cwl" in [c.label for c in cmpl]
+    # The completer should look for all files in the current directory
+
+
+def test_schemadef_include():
+    this_path = current_path / "cwl" / "misc" / "cl-schemadef-include.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+
+    assert len(doc.problems) == 2
+
+    syntax_error = next(p for p in doc.problems if p.range.start.line == 12)
+    assert syntax_error.message == "Expecting an $import"
+
+    type_error = next(p for p in doc.problems if p.range.start.line == 4)
+    assert type_error.message.startswith("Expecting one of")

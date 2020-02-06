@@ -5,6 +5,7 @@ from typing import Dict
 from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate, TypeCheck, Match
 from .linkedfiletype import CWLLinkedFile
 from .linkedschemadeftype import CWLLinkedSchemaDef
+from .importincludetype import CWLImportInclude
 from .namespacedtype import CWLNameSpacedType
 from .expressiontype import CWLExpression
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity
@@ -40,10 +41,9 @@ class CWLRecordType(CWLBaseType):
         # Exception for $import/$include etc.
         if isinstance(node, dict):
             if "$import" in node:
-                if self.name == "InputRecordSchema":
-                    return TypeCheck(cwl_type=CWLLinkedSchemaDef(node.get("$import")))
-                else:
-                    return TypeCheck(cwl_type=CWLLinkedFile(node.get("$import")))
+                return TypeCheck(cwl_type=CWLImportInclude(key="$import", import_context=self.name))
+            if "$include" in node:
+                return TypeCheck(cwl_type=CWLImportInclude(key="$include", import_context=self.name))
 
         required_fields = self.required_fields - {map_sp.subject if map_sp else None}
 
