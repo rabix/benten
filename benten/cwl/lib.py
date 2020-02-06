@@ -60,13 +60,23 @@ class ListOrMap:
                         self.as_dict[key] = _item
                         self.key_ids[key] = get_range_for_value(_item, key_field)
                         self.map_key_to_idx[key] = n
-                    else:
-                        problems += [
-                            Diagnostic(
-                                _range=get_range_for_value(node, n),
-                                message=f"Missing key field {key_field}",
-                                severity=DiagnosticSeverity.Error)
-                        ]
+                        continue
+
+                    # Exception to handle $import
+                    # see https://github.com/common-workflow-language/common-workflow-language/issues/896
+                    if "$import" in _item:
+                        key = "class"
+                        self.as_dict[key] = _item
+                        self.key_ids[key] = get_range_for_value(_item, "$import")
+                        self.map_key_to_idx[key] = n
+                        continue
+
+                    problems += [
+                        Diagnostic(
+                            _range=get_range_for_value(node, n),
+                            message=f"Missing key field {key_field}",
+                            severity=DiagnosticSeverity.Error)
+                    ]
 
     def get_range_for_id(self, key):
         if self.was_dict:

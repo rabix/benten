@@ -138,3 +138,17 @@ def test_schemadef_include():
 
     type_error = next(p for p in doc.problems if p.range.start.line == 4)
     assert type_error.message.startswith("Expecting one of")
+
+
+def test_hints_imports():
+    this_path = current_path / "cwl" / "misc" / "cl-hints-import.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+
+    assert len(doc.problems) == 1
+
+    missing_error = next(p for p in doc.problems if p.range.start.line == 4)
+    assert missing_error.message.startswith("Missing document:")
+
+    cmpl = doc.completion(Position(4, 20))
+    assert "cl-schemadef-import.cwl" in [c.label for c in cmpl]
+    # The completer should look for all files in the current directory
