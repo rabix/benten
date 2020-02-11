@@ -155,17 +155,17 @@ def test_hints_imports():
 
 
 def test_requirements_completion():
-    # this_path = current_path / "cwl" / "misc" / "cl-hints-dict.cwl"
-    # doc = load(doc_path=this_path, type_dicts=type_dicts)
-    #
-    # cmpl = doc.completion(Position(12, 8))
-    # assert "dockerLoad" in [c.label for c in cmpl]
-    #
-    # this_path = current_path / "cwl" / "misc" / "cl-hints-list.cwl"
-    # doc = load(doc_path=this_path, type_dicts=type_dicts)
-    #
-    # cmpl = doc.completion(Position(12, 8))
-    # assert "dockerImport" in [c.label for c in cmpl]
+    this_path = current_path / "cwl" / "misc" / "cl-hints-dict.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+
+    cmpl = doc.completion(Position(12, 8))
+    assert "dockerLoad" in [c.label for c in cmpl]
+
+    this_path = current_path / "cwl" / "misc" / "cl-hints-list.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+
+    cmpl = doc.completion(Position(12, 8))
+    assert "dockerImport" in [c.label for c in cmpl]
 
     this_path = current_path / "cwl" / "misc" / "cl-hints-dict-start.cwl"
     doc = load(doc_path=this_path, type_dicts=type_dicts)

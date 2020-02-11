@@ -4,6 +4,7 @@ from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubject
 from ..langserver.lspobjects import Range, CompletionItem, Diagnostic, DiagnosticSeverity, Hover
 from ..code.intelligence import LookupNode
 from ..code.yaml import yaml_to_string
+from .lib import normalized_path
 
 import logging
 logger = logging.getLogger(__name__)
@@ -70,8 +71,6 @@ class CWLDataType(CWLEnumType):
               key_range: Range = None,
               value_range: Range = None,
               requirements=None):
-        # add in user defined data types
-        self.symbols = set(code_intel.type_defs.keys()).union(self.symbols)
 
         # de-sugar
         if node[-1] == "?":
@@ -79,16 +78,22 @@ class CWLDataType(CWLEnumType):
         if node[-2:] == "[]":
             node = node[:-2]
 
-        if node not in self.symbols:
-            problems += [
-                Diagnostic(
-                    _range=value_range,
-                    message=f"Expecting one of: {sorted(self.symbols)}",
-                    severity=DiagnosticSeverity.Error)
-            ]
+        if node not in self.symbols: # Not a native type
+            if node not in code_intel.type_defs: # Path doesn't match denormalized
+                _norm_path = normalized_path(doc_uri, node)
+                for _type in code_intel.type_defs.keys():
+                    if _norm_path == normalized_path(doc_uri, _type):
+                        break
+                else:
+                    problems += [
+                        Diagnostic(
+                            _range=value_range,
+                            message=f"Expecting one of: {sorted(set(self.symbols).union(code_intel.type_defs.keys()))}",
+                            severity=DiagnosticSeverity.Error)
+                    ]
 
-        elif node in code_intel.type_defs:
-            self._hover_value = code_intel.type_defs[node]
+            else:
+                self._hover_value = code_intel.type_defs[node]
 
         ln = LookupNode(loc=value_range)
         ln.intelligence_node = self
@@ -97,4 +102,3 @@ class CWLDataType(CWLEnumType):
     def hover(self):
         if self._hover_value is not None:
             return Hover(yaml_to_string(self._hover_value))
-

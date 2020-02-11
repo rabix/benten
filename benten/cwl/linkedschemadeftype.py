@@ -1,5 +1,9 @@
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
+"""Types are stored in the code_intel type dictionary. They are keyed by the URI (if off-disk) or
+ the relative path if on-disk. When matching types the path is normalized. The reason why we store
+ the relative path is that it makes for a better looking auto-completion."""
+
 import pathlib
 from urllib.parse import urlparse
 
@@ -39,9 +43,7 @@ class CWLLinkedSchemaDef(CWLLinkedFile):
             ]
             return
 
-        fname = pathlib.Path(urlparse(self.prefix).path).name
-
         for _type in _type_list:
             if "name" in _type:
-                name = fname + "#" + _type.pop("name")
+                name = self.prefix + "#" + _type.pop("name")
                 code_intel.type_defs[name] = _type

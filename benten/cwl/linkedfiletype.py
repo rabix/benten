@@ -16,11 +16,11 @@ class CWLLinkedFile(CWLBaseType):
 
     def __init__(self, prefix, extension=None):
         super().__init__("Linked file")
-        self.prefix = prefix
-        self.full_path = None
-        self._contents = None
-        self.node_dict = None
-        self.extension = extension
+        self.prefix: str = prefix
+        self.full_path: pathlib.Path = None
+        self._contents: str = None
+        self.node_dict: dict = None
+        self.extension: str = extension
 
     def parse(self,
               doc_uri: str,

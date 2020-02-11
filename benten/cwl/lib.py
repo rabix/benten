@@ -117,9 +117,10 @@ def list_as_map(node, key_field, problems):
 
 def validate_and_load_linked_file(doc_uri: str, path: str, loc: Range, problems: list) -> (str, str, dict):
 
-    full_path, contents, node_dict = path, "", {}
+    link_url = urllib.parse.urlparse(path)
+    full_path, contents, node_dict = link_url.path, "", {}
 
-    if urllib.parse.urlparse(path).scheme != "":
+    if link_url.scheme not in ["file://", ""]:
         try:
             contents = urllib.request.urlopen(path).read().decode('utf-8')
             node_dict = fast_yaml_load(contents)
@@ -131,7 +132,7 @@ def validate_and_load_linked_file(doc_uri: str, path: str, loc: Range, problems:
                     severity=DiagnosticSeverity.Error)
             ]
 
-        return full_path, contents, node_dict
+        return path, contents, node_dict
 
     linked_file = resolve_file_path(doc_uri, path)
     if not linked_file.exists():
@@ -153,6 +154,14 @@ def validate_and_load_linked_file(doc_uri: str, path: str, loc: Range, problems:
         node_dict = fast_yaml_load(contents)
 
     return linked_file, contents, node_dict
+
+
+def normalized_path(doc_uri: str, path: str):
+    link_url = urllib.parse.urlparse(path)
+    if link_url.scheme not in ["file://", ""]:
+        return path
+    else:
+        return str(resolve_file_path(doc_uri, path))
 
 
 # doc_uri on windows takes the form "file:///c%3A/Users/me/a.cwl"
