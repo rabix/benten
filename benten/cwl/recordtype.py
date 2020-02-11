@@ -82,6 +82,13 @@ class CWLRecordType(CWLBaseType):
             if map_sp is not None and map_sp.predicate is not None:
                 _field_iterator = [(map_sp.predicate, node)]
             else:
+                if node_key is not None:
+                    # This is a record being defined as part of a map and we are likely
+                    # just starting to type a key. Our self healing does not catch this
+                    # as it looks like a scalar value
+                    ln = LookupNode(loc=value_range)
+                    ln.intelligence_node = self
+                    code_intel.add_lookup_node(ln)
                 return
         else:
             _field_iterator = node.items()
