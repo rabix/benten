@@ -126,6 +126,10 @@ def test_schemadef_import():
     assert "cl-schemadef-import.cwl" in [c.label for c in cmpl]
     # The completer should look for all files in the current directory
 
+    cmpl = doc.completion(Position(4, 11))
+    assert "./paired_end_record.yml#paired_end_options" in [c.label for c in cmpl]
+    # The completer should offer user defined types as completions too
+
 
 def test_schemadef_include():
     this_path = current_path / "cwl" / "misc" / "cl-schemadef-include.cwl"

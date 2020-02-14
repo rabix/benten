@@ -60,6 +60,11 @@ class CWLEnumType(CWLBaseType):
 
 class CWLDataType(CWLEnumType):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_types = []
+        self.prefix = ""
+
     def parse(self,
               doc_uri: str,
               node,
@@ -71,6 +76,9 @@ class CWLDataType(CWLEnumType):
               key_range: Range = None,
               value_range: Range = None,
               requirements=None):
+
+        self.prefix = node
+        self.user_types = code_intel.type_defs.keys()
 
         # de-sugar
         if node[-1] == "?":
@@ -102,3 +110,6 @@ class CWLDataType(CWLEnumType):
     def hover(self):
         if self._hover_value is not None:
             return Hover(yaml_to_string(self._hover_value))
+
+    def completion(self):
+        return [CompletionItem(label=s) for s in self.symbols.union(self.user_types)]
