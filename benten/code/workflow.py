@@ -17,7 +17,7 @@ step information.
 
 from typing import Dict
 
-from ..cwl.lib import (get_range_for_value, list_as_map, ListOrMap)
+from ..cwl.lib import (get_range_for_value, list_as_map, ListOrMap, normalize_source)
 from .intelligence import IntelligenceNode, CompletionItem
 from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity
 
@@ -231,6 +231,8 @@ def _validate_one_source(src, value_range, step_id, workflow, unused_ports, prob
 
     if src is None:
         return
+
+    src = normalize_source(src)
 
     unused_ports.discard(src)
 

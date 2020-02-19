@@ -4,7 +4,7 @@ purpose."""
 
 #  Copyright (c) 2019 Seven Bridges. See LICENSE
 
-from ..cwl.lib import ListOrMap
+from ..cwl.lib import (ListOrMap, normalize_source)
 
 
 def cwl_graph(cwl: dict):
@@ -78,4 +78,4 @@ def _get_source_step(v, key):
     src = v.get(key) if isinstance(v, dict) else v
     if not isinstance(src, list):
         src = [src]
-    return [s.split("/")[0] for s in src if isinstance(s, str)]
+    return [normalize_source(s).split("/")[0] for s in src if isinstance(s, str)]

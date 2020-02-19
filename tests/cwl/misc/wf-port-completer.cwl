@@ -14,7 +14,7 @@ steps:
   - id: step2
     run: clt1.cwl
     in:
-      in1: step1/out1
+      in1: "#step1/out1"
     out: [out1]
 
 outputs:

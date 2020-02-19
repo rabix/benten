@@ -25,3 +25,10 @@ def test_mass_wf_load():
         path = current_path / "cwl" / wf_dir
         for fname in path.glob("*.cwl"):
             _ = load(doc_path=fname, type_dicts=type_dicts)
+
+
+def test_connections():
+    path = current_path / "cwl" / "misc" / "wf-port-completer.cwl"
+    doc = load(doc_path=path, type_dicts=load_type_dicts())
+
+    assert len(doc.problems) == 0

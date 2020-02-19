@@ -185,3 +185,10 @@ def resolve_file_path(doc_uri, target_path):
         base_path = "."
     _path = pathlib.Path(base_path / _path).resolve().absolute()
     return _path
+
+
+def normalize_source(src):
+    if isinstance(src, str) and src.startswith("#"):
+        return src[1:]
+    else:
+        return src
