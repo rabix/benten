@@ -48,8 +48,24 @@ to use `pipx`
 ```
 pip3 install pipx  # in case you don't have pipx
 pipx ensurepath # ensures CLI application directory is on your $PATH
+```
+
+Now you can install Benten with
+```
+pipx install benten
+```
+
+If you already have Benten installed you can upgrade it
+```
 pipx upgrade benten
 ```
+
+
+If your base python install is earlier than 3.7 you can tell `pipx` to use 3.7 for Benten
+```
+pipx install benten --python python3.7
+```
+
 
 Notes: 
 
@@ -79,19 +95,18 @@ have to shutdown the server (e.g. by exiting VS Code) before updating.
 
 To install from the master branch
 ```
-pipx install --spec git+https://github.com/rabix/benten.git benten
+pipx install git+https://github.com/rabix/benten.git
 ```
 
 To install from develop branch (or some other branch): 
 ```
-pipx install --spec git+https://github.com/rabix/benten.git@develop benten
+pipx install git+https://github.com/rabix/benten.git@develop
 ```
 
 Or, if you have cloned the repository and want to play with the server
 code itself:
-
 ```
-pipx install -e benten
+pipx install -e benten  # benten is the name of the directory with the cloned code
 ```
 
 
