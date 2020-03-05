@@ -33,6 +33,9 @@ class CWLArrayType(CWLBaseType):
               value_range: Range = None,
               requirements=None):
 
+        if not isinstance(node, list):
+            return
+
         for n, v in enumerate(node):
             inferred_type = infer_type(v, self.types)
             inferred_type.parse(
