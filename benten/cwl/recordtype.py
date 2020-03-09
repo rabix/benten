@@ -23,8 +23,7 @@ logger = logging.getLogger(__name__)
 class CWLRecordType(CWLBaseType):
 
     def __init__(self, name: str, doc: str, fields: Dict[str, 'CWLFieldType']):
-        super().__init__(name)
-        self.doc = doc
+        super().__init__(name, doc=doc)
         self.fields = fields
         self.required_fields = set((k for k, v in self.fields.items() if v.required))
         self.all_fields = set(self.fields.keys())

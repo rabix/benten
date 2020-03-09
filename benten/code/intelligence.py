@@ -12,7 +12,7 @@ For details see ../../docs/document-model.md
 from typing import List
 import pathlib
 
-from ..langserver.lspobjects import (Position, Range, CompletionItem)
+from ..langserver.lspobjects import (Position, Range, CompletionItem, Hover)
 from .executioncontext import ExecutionContext
 
 import logging
@@ -28,14 +28,15 @@ class LookupNode:
 
 class IntelligenceNode:
 
-    def __init__(self, completions: List[str]=None):
+    def __init__(self, completions: List[str] = None, doc: str = ""):
         self._completions = completions or []
+        self.doc = doc
 
     def completion(self):
         return [CompletionItem(label=c) for c in self._completions]
 
     def hover(self):
-        pass
+        return Hover(self.doc, is_markdown=True)
 
     def definition(self):
         pass
