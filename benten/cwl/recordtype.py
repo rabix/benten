@@ -2,7 +2,8 @@
 
 from typing import Dict
 
-from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate, TypeCheck, Match
+from .basetype import (CWLBaseType, IntelligenceContext, Intelligence, IntelligenceNode,
+                       MapSubjectPredicate, TypeCheck, Match)
 from .linkedfiletype import CWLLinkedFile
 from .linkedschemadeftype import CWLLinkedSchemaDef
 from .importincludetype import CWLImportInclude
@@ -115,8 +116,15 @@ class CWLRecordType(CWLBaseType):
                 value_range = get_range_for_value(node, k)
 
                 # key completer
+                _field = self.fields.get(k)
+                _key_doc = (_field.doc or "") if _field is not None else ""
+                _key_doc += "\n---\n## Sibling fields\n\n```" + \
+                            "\n".join(f"- {k}" for k in self.fields.keys()) + \
+                            "\n```\n"
+                _key_doc += f"\n---\n## {self.name or '-'}\n\n" + (self.doc or "")
                 ln = LookupNode(loc=key_range)
-                ln.intelligence_node = self
+                ln.intelligence_node = IntelligenceNode(
+                    completions=list(self.fields.keys()), doc=_key_doc) # self
                 code_intel.add_lookup_node(ln)
 
             # TODO: looks like this logic and the logic in lomtype can be combined
