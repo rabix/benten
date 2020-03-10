@@ -2,7 +2,8 @@
 
 from typing import Dict
 
-from .basetype import CWLBaseType, IntelligenceContext, Intelligence, MapSubjectPredicate, TypeCheck, Match
+from .basetype import (CWLBaseType, IntelligenceContext, Intelligence, IntelligenceNode,
+                       MapSubjectPredicate, TypeCheck, Match)
 from .linkedfiletype import CWLLinkedFile
 from .linkedschemadeftype import CWLLinkedSchemaDef
 from .importincludetype import CWLImportInclude
@@ -23,8 +24,7 @@ logger = logging.getLogger(__name__)
 class CWLRecordType(CWLBaseType):
 
     def __init__(self, name: str, doc: str, fields: Dict[str, 'CWLFieldType']):
-        super().__init__(name)
-        self.doc = doc
+        super().__init__(name, doc=doc)
         self.fields = fields
         self.required_fields = set((k for k, v in self.fields.items() if v.required))
         self.all_fields = set(self.fields.keys())
@@ -116,8 +116,15 @@ class CWLRecordType(CWLBaseType):
                 value_range = get_range_for_value(node, k)
 
                 # key completer
+                _field = self.fields.get(k)
+                _key_doc = (_field.doc or "") if _field is not None else ""
+                _key_doc += "\n---\n## Sibling fields\n\n```" + \
+                            "\n".join(f"- {k}" for k in self.fields.keys()) + \
+                            "\n```\n"
+                _key_doc += f"\n---\n## {self.name or '-'}\n\n" + (self.doc or "")
                 ln = LookupNode(loc=key_range)
-                ln.intelligence_node = self
+                ln.intelligence_node = IntelligenceNode(
+                    completions=list(self.fields.keys()), doc=_key_doc) # self
                 code_intel.add_lookup_node(ln)
 
             # TODO: looks like this logic and the logic in lomtype can be combined

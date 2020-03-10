@@ -46,3 +46,9 @@
     <img src="https://github.com/rabix/benten/blob/master/media/2019.10.22/workflow-connection-validations.png"></img>
     <figcaption>Port validations</figcaption>
 </figure>  
+<hr/>
+
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2020.03.09/documentation-on-hover.png"></img>
+    <figcaption>Language documentation on hover</figcaption>
+</figure>  

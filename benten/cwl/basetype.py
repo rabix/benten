@@ -31,8 +31,8 @@ class TypeCheck:
 
 class CWLBaseType(IntelligenceNode):
 
-    def __init__(self, name):
-        super().__init__()
+    def __init__(self, name, doc: str = ""):
+        super().__init__(doc=doc)
         self.name = name
 
     def check(self, node, node_key: str=None, map_sp: MapSubjectPredicate=None) -> TypeCheck:
