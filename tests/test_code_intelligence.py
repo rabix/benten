@@ -176,3 +176,12 @@ def test_requirements_completion():
 
     cmpl = doc.completion(Position(12, 5))
     assert "dockerLoad" in [c.label for c in cmpl]
+
+
+def test_docs_on_hover():
+    this_path = current_path / "cwl" / "misc" / "wf-when-input.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+
+    hov = doc.hover(Position(10, 6))
+    assert "Sibling" in hov.contents.value
+    assert hov.contents.kind == "markdown"

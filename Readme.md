@@ -17,6 +17,7 @@ This is a [language server] for
 - Outline view (Symbols) + Step symbols
 - Type validations
 - Port validations
+- Display language documentation on hover
 
 ![Benten + VS Code](https://raw.githubusercontent.com/rabix/benten/master/media/2019.12.03/full-window.png)
 
