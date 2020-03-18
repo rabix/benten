@@ -15,7 +15,7 @@ outputs:
     outputBinding:
       glob: out.txt
       loadContents: true
-      outputEval: $(self)_D_$(runtime)
+      outputEval: $(self[0].contents)_D_$(runtime.cores)
 
 stdout: out.txt
 requirements:
