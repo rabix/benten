@@ -52,3 +52,10 @@
     <img src="https://github.com/rabix/benten/blob/master/media/2020.03.09/documentation-on-hover.png"></img>
     <figcaption>Language documentation on hover</figcaption>
 </figure>  
+<hr/>
+
+<figure>
+    <img src="https://github.com/rabix/benten/blob/master/media/2020.03.26/formatting.png"></img>
+    <figcaption>CWL Formatting</figcaption>
+</figure>  
+<hr/>

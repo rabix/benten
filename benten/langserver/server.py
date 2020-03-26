@@ -33,6 +33,7 @@ from .definition import Definition
 from .completion import Completion
 from .documentsymbol import DocumentSymbol
 from .hover import Hover
+from .formatting import Formatting
 
 import logging
 
@@ -49,6 +50,7 @@ class TextDocumentSyncKind(IntEnum):
 
 
 class LangServer(
+        Formatting,
         Hover,
         DocumentSymbol,
         Completion,
@@ -188,6 +190,7 @@ class LangServer(
                 "codeActionProvider": {
                     "codeActionKinds": ["source"]
                 },
+                "documentFormattingProvider": True,
                 "workspace": {
                     "workspaceFolders": {
                         "supported": True,

@@ -23,7 +23,8 @@ setup(
     python_requires='>=3.7.0',
     install_requires=[
         "ruamel.yaml >= 0.15.77",
-        "dukpy >= 0.2.2"
+        "dukpy >= 0.2.2",
+        "cwlformat"
     ],
     entry_points={
         'console_scripts': [
