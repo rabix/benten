@@ -10,6 +10,9 @@ from benten.version import __version__
 from benten.langserver.jsonrpc import JSONRPC2Connection, ReadWriter, TCPReadWriter
 from benten.langserver.server import LangServer
 
+from cwlformat.version import __version__ as __cwl_fmt_version__
+from ruamel.yaml import __version__ as __ruamel_version__
+
 from logging.handlers import RotatingFileHandler
 import logging.config
 import logging
@@ -63,6 +66,8 @@ def main():
     logger.addHandler(handler)
 
     logger.info(f"Benten {__version__}: CWL Language Server from Rabix (Seven Bridges)")
+    logger.info(f"ruamel.yaml: {__ruamel_version__}")
+    logger.info(f"cwl-format: {__cwl_fmt_version__}")
 
     config.initialize()
 
