@@ -77,11 +77,10 @@ class Configuration(configparser.ConfigParser):
             return P(self.cfg_path, path)
 
     def _copy_missing_language_files(self):
-        for fn in ["schema-v1.0.json", "schema-v1.1.json", "schema-v1.2.0-dev1.json"]:
-            src_file = P(default_config_data_dir, fn)
-            dst_file = P(self.cfg_path, fn)
+        for src_file in default_config_data_dir.glob("schema*.json"):
+            dst_file = P(self.cfg_path, src_file.name)
             if not dst_file.exists():
-                shutil.copy(src_file, dst_file)
+                shutil.copy(str(src_file), str(dst_file))
 
     def _load_language_files(self):
         for fname in self.cfg_path.glob("schema-*.json"):
