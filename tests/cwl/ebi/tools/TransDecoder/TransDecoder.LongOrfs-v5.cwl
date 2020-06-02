@@ -111,7 +111,7 @@ hints:
         gx:format: 'txt'
 $schemas:
   - 'http://edamontology.org/EDAM_1.20.owl'
-  - 'https://schema.org/docs/schema_org_rdfa.html'
+  - 'https://schema.org/version/latest/schema.rdf'
 s:license: "https://www.apache.org/licenses/LICENSE-2.0"
 s:copyrightHolder: "EMBL - European Bioinformatics Institute, 2018"
 s:author: "Arnaud Meng, Maxim Scheremetjew"
