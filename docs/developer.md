@@ -6,6 +6,11 @@ select the process titled `benten-ls`. Insert appropriate breakpoints
 and perform some editor operation that will trigger a request from the
 client.
 
+## Install a library directly into a `pipx` env
+
+```
+pipx inject -e benten cwlformat
+```
 
 ## How to setup and develop with VS Code
 
