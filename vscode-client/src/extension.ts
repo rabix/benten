@@ -11,46 +11,47 @@
  * Code to drive the webview component code has been added.
  * ------------------------------------------------------------------------------------------ */
 
- 'use strict';
+'use strict';
 
 import * as net from 'net';
 
 import {
 	Selection, TextEditorRevealType,
-	workspace, Disposable, ExtensionContext, 
+	workspace, Disposable, ExtensionContext,
 	commands, window, ViewColumn,
-	Uri, 
+	Uri,
 	WebviewPanel
 } from 'vscode';
+
 import * as path from 'path';
-import { 
-	LanguageClient, LanguageClientOptions, 
-	SettingMonitor, ServerOptions, 
-	ErrorAction, ErrorHandler, CloseAction, TransportKind 
+import {
+	LanguageClient, LanguageClientOptions,
+	SettingMonitor, ServerOptions,
+	ErrorAction, ErrorHandler, CloseAction, TransportKind
 } from 'vscode-languageclient';
 
-import {Md5} from 'ts-md5'
+import { Md5 } from 'ts-md5'
 import * as fs from 'fs'
 
 
 function startLangServer(command: string, args: string[], documentSelector: string[]): Disposable {
 	const serverOptions: ServerOptions = {
-        command,
-        args,
+		command,
+		args,
 	};
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: documentSelector,
-    synchronize: { configurationSection: "cwl" }
+		synchronize: { configurationSection: "cwl" }
 	}
 	return new LanguageClient(command, serverOptions, clientOptions).start();
 }
 
 
 function startLangServerTCP(addr: number, documentSelector: string[]): Disposable {
-	const serverOptions: ServerOptions = function() {
+	const serverOptions: ServerOptions = function () {
 		return new Promise((resolve, reject) => {
 			var client = new net.Socket();
-			client.connect(addr, "127.0.0.1", function() {
+			client.connect(addr, "127.0.0.1", function () {
 				resolve({
 					reader: client,
 					writer: client
@@ -69,23 +70,23 @@ const preview_scratch_directory = get_scratch_dir()
 
 function get_scratch_dir() {
 	const homedir = require('os').homedir()
-	const scratch_directory = 
-		process.env.XDG_DATA_HOME ? 
-				process.env.XDG_DATA_HOME 
-			: path.join(homedir, ".local", "share", "sevenbridges", "benten", "scratch") 
+	const scratch_directory =
+		process.env.XDG_DATA_HOME ?
+			process.env.XDG_DATA_HOME
+			: path.join(homedir, ".local", "share", "sevenbridges", "benten", "scratch")
 	console.log(`scratch directory: ${scratch_directory}`)
 	return scratch_directory
 }
 
 
 export function activate(context: ExtensionContext) {
-	
+
 	// For the language server
 	const executable = "benten-ls"
 	const args = ["--debug"]
 	context.subscriptions.push(startLangServer(executable, args, ["cwl"]));
-    // For TCP server needs to be started separately
-    // context.subscriptions.push(startLangServerTCP(2087, ["python"]));
+	// For TCP server needs to be started separately
+	// context.subscriptions.push(startLangServerTCP(2087, ["python"]));
 
 
 	// For the preview
@@ -108,7 +109,7 @@ export function activate(context: ExtensionContext) {
 
 			const on_disk_files: any = {}
 			const files = ["vis-network.min.js", "vis-network.min.css"]
-			for(let f of files) {
+			for (let f of files) {
 				on_disk_files[f] = Uri.file(
 					path.join(context.extensionPath, 'include', f))
 					.with({ scheme: 'vscode-resource' })
@@ -120,8 +121,8 @@ export function activate(context: ExtensionContext) {
 			// Handle interactions on the graph
 			panel.webview.onDidReceiveMessage(
 				message => {
-					for(let te of window.visibleTextEditors) {
-						if(te.document.uri.toString() === message.uri) {
+					for (let te of window.visibleTextEditors) {
+						if (te.document.uri.toString() === message.uri) {
 							let line = te.document.lineAt(parseInt(message.line))
 							te.selection = new Selection(line.range.start, line.range.end)
 							te.revealRange(line.range, TextEditorRevealType.InCenter)
@@ -142,7 +143,7 @@ export function activate(context: ExtensionContext) {
 				null,
 				context.subscriptions
 			)
-			
+
 			// We update the diagram each time we change the text 
 			window.onDidChangeTextEditorSelection(
 				e => {
@@ -154,22 +155,22 @@ export function activate(context: ExtensionContext) {
 
 		})
 	);
-	
+
 }
 
 
 function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri]) {
 
 	const activeEditor = window.activeTextEditor;
-  if (!activeEditor) {
-    return;
+	if (!activeEditor) {
+		return;
 	}
 	const graph_name = Md5.hashStr(activeEditor.document.uri.toString()) + ".json"
 
 	const data_uri = path.join(preview_scratch_directory, graph_name);
 	var graph_data = JSON.parse(fs.readFileSync(data_uri, "utf8"));
 
-  panel.webview.html = `<!DOCTYPE html>
+	panel.webview.html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -188,6 +189,7 @@ function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri])
 			padding: 0;
 			overflow: hidden;
 			font-family: sans-serif;
+			background-color: white;
 		}
 
     #cwl-graph {
