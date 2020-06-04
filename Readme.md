@@ -5,6 +5,14 @@ This is a [language server] for
 
 [language server]: https://langserver.org/
 
+[![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
+[![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
+[![PyPI version](https://badge.fury.io/py/benten.svg)](https://badge.fury.io/py/benten)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/benten.svg)](https://anaconda.org/conda-forge/benten)
+[![Visual Studio Marketplace
+Version](https://img.shields.io/visual-studio-marketplace/v/sbg-rabix.benten-cwl?label=VS%20Code%20Ext)](https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl)
+
 ## Features
 
 [(Click for feature screenshot gallery)](https://github.com/rabix/benten/blob/master/docs/features.md)
@@ -21,11 +29,6 @@ This is a [language server] for
 
 ![Benten + VS Code](https://raw.githubusercontent.com/rabix/benten/master/media/2019.12.03/full-window.png)
 
-[![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
-[![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
-[![PyPI version](https://badge.fury.io/py/benten.svg)](https://badge.fury.io/py/benten)
-[![Conda Version](https://img.shields.io/conda/vn/conda-forge/benten.svg)](https://anaconda.org/conda-forge/benten)
 
 _Benten_ is written using Python3 and developed against VS Code. The language
 server component will work with any editor/IDE that offers language server
