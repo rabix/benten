@@ -126,7 +126,7 @@ class CWLExpression(CWLBaseType):
             res = "Job inputs have not been filled out"
 
         logger.debug(f"Guessing expression inputs are: {self.guess_inputs()}")
-        return Hover(res, self.range, wrap_as_code_block=True)
+        return Hover(res, self.range, hover_type=Hover.HoverType.Code)
 
     def definition(self):
         # Hijacking this to show the sample inputs file

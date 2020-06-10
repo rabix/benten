@@ -41,7 +41,7 @@ class CWLLinkedFile(CWLBaseType):
         code_intel.add_lookup_node(ln)
 
     def hover(self):
-        return Hover(self._contents, wrap_as_code_block=True)
+        return Hover(self._contents, hover_type=Hover.HoverType.Code)
 
     def definition(self):
         if isinstance(self.full_path, pathlib.Path):

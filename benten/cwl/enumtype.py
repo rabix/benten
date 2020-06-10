@@ -109,7 +109,7 @@ class CWLDataType(CWLEnumType):
 
     def hover(self):
         if self._hover_value is not None:
-            return Hover(yaml_to_string(self._hover_value))
+            return Hover(yaml_to_string(self._hover_value), hover_type=Hover.HoverType.Code)
 
     def completion(self):
         return [CompletionItem(label=s) for s in self.symbols.union(self.user_types)]
