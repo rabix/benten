@@ -55,7 +55,7 @@
 <hr/>
 
 <figure>
-    <img src="https://github.com/rabix/benten/blob/master/media/2020.03.26/formatting.png"></img>
+    <img src="https://github.com/rabix/benten/blob/master/media/2020.09.15/format-document.gif"></img>
     <figcaption>CWL Formatting</figcaption>
 </figure>  
 <hr/>
