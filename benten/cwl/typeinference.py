@@ -6,6 +6,7 @@ from .basetype import CWLBaseType, MapSubjectPredicate, TypeCheck, Match
 from .unknowntype import CWLUnknownType
 from .anytype import CWLAnyType
 from .namespacedtype import CWLNameSpacedType
+from .importincludetype import CWLImportInclude, is_import, is_include
 
 
 def infer_type(node, allowed_types,
@@ -75,6 +76,13 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
             elif isinstance(node, str):
                 type_check_results += [TypeCheck(_type, match=Match.Maybe)]
 
+            elif is_include(node):
+                return [
+                    TypeCheck(
+                        cwl_type=CWLImportInclude(
+                            key="$include",
+                            import_context=_type.name))]
+
             else:
                 type_check_results += [TypeCheck(_type, match=Match.No)]
 
@@ -87,6 +95,13 @@ def check_types(node, allowed_types, key, map_sp) -> List[TypeCheck]:
             else:
                 type_check_results += [TypeCheck(_type, match=Match.No)]
                 continue
+
+        # Exception for $import/$include
+        if is_import(node):
+            return [TypeCheck(cwl_type=CWLImportInclude(key="$import", import_context=_type.name))]
+
+        if is_include(node):
+            return [TypeCheck(cwl_type=CWLImportInclude(key="$include", import_context=_type.name))]
 
         check_result = _type.check(node, key, map_sp)
         if check_result.match == Match.Yes:

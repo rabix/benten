@@ -9,6 +9,20 @@ from ..langserver.lspobjects import Diagnostic, DiagnosticSeverity, Range
 from .lib import get_range_for_key, get_range_for_value
 
 
+def is_include(node):
+    if not isinstance(node, dict):
+        return False
+
+    return "$include" in node
+
+
+def is_import(node):
+    if not isinstance(node, dict):
+        return False
+
+    return "$import" in node
+
+
 class CWLImportInclude(CWLBaseType):
 
     def __init__(self, key, import_context):

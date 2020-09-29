@@ -38,13 +38,6 @@ class CWLRecordType(CWLBaseType):
         if node is None:
             return TypeCheck(self, Match.No)
 
-        # Exception for $import/$include etc.
-        if isinstance(node, dict):
-            if "$import" in node:
-                return TypeCheck(cwl_type=CWLImportInclude(key="$import", import_context=self.name))
-            if "$include" in node:
-                return TypeCheck(cwl_type=CWLImportInclude(key="$include", import_context=self.name))
-
         required_fields = self.required_fields - {map_sp.subject if map_sp else None}
 
         if not isinstance(node, dict):
