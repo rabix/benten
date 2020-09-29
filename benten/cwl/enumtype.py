@@ -86,11 +86,13 @@ class CWLDataType(CWLEnumType):
         if node[-2:] == "[]":
             node = node[:-2]
 
-        if node not in self.symbols: # Not a native type
-            if node not in code_intel.type_defs: # Path doesn't match denormalized
+        if node not in self.symbols:  # Not a native type
+            self._hover_value = code_intel.type_defs.get(node)
+            if self._hover_value is None:  # Path doesn't match denormalized
                 _norm_path = normalized_path(doc_uri, node)
-                for _type in code_intel.type_defs.keys():
+                for _type, _type_def in code_intel.type_defs.items():
                     if _norm_path == normalized_path(doc_uri, _type):
+                        self._hover_value = _type_def
                         break
                 else:
                     problems += [
@@ -99,9 +101,6 @@ class CWLDataType(CWLEnumType):
                             message=f"Expecting one of: {sorted(set(self.symbols).union(code_intel.type_defs.keys()))}",
                             severity=DiagnosticSeverity.Error)
                     ]
-
-            else:
-                self._hover_value = code_intel.type_defs[node]
 
         ln = LookupNode(loc=value_range)
         ln.intelligence_node = self

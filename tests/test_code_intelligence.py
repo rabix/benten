@@ -141,6 +141,10 @@ def test_schemadef_import():
     assert "./paired_end_record.yml#paired_end_options" in [c.label for c in cmpl]
     # The completer should offer user defined types as completions too
 
+    hov = doc.hover(Position(4, 12))
+    assert "type: record" in hov.contents.value
+    # Hover should show contents of included file
+
 
 def test_schemadef_include():
     this_path = current_path / "cwl" / "misc" / "cl-schemadef-include.cwl"
