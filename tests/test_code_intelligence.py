@@ -116,6 +116,17 @@ def test_remote_files():
     assert hov.contents.value == "```\n\n```"
 
 
+def test_plain_text_include():
+    this_path = current_path / "cwl" / "misc" / "cl-include-text.cwl"
+    doc = load(doc_path=this_path, type_dicts=type_dicts)
+
+    assert len(doc.problems) == 0
+
+    hov = doc.hover(Position(9, 21))
+    assert "We hold" in hov.contents.value
+    # Hover should show contents of included file
+
+
 def test_schemadef_import():
     this_path = current_path / "cwl" / "misc" / "cl-schemadef-import.cwl"
     doc = load(doc_path=this_path, type_dicts=type_dicts)
