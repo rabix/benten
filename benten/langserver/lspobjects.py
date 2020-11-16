@@ -240,23 +240,19 @@ class Hover(LSPObject):
     class HoverType(IntEnum):
         Markdown = 1
         Code = 2
-        CWLdoc = 3
 
-    def __init__(self, contents, _range=None, hover_type: HoverType = HoverType.Markdown):
+    def __init__(self, contents, _range=None,
+                 hover_type: HoverType = HoverType.Markdown):
         if hover_type == Hover.HoverType.Code:
             self.contents = MarkupContent(
                 kind="markdown",
                 value="```\n" + contents + "\n```"
             )
-        elif hover_type == Hover.HoverType.Markdown:
+        else:
             self.contents = MarkupContent(
                 kind="markdown",
                 value=contents
             )
-        elif hover_type == Hover.HoverType.CWLdoc:
-            # For unknown reasons (2020.06) if we pass the CWL docs as a MarkupContent
-            # object, VS Code fails to render it. Passing as a plain string works fine
-            self.contents = contents
 
         self.range = _range
 
