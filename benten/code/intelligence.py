@@ -36,7 +36,7 @@ class IntelligenceNode:
         return [CompletionItem(label=c) for c in self._completions]
 
     def hover(self):
-        return Hover(self.doc, Hover.HoverType.CWLdoc)
+        return Hover(self.doc, hover_type=Hover.HoverType.CWLdoc)
 
     def definition(self):
         pass
