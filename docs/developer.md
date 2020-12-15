@@ -29,8 +29,8 @@ pipx inject -e benten cwlformat
 
 ### Restart server
 
-The development cycle is to modify the server code and then restart the server. 
-Currently (04.2019) the only way to do this in VS Code is to use the 
+The development cycle is to modify the server code and then restart the server.
+Currently (04.2019) the only way to do this in VS Code is to use the
 "Reload Window" command:
 CMD + Shift + P to bring up the command bar and then type "Reload Window".
 
@@ -44,7 +44,7 @@ twine upload dist/*
 ### Release on VS Code Marketplace
 
 `vsce package` and then upload the `.vsix` file to [Marketplace]
-[Marketplace]: 
+[Marketplace]:
 https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl
 
 
@@ -88,7 +88,7 @@ https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 https://docs.microsoft.com/en-us/visualstudio/extensibility/adding-an-lsp-extension?view=vs-2019
 https://code.visualstudio.com/api/references/extension-manifest
 
-For local or test distribution we can use 
+For local or test distribution we can use
 ```
 vsce package
 ```
@@ -109,6 +109,31 @@ and pass around the `.vsix` file for installing in VS Code
 - https://github.com/microsoft/vscode/issues/8886
 	Discussion about window.visibleTextEditors
 
+## Packaging with PyInstaller
+
+We use PyInstaller to create a `benten-ls` executable package which does
+not depend on system Python or installing additional packages.
+
+```
+$ pip install PyInstaller==4.0  # import!  as of this writing, ruamel.yaml is broken on the 4.1 release
+$ pyinstaller benten-ls.spec
+
+```
+
+## Packaging with fpm
+
+We can use fpm to create a `benten-ls` deb/rpm package which does
+not depend on system Python or installing additional packages.
+
+```
+$ python=python-3.7
+$ version=1.0
+$ gem install --user fpm
+$ virtualenv --python python3 build-fpm/usr/share/$python/dist/benten
+$ build-fpm/usr/share/python-3.7/dist/benten/bin/pip install .
+$ fpm -s dir -t deb -v $version -n benten -C build-fpm --depends python3 usr/share/$python/dist/benten/bin/benten-ls=/usr/bin/ .
+
+```
 
 # Things I learned
 
