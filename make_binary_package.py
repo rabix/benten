@@ -4,6 +4,12 @@ import subprocess
 import benten.version
 import tarfile
 
+if not os.path.exists(os.path.join("venv", "bin", "python")):
+    subprocess.run(["python3", "-m", "venv", "venv"])
+
+if not os.path.exists(os.path.join("venv", "bin", "pyinstaller")):
+    subprocess.run([os.path.join("venv", "bin", "pip"), "install", "pyinstaller==4.0"])
+
 subprocess.run([os.path.join("venv", "bin", "pip"), "install", "."])
 subprocess.run([os.path.join("venv", "bin", "pyinstaller"), "-y", "benten-ls.spec"])
 os.chdir("dist")
