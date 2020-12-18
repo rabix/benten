@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import benten.version
 import tarfile
+import sys
 
 if not os.path.exists(os.path.join("venv", "bin", "python")):
     try:
@@ -10,11 +11,16 @@ if not os.path.exists(os.path.join("venv", "bin", "python")):
     except:
         subprocess.run(["python", "-m", "venv", "venv"])
 
-if not os.path.exists(os.path.join("venv", "bin", "pyinstaller")):
-    subprocess.run([os.path.join("venv", "bin", "pip"), "install", "pyinstaller==4.0"])
+if sys.platform == "win32":
+    bindir = "Scripts"
+else:
+    bindir = "bin"
 
-subprocess.run([os.path.join("venv", "bin", "pip"), "install", "."])
-subprocess.run([os.path.join("venv", "bin", "pyinstaller"), "-y", "benten-ls.spec"])
+if not os.path.exists(os.path.join("venv", bindir, "pyinstaller")):
+    subprocess.run([os.path.join("venv", bindir, "pip"), "install", "pyinstaller==4.0"])
+
+subprocess.run([os.path.join("venv", bindir, "pip"), "install", "."])
+subprocess.run([os.path.join("venv", bindir, "pyinstaller"), "-y", "benten-ls.spec"])
 os.chdir("dist")
 pkg = benten.version.binary_package_name
 shutil.rmtree(pkg, ignore_errors=True)
