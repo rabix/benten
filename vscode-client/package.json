@@ -1,107 +1,108 @@
 {
-	"name": "benten-cwl",
-	"publisher": "sbg-rabix",
-	"displayName": "CWL (Rabix/Benten)",
-	"description": "Autocomplete, code validation and more for CWL documents",
-	"version": "2020.6.3",
-	"preview": false,
-	"icon": "benten-icon-128px.png",
-	"galleryBanner": {
-		"color": "#11A7A7",
-		"theme": "light"
-	},
-	"readme": "Readme.md",
-	"author": {
-		"name": "Rabix (Seven Bridges)"
-	},
-	"license": "Apache-2.0",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/rabix/benten.git"
-	},
-	"bugs": {
-		"url": "https://github.com/rabix/benten/issues",
-		"email": "rabix@sbgenomics.com"
-	},
-	"categories": [
-		"Programming Languages"
-	],
-	"keywords": [
-		"CWL",
-		"common workflow language",
-		"bioinformatics"
-	],
-	"activationEvents": [
-		"onLanguage:cwl"
-	],
-	"contributes": {
-		"languages": [
-			{
-				"id": "cwl",
-				"extensions": [
-					".cwl"
-				],
-				"aliases": [
-					"CWL",
-					"cwl",
-					"CommonWorkflowLanguage",
-					"CommonWL"
-				],
-				"configuration": "./language-configuration.json"
-			}
-		],
-		"grammars": [
-			{
-				"language": "cwl",
-				"scopeName": "source.cwl",
-				"path": "./cwl.tmGrammar.json",
-				"embeddedLanguages": {
-					"meta.embedded.block.javascript": "javascript"
-				}
-			}
-		],
-		"commands": [
-			{
-				"command": "cwl.show_graph",
-				"title": "CWL preview",
-				"category": "Benten",
-				"icon": {
-					"light": "./include/PreviewOnRightPane_16x.svg",
-					"dark": "./include/PreviewOnRightPane_16x_dark.svg"
-				}
-			}
-		],
-		"menus": {
-			"editor/title": [
-				{
-					"command": "cwl.show_graph",
-					"when": "editorLangId == cwl",
-					"alt": "cwl.show_graph",
-					"group": "navigation"
-				}
-			]
-		}
-	},
-	"main": "./out/extension",
-	"scripts": {
-		"vscode:prepublish": "tsc -p ./",
-		"install": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./"
-	},
-	"engines": {
-		"vscode": "^1.41.0"
-	},
-	"dependencies": {
-		"gunzip-maybe": "^1.4.2",
-		"tar-fs": "^2.1.1",
-		"ts-md5": "^1.2.7",
-		"vscode-languageclient": "^6.1.3",
-		"vscode-languageserver-protocol": "^3.15.3"
-	},
-	"devDependencies": {
-		"@types/node": "^14.0.9",
-		"@types/vscode": "^1.41.0",
-		"typescript": "^3.9.3"
-	}
+        "name": "benten-cwl",
+        "publisher": "sbg-rabix",
+        "displayName": "CWL (Rabix/Benten)",
+        "description": "Autocomplete, code validation and more for CWL documents",
+        "version": "2020.12.18",
+        "preview": false,
+        "icon": "benten-icon-128px.png",
+        "galleryBanner": {
+                "color": "#11A7A7",
+                "theme": "light"
+        },
+        "readme": "Readme.md",
+        "author": {
+                "name": "Rabix (Seven Bridges)"
+        },
+        "license": "Apache-2.0",
+        "repository": {
+                "type": "git",
+                "url": "https://github.com/rabix/benten.git"
+        },
+        "bugs": {
+                "url": "https://github.com/rabix/benten/issues",
+                "email": "rabix@sbgenomics.com"
+        },
+        "categories": [
+                "Programming Languages"
+        ],
+        "keywords": [
+                "CWL",
+                "common workflow language",
+                "bioinformatics"
+        ],
+        "activationEvents": [
+                "onLanguage:cwl"
+        ],
+        "contributes": {
+                "languages": [
+                        {
+                                "id": "cwl",
+                                "extensions": [
+                                        ".cwl"
+                                ],
+                                "aliases": [
+                                        "CWL",
+                                        "cwl",
+                                        "CommonWorkflowLanguage",
+                                        "CommonWL"
+                                ],
+                                "configuration": "./language-configuration.json"
+                        }
+                ],
+                "grammars": [
+                        {
+                                "language": "cwl",
+                                "scopeName": "source.cwl",
+                                "path": "./cwl.tmGrammar.json",
+                                "embeddedLanguages": {
+                                        "meta.embedded.block.javascript": "javascript"
+                                }
+                        }
+                ],
+                "commands": [
+                        {
+                                "command": "cwl.show_graph",
+                                "title": "CWL preview",
+                                "category": "Benten",
+                                "icon": {
+                                        "light": "./include/PreviewOnRightPane_16x.svg",
+                                        "dark": "./include/PreviewOnRightPane_16x_dark.svg"
+                                }
+                        }
+                ],
+                "menus": {
+                        "editor/title": [
+                                {
+                                        "command": "cwl.show_graph",
+                                        "when": "editorLangId == cwl",
+                                        "alt": "cwl.show_graph",
+                                        "group": "navigation"
+                                }
+                        ]
+                }
+        },
+        "main": "./out/extension",
+        "scripts": {
+                "vscode:prepublish": "tsc -p ./",
+                "install": "npm run compile",
+                "compile": "tsc -p ./",
+                "watch": "tsc -watch -p ./"
+        },
+        "engines": {
+                "vscode": "^1.41.0"
+        },
+        "dependencies": {
+                "gunzip-maybe": "^1.4.2",
+                "tar-fs": "^2.1.1",
+                "ts-md5": "^1.2.7",
+                "vscode-languageclient": "^6.1.3",
+                "vscode-languageserver-protocol": "^3.15.3"
+        },
+        "devDependencies": {
+                "@types/node": "^14.0.9",
+                "@types/vscode": "^1.41.0",
+                "typescript": "^3.9.3",
+                "vsce": "^1.83.0"
+        }
 }

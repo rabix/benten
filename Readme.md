@@ -1,7 +1,7 @@
-# Benten 
+# Benten
 
 This is a [language server] for
-[Common Workflow Language](https://www.commonwl.org/) documents. 
+[Common Workflow Language](https://www.commonwl.org/) documents.
 
 [language server]: https://langserver.org/
 
@@ -81,7 +81,7 @@ pipx install benten --python python3.7
 ```
 
 
-Notes: 
+Notes:
 
 1. `pipx` installs the executables in `$HOME/.local/bin`
    (`%HOMEPATH%\.local\bin` for Windows). This needs to be added to your
@@ -112,7 +112,7 @@ To install from the master branch
 pipx install git+https://github.com/rabix/benten.git
 ```
 
-To install from develop branch (or some other branch): 
+To install from develop branch (or some other branch):
 ```
 pipx install git+https://github.com/rabix/benten.git@develop
 ```
@@ -145,7 +145,7 @@ sanity checking of expressions.
 
 
 ## Over-riding auto-generated sample data
- 
+
 The sample data is auto-generated on demand when an evaluation is
 requested. The generated sample data is also stored in a scratch file.
 This scratch file can be accessed by clicking "go to definition" when
@@ -161,7 +161,7 @@ add the string (exactly)
 ```
 
 to the first line of the sample data file, Benten will stop overwriting
-the file and use the contents of this customized file instead. 
+the file and use the contents of this customized file instead.
 
 **Once you add this line to the sample data file, Benten will no longer
 overwrite this file. If you want the test data to be regenerated (e.g.
@@ -173,8 +173,8 @@ first sentinel line and Benten will regenerate the input.**
 
 Benten attaches onto your regular text editor and offers help by
 way of auto-completions and document validations, so most of its
-functionality is exposed naturally via the editor's regular UI, and a 
-specialized tutorial is not necessary, but some helpful 
+functionality is exposed naturally via the editor's regular UI, and a
+specialized tutorial is not necessary, but some helpful
 [tips and tricks](docs/tips.md) are listed in this page.
 
 
@@ -199,17 +199,17 @@ Benten Conda [distribution](https://github.com/conda-forge/benten-feedstock).
 [sourcegraph-python]: https://github.com/sourcegraph/python-langserver
 [vis.js]: http://visjs.org/
 
-# What's in a name? 
+# What's in a name?
 
-**Saraswati** is the Hindu goddess of learning and knowledge and a long time ago 
-she visited Japan, where she is known as [Benzaiten] (**Benten** for short) and 
+**Saraswati** is the Hindu goddess of learning and knowledge and a long time ago
+she visited Japan, where she is known as [Benzaiten] (**Benten** for short) and
 her sitar has morphed into a Japanese _biwa_ but she has kept some of her many arms.
 
-Benzaiten is the goddess of everything that flows: water, time, words, speech, 
-eloquence, music and by extension, knowledge. Therefore _Benten_ is an 
+Benzaiten is the goddess of everything that flows: water, time, words, speech,
+eloquence, music and by extension, knowledge. Therefore _Benten_ is an
 appropriate goddess for scientific workflow developers.
 
-[Benzaiten]: https://en.wikipedia.org/wiki/Benzaiten 
+[Benzaiten]: https://en.wikipedia.org/wiki/Benzaiten
 
 _References_
 - [Wikipedia page](https://en.wikipedia.org/wiki/Benzaiten)

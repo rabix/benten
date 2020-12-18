@@ -43,6 +43,10 @@ twine upload dist/*
 
 ### Release on VS Code Marketplace
 
+```
+npm install -g vsce
+```
+
 `vsce package` and then upload the `.vsix` file to [Marketplace]
 [Marketplace]:
 https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl
@@ -109,16 +113,9 @@ and pass around the `.vsix` file for installing in VS Code
 - https://github.com/microsoft/vscode/issues/8886
 	Discussion about window.visibleTextEditors
 
-## Packaging with PyInstaller
+## Creating packages for everything
 
-We use PyInstaller to create a `benten-ls` executable package which does
-not depend on system Python or installing additional packages.
-
-```
-$ pip install PyInstaller==4.0  # import!  as of this writing, ruamel.yaml is broken on the 4.1 release
-$ pyinstaller benten-ls.spec
-
-```
+Use `make dist-pkg`
 
 ## Packaging with fpm
 
