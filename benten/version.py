@@ -5,4 +5,7 @@ __version__ = "2020.12.18"
 import sys
 import platform
 
-binary_package_name = "benten_%s_%s_%s" % (__version__, sys.platform, platform.machine())
+arch_dict = {"x86_64": "x64",
+             "AMD64": "x64"}
+
+binary_package_name = "benten_%s_%s_%s" % (__version__, sys.platform, arch_dict[platform.machine()])
