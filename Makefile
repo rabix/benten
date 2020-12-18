@@ -1,6 +1,6 @@
-SERVER_VERSION=$(shell python -c 'import benten.version ; print(benten.version.__version__)')
+SERVER_VERSION=$(shell python3 -c 'import benten.version ; print(benten.version.__version__)')
 CLIENT_VERSION=$(shell node -e 'pkg=require("./vscode-client/package.json"); console.log(pkg.version);')
-PKG = $(shell node -e 'console.log(`benten_$(SERVER_VERSION)_$${process.platform}_$${process.arch}`);')
+PKG = $(shell python3 -c 'import benten.version ; print(benten.version.binary_package_name)')
 
 dist-pkg: dist/$(PKG).tar.gz vscode-client/benten-cwl-$(CLIENT_VERSION).vsix
 	@echo Done building dist/$(PKG).tar.gz and vscode-client/benten-cwl-$(CLIENT_VERSION).vsix
@@ -12,12 +12,7 @@ checkversion:
 	test "$(SERVER_VERSION)" = "$(CLIENT_VERSION)"
 
 dist/$(PKG).tar.gz: venv checkversion
-	venv/bin/pip install .
-	venv/bin/pyinstaller -y benten-ls.spec
-	cd dist && \
-	rm -rf $(PKG) && \
-	mv benten $(PKG) && \
-	tar czf $(PKG).tar.gz $(PKG)
+	venv/bin/python make_binary_package.py
 
 venv:
 	python3 -m venv venv
