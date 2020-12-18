@@ -32,7 +32,15 @@ import {
 
 import { Md5 } from 'ts-md5'
 import * as fs from 'fs'
+import { openStdin } from 'process';
+import { exec } from 'child_process';
 
+const thispackage = require('../package.json');
+const http = require('http');
+const tar = require('tar-fs');
+const gunzip = require('gunzip-maybe');
+
+const packageDownloadBase = "http://localhost:8000";
 
 function startLangServer(command: string, args: string[], documentSelector: string[]): Disposable {
 	const serverOptions: ServerOptions = {
@@ -66,25 +74,63 @@ function startLangServerTCP(addr: number, documentSelector: string[]): Disposabl
 	return new LanguageClient(`tcp lang server (port ${addr})`, serverOptions, clientOptions).start();
 }
 
-const preview_scratch_directory = get_scratch_dir()
+function get_user_dir() {
+	return process.env.APPDATA || 
+		process.env.XDG_DATA_HOME || 
+		(process.platform == 'darwin' ? 
+			process.env.HOME + '/Library/Preferences' : 
+			process.env.HOME + "/.local/share");
+}
 
 function get_scratch_dir() {
-	const homedir = require('os').homedir()
-	const scratch_directory =
-		process.env.XDG_DATA_HOME ?
-			process.env.XDG_DATA_HOME
-			: path.join(homedir, ".local", "share", "sevenbridges", "benten", "scratch")
+	const scratch_directory = path.join(get_user_dir(), "sevenbridges", "benten", "scratch")
 	console.log(`scratch directory: ${scratch_directory}`)
 	return scratch_directory
 }
 
+const preview_scratch_directory = get_scratch_dir();
+
+function checkLanguageServer(callback) {
+	const userdir = get_user_dir();
+	const sbgdir = path.join(userdir, "sevenbridges", "benten");
+	const pkgname = `benten_${thispackage.version}_${process.platform}_${process.arch}`;
+	const executable = path.join(sbgdir, pkgname, "benten-ls");
+	fs.access(executable, fs.constants.X_OK, (err) => {
+		if (!err) {
+			// found it
+			callback(executable);
+			return;
+		}
+		fs.mkdir(sbgdir, {recursive: true}, (err) => {
+			if (err) {
+				// Couldn't make the directory
+				callback(null);
+				return;
+			}
+			// Need to go get it
+			http.get(`${packageDownloadBase}/${pkgname}.tar.gz`, 
+			(response) => {
+				response.pipe(gunzip()).pipe(tar.extract(sbgdir)).on('finish', ()=>{
+					callback(executable);
+				})
+			});
+		});
+	});
+}
 
 export function activate(context: ExtensionContext) {
 
 	// For the language server
-	const executable = "benten-ls"
+	
+	checkLanguageServer((executable) => {
+		if (!executable) {
+			// something error something;
+			console.log("Failed to download language server.")
+			return;
+		}
 	const args = ["--debug"]
 	context.subscriptions.push(startLangServer(executable, args, ["cwl"]));
+	
 	// For TCP server needs to be started separately
 	// context.subscriptions.push(startLangServerTCP(2087, ["python"]));
 
@@ -155,7 +201,7 @@ export function activate(context: ExtensionContext) {
 
 		})
 	);
-
+	});
 }
 
 
