@@ -93,8 +93,9 @@ const preview_scratch_directory = get_scratch_dir();
 
 function checkLanguageServer(callback) {
     const userdir = get_user_dir();
-    const sbgdir = path.join(userdir, "sevenbridges", "benten");
-    const pkgname = `benten_${thispackage.version}_${process.platform}_${process.arch}`;
+	const sbgdir = path.join(userdir, "sevenbridges", "benten");
+	const archdict = {"x64": "x86_64"}
+    const pkgname = `benten_${thispackage.version}_${process.platform}_${archdict[process.arch]}`;
     const executable = path.join(sbgdir, pkgname, "benten-ls");
     fs.access(executable, fs.constants.X_OK, (err) => {
         if (!err) {
