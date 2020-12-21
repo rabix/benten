@@ -16,9 +16,7 @@ latest_published_cwl_version = "v1.2.0"
 process_types = ["CommandLineTool", "ExpressionTool", "Workflow"]
 
 
-def parse_schema(fname):
-    schema = json.load(open(fname, "r"))
-
+def parse_schema(schema):
     type_dict = {}
     add_formal_primitive_types_to_type_dict(schema, type_dict)
     parse_cwl_type(schema, type_dict)

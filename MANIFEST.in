@@ -1,1 +1,1 @@
-recursive-include benten/000.package.data *
+include benten_schemas/*.json

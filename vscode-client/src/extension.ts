@@ -114,14 +114,21 @@ function checkLanguageServer(callback) {
                 return;
             }
             // Need to go get it
-            pkgDownload.get(`${packageDownloadBase}${pkgname}.tar.gz`,
+            const downloadUrl = `${packageDownloadBase}${pkgname}.tar.gz`;
+            pkgDownload.get(downloadUrl,
                 (response) => {
-                    response.pipe(gunzip()).pipe(tar.extract(sbgdir)).on('finish', () => {
-                        callback(executable);
-                    })
+                    if (response.statusCode === 200) {
+                        response.pipe(gunzip()).pipe(tar.extract(sbgdir)).on('finish', () => {
+                            callback(executable);
+                        });
+                    } else {
+                        console.error(`Failed to download ${downloadUrl}: ${response.statusMessage}`);
+                        callback(null);
+                    }
                 }).on('error', (e) => {
                     console.error(e);
-                  });
+                    callback(null);
+                });
         });
     });
 }
@@ -198,7 +205,7 @@ export function activate(context: ExtensionContext) {
     checkLanguageServer((executable) => {
         if (!executable) {
             // something error something;
-            console.log("Failed to download language server.")
+            console.log("Could not download language server.")
             return;
         }
         const args = ["--debug"]

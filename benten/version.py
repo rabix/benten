@@ -1,6 +1,6 @@
 #  Copyright (c) 2019-2020 Seven Bridges. See LICENSE
 
-__version__ = "2020.12.18"
+__version__ = "2020.12.21"
 
 import sys
 import platform
