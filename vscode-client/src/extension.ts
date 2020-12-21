@@ -36,12 +36,17 @@ import { openStdin } from 'process';
 import { exec } from 'child_process';
 import { homedir } from 'os';
 
+const packageDownloadBase = "https://download.jutro.arvadosapi.com/c=jutro-4zz18-3g3908axww6cn3w/";
+
 const thispackage = require('../package.json');
-const http = require('http');
+var pkgDownload;
+if (packageDownloadBase.startsWith("http:")) {
+    pkgDownload = require('http');
+} else if (packageDownloadBase.startsWith("https:")) {
+    pkgDownload = require('https');
+}
 const tar = require('tar-fs');
 const gunzip = require('gunzip-maybe');
-
-const packageDownloadBase = "http://localhost:8000";
 
 function startLangServer(command: string, args: string[], documentSelector: string[]): Disposable {
     const serverOptions: ServerOptions = {
@@ -109,20 +114,87 @@ function checkLanguageServer(callback) {
                 return;
             }
             // Need to go get it
-            http.get(`${packageDownloadBase}/${pkgname}.tar.gz`,
+            pkgDownload.get(`${packageDownloadBase}${pkgname}.tar.gz`,
                 (response) => {
                     response.pipe(gunzip()).pipe(tar.extract(sbgdir)).on('finish', () => {
                         callback(executable);
                     })
-                });
+                }).on('error', (e) => {
+                    console.error(e);
+                  });
         });
     });
 }
 
 export function activate(context: ExtensionContext) {
+    // For the preview
+    context.subscriptions.push(
+        commands.registerCommand('cwl.show_graph', () => {
+
+            // Create and show panel
+            const panel = window.createWebviewPanel(
+                'preview',
+                'CWL Preview',
+                ViewColumn.Two,
+                {
+                    enableScripts: true,
+                    localResourceRoots: [
+                        Uri.file(path.join(context.extensionPath, 'include')),
+                        Uri.file(preview_scratch_directory)
+                    ]
+                }
+            );
+
+            const on_disk_files: any = {}
+            const files = ["vis-network.min.js", "vis-network.min.css"]
+            for (let f of files) {
+                on_disk_files[f] = Uri.file(
+                    path.join(context.extensionPath, 'include', f))
+                    .with({ scheme: 'vscode-resource' })
+            }
+
+            // And set its HTML content
+            updateWebviewContent(panel, on_disk_files)
+
+            // Handle interactions on the graph
+            panel.webview.onDidReceiveMessage(
+                message => {
+                    for (let te of window.visibleTextEditors) {
+                        if (te.document.uri.toString() === message.uri) {
+                            let line = te.document.lineAt(parseInt(message.line))
+                            te.selection = new Selection(line.range.start, line.range.end)
+                            te.revealRange(line.range, TextEditorRevealType.InCenter)
+                            break
+                        }
+                    }
+                },
+                undefined,
+                context.subscriptions
+            );
+
+            // When we switch tabs we want the view to update
+            // But we don't need this because we have onDidChangeTextEditorSelection
+            window.onDidChangeActiveTextEditor(
+                e => {
+                    updateWebviewContent(panel, on_disk_files)
+                },
+                null,
+                context.subscriptions
+            )
+
+            // We update the diagram each time we change the text
+            window.onDidChangeTextEditorSelection(
+                e => {
+                    updateWebviewContent(panel, on_disk_files)
+                },
+                null,
+                context.subscriptions
+            )
+
+        })
+    );
 
     // For the language server
-
     checkLanguageServer((executable) => {
         if (!executable) {
             // something error something;
@@ -134,74 +206,6 @@ export function activate(context: ExtensionContext) {
 
         // For TCP server needs to be started separately
         // context.subscriptions.push(startLangServerTCP(2087, ["python"]));
-
-
-        // For the preview
-        context.subscriptions.push(
-            commands.registerCommand('cwl.show_graph', () => {
-
-                // Create and show panel
-                const panel = window.createWebviewPanel(
-                    'preview',
-                    'CWL Preview',
-                    ViewColumn.Two,
-                    {
-                        enableScripts: true,
-                        localResourceRoots: [
-                            Uri.file(path.join(context.extensionPath, 'include')),
-                            Uri.file(preview_scratch_directory)
-                        ]
-                    }
-                );
-
-                const on_disk_files: any = {}
-                const files = ["vis-network.min.js", "vis-network.min.css"]
-                for (let f of files) {
-                    on_disk_files[f] = Uri.file(
-                        path.join(context.extensionPath, 'include', f))
-                        .with({ scheme: 'vscode-resource' })
-                }
-
-                // And set its HTML content
-                updateWebviewContent(panel, on_disk_files)
-
-                // Handle interactions on the graph
-                panel.webview.onDidReceiveMessage(
-                    message => {
-                        for (let te of window.visibleTextEditors) {
-                            if (te.document.uri.toString() === message.uri) {
-                                let line = te.document.lineAt(parseInt(message.line))
-                                te.selection = new Selection(line.range.start, line.range.end)
-                                te.revealRange(line.range, TextEditorRevealType.InCenter)
-                                break
-                            }
-                        }
-                    },
-                    undefined,
-                    context.subscriptions
-                );
-
-                // When we switch tabs we want the view to update
-                // But we don't need this because we have onDidChangeTextEditorSelection
-                window.onDidChangeActiveTextEditor(
-                    e => {
-                        updateWebviewContent(panel, on_disk_files)
-                    },
-                    null,
-                    context.subscriptions
-                )
-
-                // We update the diagram each time we change the text
-                window.onDidChangeTextEditorSelection(
-                    e => {
-                        updateWebviewContent(panel, on_disk_files)
-                    },
-                    null,
-                    context.subscriptions
-                )
-
-            })
-        );
     });
 }
 
