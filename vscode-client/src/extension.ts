@@ -115,6 +115,7 @@ function checkLanguageServer(callback) {
             }
             // Need to go get it
             const downloadUrl = `${packageDownloadBase}${pkgname}.tar.gz`;
+            console.log(`Downloading binary package ${downloadUrl}`);
             pkgDownload.get(downloadUrl,
                 (response) => {
                     if (response.statusCode === 200) {
@@ -122,7 +123,7 @@ function checkLanguageServer(callback) {
                             callback(executable);
                         });
                     } else {
-                        console.error(`Failed to download ${downloadUrl}: ${response.statusMessage}`);
+                        console.error(`Download failed: ${response.statusMessage}`);
                         callback(null);
                     }
                 }).on('error', (e) => {
