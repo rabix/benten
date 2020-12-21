@@ -1,18 +1,20 @@
 #  Copyright (c) 2019-2020 Seven Bridges. See LICENSE
 
 import pathlib
+import json
 
 from benten.cwl.specification import parse_schema
 from benten.cwl.basetype import CWLBaseType
 
 
 current_path = pathlib.Path(__file__).parent
-schema_fname = pathlib.Path(current_path, "../benten/000.package.data/schema-v1.0.json")
+schema_fname = pathlib.Path(current_path, "../benten_schemas/schema-v1.0.json")
 
 
 def test_load_language_specification():
 
-    lang_model = parse_schema(schema_fname)
+    with open(schema_fname) as f:
+        lang_model = parse_schema(json.load(f))
 
     assert isinstance(lang_model.get("null"), CWLBaseType)
     assert "Array_symbol" in lang_model
@@ -26,7 +28,8 @@ def test_load_language_specification():
 
 
 def test_forward_reference_resolution():
-    type_dict = parse_schema(schema_fname)
+    with open(schema_fname) as f:
+        type_dict = parse_schema(json.load(f))
     for _, _type in type_dict.items():
         check_for_unresolved_references(_type, type_dict, set())
 

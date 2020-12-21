@@ -5,7 +5,7 @@ import pathlib
 from lib import load, load_type_dicts
 
 current_path = pathlib.Path(__file__).parent
-schema_path = pathlib.Path(current_path, "../benten/000.package.data/")
+schema_path = pathlib.Path(current_path, "../benten_schemas/")
 
 
 def test_mass_tool_load():
