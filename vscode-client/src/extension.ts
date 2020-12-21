@@ -114,23 +114,31 @@ function checkLanguageServer(callback) {
                 return;
             }
             // Need to go get it
+            const chanName = "benten-ls download";
+            const outchan = window.createOutputChannel(chanName);
             const downloadUrl = `${packageDownloadBase}${pkgname}.tar.gz`;
-            console.log(`Downloading binary package ${downloadUrl}`);
+            outchan.appendLine(`Downloading binary package ${downloadUrl}`);
+            const handleErr = (msg: string) => {
+                outchan.appendLine(msg);
+                window.showErrorMessage(`Could not download or unpack benten language server for CWL, see "${chanName}" for details`);
+                outchan.show();
+                callback(null);
+            };
             pkgDownload.get(downloadUrl,
                 (response) => {
                     if (response.statusCode === 200) {
-                        console.log(`Unpacking into ${sbgdir}`);
+                        outchan.appendLine(`Unpacking into ${sbgdir}`);
                         response.pipe(gunzip()).pipe(tar.extract(sbgdir)).on('finish', () => {
-                            console.log(`Language server download and unpack completed.`);
+                            outchan.appendLine(`Language server download and unpack completed.`);
                             callback(executable);
-                        });
+                        }).on('error', (e) => {
+                            handleErr(`Unpack error: ${e}`);
+                        })
                     } else {
-                        console.error(`Download failed: ${response.statusMessage}`);
-                        callback(null);
+                        handleErr(`Server response: ${response.statusCode} ${response.statusMessage}`);
                     }
                 }).on('error', (e) => {
-                    console.error(e);
-                    callback(null);
+                    handleErr(`Connection error: ${e}`);
                 });
         });
     });
@@ -206,9 +214,9 @@ export function activate(context: ExtensionContext) {
 
     // For the language server
     checkLanguageServer((executable) => {
-        if (!executable) {
+        if (executable === null) {
             // something error something;
-            console.log("Could not download language server.")
+            console.error("Could not download language server.")
             return;
         }
         const args = ["--debug"]
