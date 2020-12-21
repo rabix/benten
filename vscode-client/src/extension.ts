@@ -119,7 +119,9 @@ function checkLanguageServer(callback) {
             pkgDownload.get(downloadUrl,
                 (response) => {
                     if (response.statusCode === 200) {
+                        console.log(`Unpacking into ${sbgdir}`);
                         response.pipe(gunzip()).pipe(tar.extract(sbgdir)).on('finish', () => {
+                            console.log(`Language server download and unpack completed.`);
                             callback(executable);
                         });
                     } else {
