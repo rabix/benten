@@ -1,0 +1,32 @@
+name: Package server
+
+# on: workflow_dispatch
+on: push
+
+jobs:
+  package:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install and build
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller==4.0
+        pip install .
+        pyinstaller benten-ls.spec
+        python make_binary_package.py
+
+    - name: Upload package
+      uses: actions/upload-artifact@v2
+      with:
+        name: benten-ls-${{ matrix.os }}
+        path: dist/benten-ls.tar.gz
