@@ -16,208 +16,266 @@
 import * as net from 'net';
 
 import {
-    Selection, TextEditorRevealType,
-    workspace, Disposable, ExtensionContext,
-    commands, window, ViewColumn,
-    Uri,
-    WebviewPanel
+  Selection, TextEditorRevealType,
+  workspace, Disposable, ExtensionContext,
+  commands, window, ViewColumn,
+  Uri,
+  WebviewPanel,
+  DebugConsoleMode
 } from 'vscode';
 
 import * as path from 'path';
 import {
-    LanguageClient, LanguageClientOptions,
-    SettingMonitor, ServerOptions,
-    ErrorAction, ErrorHandler, CloseAction, TransportKind
+  LanguageClient, LanguageClientOptions,
+  SettingMonitor, ServerOptions,
+  ErrorAction, ErrorHandler, CloseAction, TransportKind
 } from 'vscode-languageclient';
 
 import { Md5 } from 'ts-md5'
 import * as fs from 'fs'
 import { openStdin } from 'process';
-import { exec } from 'child_process';
+import { exec, execFileSync } from 'child_process';
 import { homedir } from 'os';
 
 const thispackage = require('../package.json');
-const http = require('http');
+const http = require('https');
+const unzip = require('unzip-stream');
 const tar = require('tar-fs');
 const gunzip = require('gunzip-maybe');
 
-const packageDownloadBase = "http://localhost:8000";
+const github_release_url = `https://github.com/rabix/benten/releases/download/${thispackage.version}/`;
+
 
 function startLangServer(command: string, args: string[], documentSelector: string[]): Disposable {
-    const serverOptions: ServerOptions = {
-        command,
-        args,
-    };
-    const clientOptions: LanguageClientOptions = {
-        documentSelector: documentSelector,
-        synchronize: { configurationSection: "cwl" }
-    }
-    return new LanguageClient(command, serverOptions, clientOptions).start();
+  const serverOptions: ServerOptions = {
+    command,
+    args,
+  };
+  const clientOptions: LanguageClientOptions = {
+    documentSelector: documentSelector,
+    synchronize: { configurationSection: "cwl" }
+  }
+  return new LanguageClient(command, serverOptions, clientOptions).start();
 }
 
 
 function startLangServerTCP(addr: number, documentSelector: string[]): Disposable {
-    const serverOptions: ServerOptions = function() {
-        return new Promise((resolve, reject) => {
-            var client = new net.Socket();
-            client.connect(addr, "127.0.0.1", function() {
-                resolve({
-                    reader: client,
-                    writer: client
-                });
-            });
+  const serverOptions: ServerOptions = function () {
+    return new Promise((resolve, reject) => {
+      var client = new net.Socket();
+      client.connect(addr, "127.0.0.1", function () {
+        resolve({
+          reader: client,
+          writer: client
         });
-    }
+      });
+    });
+  }
 
-    const clientOptions: LanguageClientOptions = {
-        documentSelector: documentSelector,
-    }
-    return new LanguageClient(`tcp lang server (port ${addr})`, serverOptions, clientOptions).start();
+  const clientOptions: LanguageClientOptions = {
+    documentSelector: documentSelector,
+  }
+  return new LanguageClient(`tcp lang server (port ${addr})`, serverOptions, clientOptions).start();
 }
+
 
 function get_user_dir() {
-    return process.env.APPDATA ||
-        process.env.XDG_DATA_HOME ||
-        (process.platform == 'darwin' ?
-            homedir() + '/Library/Preferences' :
-            homedir() + "/.local/share");
+  return process.env.APPDATA ||
+    process.env.XDG_DATA_HOME ||
+    (process.platform == 'darwin' ?
+      homedir() + '/Library/Preferences' :
+      homedir() + "/.local/share");
 }
 
+
 function get_scratch_dir() {
-    const scratch_directory = path.join(get_user_dir(), "sevenbridges", "benten", "scratch")
-    console.log(`scratch directory: ${scratch_directory}`)
-    return scratch_directory
+  const scratch_directory = path.join(get_user_dir(), "sevenbridges", "benten", "scratch")
+  console.log(`scratch directory: ${scratch_directory}`)
+  return scratch_directory
 }
+
 
 const preview_scratch_directory = get_scratch_dir();
 
-function checkLanguageServer(callback) {
-    const userdir = get_user_dir();
-    const sbgdir = path.join(userdir, "sevenbridges", "benten");
-    const pkgname = `benten_${thispackage.version}_${process.platform}_${process.arch}`;
-    const executable = path.join(sbgdir, pkgname, "benten-ls");
-    fs.access(executable, fs.constants.X_OK, (err) => {
-        if (!err) {
-            // found it
-            callback(executable);
-            return;
-        }
-        fs.mkdir(sbgdir, { recursive: true }, (err) => {
-            if (err) {
-                // Couldn't make the directory
-                callback(null);
-                return;
-            }
-            // Need to go get it
-            http.get(`${packageDownloadBase}/${pkgname}.tar.gz`,
-                (response) => {
-                    response.pipe(gunzip()).pipe(tar.extract(sbgdir)).on('finish', () => {
-                        callback(executable);
-                    })
-                });
+
+function benten_ls_exists(executable) {
+  try {
+    execFileSync(executable, ["-h"]);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+
+function get_redirect(url, callback) {
+  http.get(url, (response) => {
+    if (response.headers.location) {
+      var loc = response.headers.location;
+      console.log(`Redirect to: ${loc.toString()}`);
+      get_redirect(loc, callback);
+    } else {
+      callback(response);
+    }
+  }).on('error', (e) => {
+    console.log(`Connection error: ${e}`);
+  });
+}
+
+/*
+ * 
+ */
+function get_language_server(callback) {
+
+  const pipx_executable = "benten-ls";
+  if (benten_ls_exists(pipx_executable)) {
+    console.log(`Found pipx installed benten-ls.`);
+    callback(pipx_executable);
+    return;
+  } else {
+    console.log(`No pipx installed benten-ls found.`);
+  }
+
+  const userdir = get_user_dir();
+  const sbgdir = path.join(userdir, "sevenbridges", "benten");
+  const executable = path.join(sbgdir, `benten-${thispackage.version}`, "benten-ls");
+  if (benten_ls_exists(executable)) {
+    console.log(`Found server: ${executable}`);
+    callback(executable);
+    return;
+  } else {
+    console.log(`No downloaded benten-ls found (${executable}).`);
+  }
+
+  const pkgname = `benten-ls-${process.platform}.zip`;
+  // https://nodejs.org/api/process.html#process_process_platform
+  // 'aix', 'darwin', 'freebsd', 'linux', 'openbsd', 'sunos', 'win32'
+
+  fs.mkdir(sbgdir, { recursive: true }, (err) => {
+    if (err) {
+      // Couldn't make the directory
+      console.error(`Could not create directory for downloaded package!`)
+      callback(null);
+    }
+
+    // Download from github releases page
+    const package_url = `${github_release_url}/${pkgname}`;
+    console.log(`Downloading server code from ${package_url}`);
+    get_redirect(package_url, (response) => {
+      const { statusCode } = response;
+      console.log(`Server response: ${response.statusCode} ${response.statusMessage}`);
+
+      // The github zip contains only one file: benten-ls.tar.gz
+      response.pipe(unzip.Parse())
+        .on('entry', (entry) => {
+          entry.pipe(gunzip()).pipe(tar.extract(sbgdir))
+            .on('finish', () => {
+              console.log("Extracted!");
+              callback(executable);
+            })
+            .on('error', (e) => {
+              console.log(`Error extracting: ${e}`);
+            });
         });
     });
+  });
 }
+
 
 export function activate(context: ExtensionContext) {
 
-    // For the language server
+  // For the language server
+  get_language_server((executable) => {
+    if (executable === null) {
+      console.error("Could not find or download language server.");
+      return;
+    }
+    const args = ["--debug"]
+    context.subscriptions.push(startLangServer(executable, args, ["cwl"]));
+  });
 
-    checkLanguageServer((executable) => {
-        if (!executable) {
-            // something error something;
-            console.log("Failed to download language server.")
-            return;
+  // For the preview
+  context.subscriptions.push(
+    commands.registerCommand('cwl.show_graph', () => {
+
+      // Create and show panel
+      const panel = window.createWebviewPanel(
+        'preview',
+        'CWL Preview',
+        ViewColumn.Two,
+        {
+          enableScripts: true,
+          localResourceRoots: [
+            Uri.file(path.join(context.extensionPath, 'include')),
+            Uri.file(preview_scratch_directory)
+          ]
         }
-        const args = ["--debug"]
-        context.subscriptions.push(startLangServer(executable, args, ["cwl"]));
+      );
 
-        // For TCP server needs to be started separately
-        // context.subscriptions.push(startLangServerTCP(2087, ["python"]));
+      const on_disk_files: any = {}
+      const files = ["vis-network.min.js", "vis-network.min.css"]
+      for (let f of files) {
+        on_disk_files[f] = Uri.file(
+          path.join(context.extensionPath, 'include', f))
+          .with({ scheme: 'vscode-resource' })
+      }
 
+      // And set its HTML content
+      updateWebviewContent(panel, on_disk_files)
 
-        // For the preview
-        context.subscriptions.push(
-            commands.registerCommand('cwl.show_graph', () => {
+      // Handle interactions on the graph
+      panel.webview.onDidReceiveMessage(
+        message => {
+          for (let te of window.visibleTextEditors) {
+            if (te.document.uri.toString() === message.uri) {
+              let line = te.document.lineAt(parseInt(message.line))
+              te.selection = new Selection(line.range.start, line.range.end)
+              te.revealRange(line.range, TextEditorRevealType.InCenter)
+              break
+            }
+          }
+        },
+        undefined,
+        context.subscriptions
+      );
 
-                // Create and show panel
-                const panel = window.createWebviewPanel(
-                    'preview',
-                    'CWL Preview',
-                    ViewColumn.Two,
-                    {
-                        enableScripts: true,
-                        localResourceRoots: [
-                            Uri.file(path.join(context.extensionPath, 'include')),
-                            Uri.file(preview_scratch_directory)
-                        ]
-                    }
-                );
+      // When we switch tabs we want the view to update
+      // But we don't need this because we have onDidChangeTextEditorSelection
+      window.onDidChangeActiveTextEditor(
+        e => {
+          updateWebviewContent(panel, on_disk_files)
+        },
+        null,
+        context.subscriptions
+      )
 
-                const on_disk_files: any = {}
-                const files = ["vis-network.min.js", "vis-network.min.css"]
-                for (let f of files) {
-                    on_disk_files[f] = Uri.file(
-                        path.join(context.extensionPath, 'include', f))
-                        .with({ scheme: 'vscode-resource' })
-                }
+      // We update the diagram each time we change the text
+      window.onDidChangeTextEditorSelection(
+        e => {
+          updateWebviewContent(panel, on_disk_files)
+        },
+        null,
+        context.subscriptions
+      )
 
-                // And set its HTML content
-                updateWebviewContent(panel, on_disk_files)
+    })
+  );
 
-                // Handle interactions on the graph
-                panel.webview.onDidReceiveMessage(
-                    message => {
-                        for (let te of window.visibleTextEditors) {
-                            if (te.document.uri.toString() === message.uri) {
-                                let line = te.document.lineAt(parseInt(message.line))
-                                te.selection = new Selection(line.range.start, line.range.end)
-                                te.revealRange(line.range, TextEditorRevealType.InCenter)
-                                break
-                            }
-                        }
-                    },
-                    undefined,
-                    context.subscriptions
-                );
-
-                // When we switch tabs we want the view to update
-                // But we don't need this because we have onDidChangeTextEditorSelection
-                window.onDidChangeActiveTextEditor(
-                    e => {
-                        updateWebviewContent(panel, on_disk_files)
-                    },
-                    null,
-                    context.subscriptions
-                )
-
-                // We update the diagram each time we change the text
-                window.onDidChangeTextEditorSelection(
-                    e => {
-                        updateWebviewContent(panel, on_disk_files)
-                    },
-                    null,
-                    context.subscriptions
-                )
-
-            })
-        );
-    });
 }
 
 
 function updateWebviewContent(panel: WebviewPanel, on_disk_files: [string, Uri]) {
 
-    const activeEditor = window.activeTextEditor;
-    if (!activeEditor) {
-        return;
-    }
-    const graph_name = Md5.hashStr(activeEditor.document.uri.toString()) + ".json"
+  const activeEditor = window.activeTextEditor;
+  if (!activeEditor) {
+    return;
+  }
+  const graph_name = Md5.hashStr(activeEditor.document.uri.toString()) + ".json"
 
-    const data_uri = path.join(preview_scratch_directory, graph_name);
-    var graph_data = JSON.parse(fs.readFileSync(data_uri, "utf8"));
+  const data_uri = path.join(preview_scratch_directory, graph_name);
+  var graph_data = JSON.parse(fs.readFileSync(data_uri, "utf8"));
 
-    panel.webview.html = `<!DOCTYPE html>
+  panel.webview.html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
