@@ -8,10 +8,10 @@ from benten.langserver.lspobjects import Position, Location
 
 
 current_path = pathlib.Path(__file__).parent
-schema_path = pathlib.Path(current_path, "../benten/000.package.data/")
+schema_path = pathlib.Path(current_path, "../benten_schemas")
 
 
-type_dicts=load_type_dicts()
+type_dicts = load_type_dicts()
 path = current_path / "cwl" / "ebi" / "workflows" / "cmsearch-multimodel-wf.cwl"
 
 

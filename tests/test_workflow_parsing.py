@@ -5,7 +5,6 @@ import pathlib
 from lib import load, load_type_dicts
 
 current_path = pathlib.Path(__file__).parent
-schema_path = pathlib.Path(current_path, "../benten/000.package.data/")
 
 
 def test_ebi_wf_cmsearch_multimodel():
