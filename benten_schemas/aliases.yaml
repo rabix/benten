@@ -1,9 +1,0 @@
-# Available environment variables
-# BEN_CWL - name of CWL file
-# BEN_JOB - name of job file
-# BEN_ARG - array of arguments passed to the command
-
-# These are some example command aliases
-run: cwl-runner ${BEN_CWL} ${BEN_JOB}
-run-mem: cwl-runner ${BEN_CWL} ${BEN_JOB} --cachedir /tmp/benten-runs
-commit: git commit -m '${BEN_ARG}' ${BEN_CWL}
