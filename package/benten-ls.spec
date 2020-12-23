@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from benten.version import __version__
+
 block_cipher = None
 
 
@@ -34,4 +36,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='benten')
+               name=f'benten-{__version__}')
