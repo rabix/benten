@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['benten-ls.py'],
-             pathex=['/home/peter/work/benten'],
+             pathex=[],
              binaries=[],
              datas=[],
              hiddenimports=[],

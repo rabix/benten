@@ -22,11 +22,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller==4.0
         pip install .
+        cd package
         pyinstaller benten-ls.spec
-        python make_binary_package.py
+        python tgz.py
 
     - name: Upload package
       uses: actions/upload-artifact@v2
       with:
         name: benten-ls-${{ matrix.os }}
-        path: dist/benten-ls.tar.gz
+        path: package/dist/benten-ls.tar.gz
