@@ -45,6 +45,17 @@ server component will work with any editor/IDE that offers language server
 support. Syntax highlighting is currently only available for the VS Code
 extension. The VS Code extension is written in Typescript.
 
+# Install VS Code extension
+
+Search for
+"[Benten](https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl)"
+in the marketplace. The name of the client extension is Rabix/benten. Follow the
+usual method to install the extension.
+
+If you have not installed the Benten server spearately (see below) then the
+client will attempt to find and download a matching server version from the
+github releases page.
+
 # Server installation
 
 Benten requires [Python 3.7 or later](https://www.python.org/downloads/)
@@ -123,13 +134,6 @@ code itself:
 pipx install -e benten  # benten is the name of the directory with the cloned code
 ```
 
-
-# Install VS Code extension
-
-Search for "[Benten](https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl)" in the marketplace. The name of the client
-extension is Rabix/benten. Follow the usual method to install the
-extension.
-
 # Using with VI/Vim
 
 See [this page](https://github.com/rabix/benten/blob/master/docs/vim.md) please.
@@ -188,12 +192,15 @@ See the [development documentation](docs/developer.md)
 
 # Acknowledgments
 
+[Peter Amstutz](https://github.com/tetron/) for the PyInstaller formula and the
+auto-downloading feature on the VS Code extension.
+
+[Peter van Heusden](https://github.com/pvanheus/) for the
+Benten Conda [distribution](https://github.com/conda-forge/benten-feedstock).
+
 The low level client-server communication [code][jsonrpc-code] is taken from [Sourcegraph's
 (now defunct) Python Language Server][sourcegraph-python] as is the VS Code client code (which
 was based originally off Microsoft's example code). The CWL preview uses [vis.js]
-
-Thanks go to [Peter van Heusden](https://github.com/pvanheus/) for the
-Benten Conda [distribution](https://github.com/conda-forge/benten-feedstock).
 
 [jsonrpc-code]: https://github.com/sourcegraph/python-langserver/blob/master/langserver/jsonrpc.py
 [sourcegraph-python]: https://github.com/sourcegraph/python-langserver
