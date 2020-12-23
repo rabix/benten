@@ -83,8 +83,8 @@ function get_user_dir() {
   return process.env.APPDATA ||
     process.env.XDG_DATA_HOME ||
     (process.platform == 'darwin' ?
-      homedir() + '/Library/Preferences' :
-      homedir() + "/.local/share");
+      path.join(homedir(), "Library", "Preferences") :
+      path.join(homedir(), ".local", "share"));
 }
 
 
