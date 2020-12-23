@@ -1,47 +1,49 @@
-#  Copyright (c) 2019 Seven Bridges. See LICENSE
+#  Copyright (c) 2019, 2020 Seven Bridges. See LICENSE
 
 import os
-import shutil
+import sys
 from pathlib import Path as P
 import configparser
+import json
 
+from pkg_resources import resource_stream
 from .cwl.specification import parse_schema
 
 import logging
+
 logger = logging.getLogger(__name__)
 
+supported_versions = ["v1.0", "v1.1", "v1.2.0-dev1", "v1.2.0-dev3", "v1.2.0"]
 
 sbg_config_dir = P("sevenbridges", "benten")
 
 
-# https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-
-xdg_config_dir = {
-    "env": "XDG_CONFIG_HOME",
-    "default": P(P.home(), ".config")
-}
-
-# There is a raging debate on this and people want to add a new field to the XDG spec
-# Me, I think logs are user data ...
-xdg_data_home = {
-    "env": "XDG_DATA_HOME",
-    "default": P(P.home(), ".local", "share")
-}
-
-default_config_data_dir = P(P(__file__).parent, "000.package.data")
+def get_user_dir():
+    # This logic should be synchronized with
+    # vscode-client/src/extension.ts: get_user_dir()
+    return (
+        os.environ.get("APPDATA")
+        or os.environ.get("XDG_DATA_HOME")
+        or (
+            P(P.home(), "Library", "Preferences")
+            if sys.platform == "darwin"
+            else P(P.home(), ".local", "share")
+        )
+    )
 
 
 class Configuration(configparser.ConfigParser):
     def __init__(self):
         super().__init__()
 
-        self.cfg_path = P(os.getenv(xdg_config_dir["env"], xdg_config_dir["default"]), sbg_config_dir)
-        self.log_path = P(os.getenv(xdg_data_home["env"], xdg_data_home["default"]), sbg_config_dir, "logs")
-        self.scratch_path = P(os.getenv(xdg_data_home["env"], xdg_data_home["default"]), sbg_config_dir, "scratch")
+        user_dir = get_user_dir()
+        self.cfg_path = P(user_dir, sbg_config_dir)
+        self.log_path = P(user_dir, sbg_config_dir, "logs")
+        self.scratch_path = P(user_dir, sbg_config_dir, "scratch")
 
         if not self.cfg_path.exists():
-            self.cfg_path.mkdir(parents=True)        
-        
+            self.cfg_path.mkdir(parents=True)
+
         if not self.log_path.exists():
             self.log_path.mkdir(parents=True)
 
@@ -52,10 +54,6 @@ class Configuration(configparser.ConfigParser):
 
     # We do this separately to give the caller a chance to set up logging
     def initialize(self):
-
-        logging.info("Copying language schema files ...")
-        self._copy_missing_language_files()
-
         # TODO: allow multiple language specifications
         logging.info("Loading language model ...")
         self._load_language_files()
@@ -76,14 +74,10 @@ class Configuration(configparser.ConfigParser):
         else:
             return P(self.cfg_path, path)
 
-    def _copy_missing_language_files(self):
-        for src_file in default_config_data_dir.glob("schema-*.json"):
-            dst_file = P(self.cfg_path, src_file.name)
-            if not dst_file.exists():
-                shutil.copy(str(src_file), str(dst_file))
-
     def _load_language_files(self):
-        for fname in self.cfg_path.glob("schema-*.json"):
-            version = fname.name[7:-5]
-            self.lang_models[version] = parse_schema(fname)
+        for version in supported_versions:
+            rsc = resource_stream("benten_schemas", f"schema-{version}.json")
+            schema = json.load(rsc)
+            rsc.close()
+            self.lang_models[version] = parse_schema(schema)
             logger.info(f"Loaded language schema {version}")

@@ -3,8 +3,6 @@ set of types"""
 
 #  Copyright (c) 2019-2020 Seven Bridges. See LICENSE
 
-import json
-
 from .alltypes import *
 
 
@@ -16,9 +14,7 @@ latest_published_cwl_version = "v1.2.0"
 process_types = ["CommandLineTool", "ExpressionTool", "Workflow"]
 
 
-def parse_schema(fname):
-    schema = json.load(open(fname, "r"))
-
+def parse_schema(schema):
     type_dict = {}
     add_formal_primitive_types_to_type_dict(schema, type_dict)
     parse_cwl_type(schema, type_dict)
