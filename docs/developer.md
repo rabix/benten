@@ -12,20 +12,27 @@ client.
 pipx inject -e benten cwlformat
 ```
 
+### Release server on PyPi
+
+```
+python3 setup.py sdist bdist_wheel
+twine upload dist/*
+```
+
 ## How to setup and develop with VS Code
 
-- Install benten (as outlined on the main Readme)
-- Run `npm install` from the `vscode-client`. This installs all the npm
-  modules needed to compile the VS Code client extension.
-- Run `tsc -b`
-- Open VS Code on this folder.
+- Optional: Install benten (as outlined on the main Readme)
+- From the `vscode-client` directory
+  ```
+  npm install -g typescript
+  npm install
+  ```
+- Open the `vscode-client` directory in VS Code.
 - Press Ctrl+Shift+B to compile the client and server.
 - Switch to the Debug viewlet.
-- Select `Launch Client` from the drop down.
-- Run the launch config.
+- Select and run `Launch Client` from the drop down.
 - In the [Extension Development Host] instance of VSCode, open a CWL document
 - In the [Extension Development Host] in the `output` tab, select "benten"
-
 
 ### Restart server
 
@@ -34,14 +41,17 @@ Currently (04.2019) the only way to do this in VS Code is to use the
 "Reload Window" command:
 CMD + Shift + P to bring up the command bar and then type "Reload Window".
 
-### Release on PyPi
-
-```
-python3 setup.py sdist bdist_wheel
-twine upload dist/*
-```
 
 ### Release on VS Code Marketplace
+
+Ensure version strings are synchronized
+1. Version string in Python package
+2. Version string in `package.json` for the VS Code extension
+3. Version tag in the github release
+
+This is because the VS Code extension takes it's version from the `package.json`
+and looks for the corresponding release on github which in turn has the
+`benten-ls` executable in a folder that is named with the Python version.
 
 ```
 npm install -g vsce
