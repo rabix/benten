@@ -55,9 +55,11 @@ and looks for the corresponding release on github which in turn has the
 
 ```
 npm install -g vsce
+vsce package
 ```
 
-`vsce package` and then upload the `.vsix` file to [Marketplace]
+Upload the `.vsix` file to [Marketplace]
+
 [Marketplace]:
 https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl
 
@@ -141,31 +143,3 @@ $ build-fpm/usr/share/python-3.7/dist/benten/bin/pip install .
 $ fpm -s dir -t deb -v $version -n benten -C build-fpm --depends python3 usr/share/$python/dist/benten/bin/benten-ls=/usr/bin/ .
 
 ```
-
-# Things I learned
-
-## Python
-
-- Python's native ConfigParser will mangle your INI file keys. You have to override the
-  `optionxform` function.
-  https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
-
-
-## Pyside2 (Pyside is no longer used in this project)
-
-- Get macOS to use a fixed width font:
-  `setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))`
-
-- Get `QTabWidget` to have tabs on the left side and looking “professional”
-  `self.setDocumentMode(True)`
-
-- An epic can be written about the confusing behavior of menus on macOS, but
-  the main reading material is https://doc.qt.io/qt-5/qmenubar.html#qmenubar-as-a-global-menu-bar
-
-- Don't do `menu.setNativeMenuBar(False)`: native mac is ... nicer
-
-- When creating a QActionGroup you still need to add each individual action to the menu,
-  not just the group.
-
-- Stop signals from an object for a duration
-  `blk = QSignalBlocker(self.code_editor)`

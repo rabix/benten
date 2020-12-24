@@ -10,32 +10,18 @@
 - Outline view (Symbols) + Step symbols
 - Type validations
 - Port validations
+- CWL Documentation on hover
 
 [(Click for feature screenshot gallery)](https://github.com/rabix/benten/blob/master/docs/features.md)
 
 
 # Server installation
 
-This plugin requires the [Benten CWL Language Server](https://github.com/rabix/benten) to be installed.
-
-**If you install the server after loading a CWL file you will have to
-restart VS Code.**
-
-**If you are trying to reinstall or upgrade the server on windows with
-VS Code running, you will have to exit VS Code, since it will be running
-the server and will have locked it from changes.**
-
-## Using pipx
-
-A neat way to install `benten` in a virtual env (isolating it from your
-system python) and still be able to call it as a regular executable is
-to use `pipx`
-
-```
-pip3 install pipx  # in case you don't have pipx
-pipx ensurepath # ensures CLI application directory is on your $PATH
-pipx upgrade benten
-```
+This extension requires the [Benten CWL Language
+Server](https://github.com/rabix/benten). If you have not already [installed the
+server](https://github.com/rabix/benten/tree/kg/dist-installs#server-installation)
+the extension will attempt to download the matching server version automatically
+from `github`. 
 
 For more detailed information please see the [project page](https://github.com/rabix/benten).
 

@@ -52,7 +52,7 @@ Search for
 in the marketplace. The name of the client extension is Rabix/benten. Follow the
 usual method to install the extension.
 
-If you have not installed the Benten server spearately (see below) then the
+If you have not installed the Benten server separately (see below) then the
 client will attempt to find and download a matching server version from the
 github releases page.
 
@@ -102,7 +102,8 @@ Notes:
    Python which you wish to keep but still want to install Benten. You
    can create a virtual env with Python > 3.7 and invoke the
    installation commands from there.
-
+3. If you are using VS Code, if you install the server after loading a CWL file
+   you will have to restart VS Code.
 
 ### Special instructions for Ubuntu Linux
 
@@ -225,5 +226,5 @@ _References_
 ---
 
 <div align="right">
-<sub>(c) 2019-2020 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
+<sub>(c) 2019-2021 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
 </div>
