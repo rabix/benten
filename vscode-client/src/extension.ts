@@ -108,6 +108,12 @@ function benten_ls_exists(executable) {
 }
 
 
+function show_err_msg(msg) {
+  console.error(msg)
+  window.showErrorMessage(msg);
+}
+
+
 function get_redirect(url, callback) {
   http.get(url, (response) => {
     if (response.headers.location) {
@@ -118,7 +124,8 @@ function get_redirect(url, callback) {
       callback(response);
     }
   }).on('error', (e) => {
-    console.log(`Connection error: ${e}`);
+    const msg = `Failed trying to download Benten server binaries from ${url}. Site responded with ${e}`;
+    show_err_msg(msg);
   });
 }
 
@@ -154,7 +161,8 @@ function get_language_server(callback) {
   fs.mkdir(sbgdir, { recursive: true }, (err) => {
     if (err) {
       // Couldn't make the directory
-      console.error(`Could not create directory for downloaded package!`)
+      const msg = `Failed to create directory: ${sbgdir}. This is where the downloaded Benten server binaries would have been stored.`;
+      show_err_msg(msg);
       callback(null);
     }
 
@@ -162,19 +170,27 @@ function get_language_server(callback) {
     const package_url = `${github_release_url}/${pkgname}`;
     console.log(`Downloading server code from ${package_url}`);
     get_redirect(package_url, (response) => {
-      const { statusCode } = response;
-      console.log(`Server response: ${response.statusCode} ${response.statusMessage}`);
+      const server_response = `Server response: ${response.statusCode} ${response.statusMessage}`;
+      if (response.statusCode != 200) {
+        const msg = `Failed to download Benten server binary from ${package_url}. ${server_response}`;
+        show_err_msg(msg);
+        callback(null);
+      } else {
+        console.log(server_response);
+      }
 
       // The github zip contains only one file: benten-ls.tar.gz
       response.pipe(unzip.Parse())
         .on('entry', (entry) => {
           entry.pipe(gunzip()).pipe(tar.extract(sbgdir))
             .on('finish', () => {
-              console.log("Extracted!");
+              console.log("Extracted server binary!");
               callback(executable);
             })
             .on('error', (e) => {
-              console.log(`Error extracting: ${e}`);
+              const msg = `Error extracting Benten server binary: ${e}`;
+              show_err_msg(msg);
+              callback(null);
             });
         });
     });
@@ -187,7 +203,7 @@ export function activate(context: ExtensionContext) {
   // For the language server
   get_language_server((executable) => {
     if (executable === null) {
-      console.error("Could not find or download language server.");
+      show_err_msg("Did not find installed Benten server and could not download Benten server binary.");
       return;
     }
     const args = ["--debug"]
