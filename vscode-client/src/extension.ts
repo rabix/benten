@@ -46,6 +46,27 @@ const gunzip = require('gunzip-maybe');
 const github_release_url = `https://github.com/rabix/benten/releases/download/${thispackage.version}/`;
 
 
+export function activate(context: ExtensionContext) {
+
+  // For the language server
+  get_language_server((executable) => {
+    if (executable === null) {
+      show_err_msg("Did not find installed Benten server and could not download Benten server binary.");
+      return;
+    }
+
+    activate_server(executable, context);
+    activate_preview(context);
+  });
+}
+
+
+export function activate_server(executable: string, context: ExtensionContext) {
+  const args = ["--debug"]
+  context.subscriptions.push(startLangServer(executable, args, ["cwl"]));
+}
+
+
 function startLangServer(command: string, args: string[], documentSelector: string[]): Disposable {
   const serverOptions: ServerOptions = {
     command,
@@ -98,7 +119,7 @@ function get_scratch_dir() {
 const preview_scratch_directory = get_scratch_dir();
 
 
-function benten_ls_exists(executable) {
+function benten_ls_exists(executable: string) {
   try {
     execFileSync(executable, ["-h"]);
     return true;
@@ -108,13 +129,13 @@ function benten_ls_exists(executable) {
 }
 
 
-function show_err_msg(msg) {
+function show_err_msg(msg: string) {
   console.error(msg)
   window.showErrorMessage(msg);
 }
 
 
-function get_redirect(url, callback) {
+function get_redirect(url: string, callback) {
   http.get(url, (response) => {
     if (response.headers.location) {
       var loc = response.headers.location;
@@ -198,19 +219,7 @@ function get_language_server(callback) {
 }
 
 
-export function activate(context: ExtensionContext) {
-
-  // For the language server
-  get_language_server((executable) => {
-    if (executable === null) {
-      show_err_msg("Did not find installed Benten server and could not download Benten server binary.");
-      return;
-    }
-    const args = ["--debug"]
-    context.subscriptions.push(startLangServer(executable, args, ["cwl"]));
-  });
-
-  // For the preview
+export function activate_preview(context: ExtensionContext) {  
   context.subscriptions.push(
     commands.registerCommand('cwl.show_graph', () => {
 
