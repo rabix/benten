@@ -1,7 +1,6 @@
 name: Package server
 
-# on: workflow_dispatch
-on: push
+on: workflow_dispatch
 
 jobs:
   package:
