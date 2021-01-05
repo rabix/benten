@@ -5,8 +5,7 @@ This is a [language server] for
 
 [language server]: https://langserver.org/
 
-### Server
-[![Tests](https://travis-ci.com/rabix/benten.svg?branch=master)](https://travis-ci.com/rabix/benten)
+[![Tests](https://github.com/rabix/benten/workflows/Tests/badge.svg)](https://github.com/rabix/benten/actions?query=workflow%3ATests)
 [![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
 [![Codacy
   Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
@@ -14,14 +13,10 @@ This is a [language server] for
   version](https://badge.fury.io/py/benten.svg)](https://badge.fury.io/py/benten)
   [![Conda
   Version](https://img.shields.io/conda/vn/conda-forge/benten.svg)](https://anaconda.org/conda-forge/benten)
-
-### VS Code client 
-
 [![Visual Studio Marketplace
   Version](https://img.shields.io/visual-studio-marketplace/v/sbg-rabix.benten-cwl?label=VS%20Code%20Ext)](https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl)
 [![Open
   VSX](https://img.shields.io/open-vsx/v/sbg-rabix/benten-cwl)](https://open-vsx.org/extension/sbg-rabix/benten-cwl)
-
 
 ## Features
 
