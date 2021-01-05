@@ -24,7 +24,7 @@
 			},
 			{
 				"name": "support.type.cwl",
-				"match": "\\b(CommandLineTool|ExpressionTool|Workflow|InlineJavascriptRequirement|SchemaDefRequirement|DockerRequirement|SoftwareRequirement|InitialWorkDirRequirement|EnvVarRequirement|ShellCommandRequirement|ResourceRequirement)\\b"
+				"match": "\\b(CommandLineTool|ExpressionTool|Workflow|InlineJavascriptRequirement|SchemaDefRequirement|DockerRequirement|SoftwareRequirement|InitialWorkDirRequirement|EnvVarRequirement|ShellCommandRequirement|StepInputExpressionRequirement|ResourceRequirement)\\b"
 			},
 			{
 				"name": "storage.type.cwl",
