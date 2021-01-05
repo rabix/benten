@@ -22,9 +22,9 @@ setup(
     platforms=['POSIX', 'MacOS', 'Windows'],
     python_requires='>=3.7.0',
     install_requires=[
-        "ruamel.yaml >= 0.15.77",
+        "ruamel.yaml == 0.16.12",
         "dukpy >= 0.2.2",
-        "cwlformat"
+        "cwlformat >= 2021.1.5"
     ],
     entry_points={
         'console_scripts': [
