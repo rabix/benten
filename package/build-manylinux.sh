@@ -16,5 +16,5 @@ pip install pyinstaller==4.0
 
 cd package
 rm -rf dist
-pyinstaller --add-binary '/usr/local/lib/libcrypt.so.2:.' benten-ls.spec
+pyinstaller benten-ls.spec
 python tgz.py

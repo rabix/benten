@@ -7,7 +7,7 @@ block_cipher = None
 
 a = Analysis(['benten-ls.py'],
              pathex=[],
-             binaries=[],
+             binaries=[('/usr/local/lib/libcrypt.so.2', '.')],
              datas=[("../benten_schemas/*", "benten_schemas")],
              hiddenimports=[],
              hookspath=["."],
