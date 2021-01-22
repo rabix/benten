@@ -22,9 +22,12 @@ jobs:
         pip install pyinstaller==4.0
         pip install .
         cd package
-        pyinstaller benten-ls.spec
-        python tgz.py
-
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sh build-manylinux.sh
+        else
+          pyinstaller benten-ls.spec
+          python tgz.py
+        fi
     - name: Upload package
       uses: actions/upload-artifact@v2
       with:
