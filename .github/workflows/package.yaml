@@ -25,7 +25,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         cd package
-        sh build-manylinux.sh
+        bash build-manylinux.sh
     - name: Build without manylinux
       if: matrix.os != 'ubuntu-latest'
       run: |
