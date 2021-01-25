@@ -16,11 +16,18 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install and build
+    - name: Install
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller==4.0
         pip install .
+    - name: Build using manylinux
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        bash package/build-manylinux.sh
+    - name: Build without manylinux
+      if: matrix.os != 'ubuntu-latest'
+      run: |
         cd package
         pyinstaller benten-ls.spec
         python tgz.py
