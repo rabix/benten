@@ -54,6 +54,8 @@ and looks for the corresponding release on github which in turn has the
 `benten-ls` executable in a folder that is named with the Python version.
 
 ```
+npm install -g typescript
+npm install
 npm install -g vsce
 vsce package
 ```
