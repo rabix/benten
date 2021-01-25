@@ -37,10 +37,3 @@ jobs:
       with:
         name: benten-ls-${{ matrix.os }}
         path: package/dist/benten-ls.tar.gz
-
-    - name: (Temporary) upload build directory
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v2
-      with:
-        name: benten-ls-${{ matrix.os }}
-        path: package/build/*
