@@ -1,13 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import sys
 from benten.version import __version__
 
 block_cipher = None
 
+binaries=[]
+if sys.platform == 'linux':
+    binaries.append(('/usr/local/lib/libcrypt.so.2', '.'))
 
 a = Analysis(['benten-ls.py'],
              pathex=[],
-             binaries=[],
+             binaries=binaries,
              datas=[("../benten_schemas/*", "benten_schemas")],
              hiddenimports=[],
              hookspath=["."],
