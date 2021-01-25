@@ -54,9 +54,10 @@ type ActivateCallback = (executable: string, out_chan: OutputChannel, msg: strin
 
 
 export function activate(context: ExtensionContext) {
-  get_language_server((executable, out_chan, msg) => {
+  const default_executable = workspace.getConfiguration().get('benten.server.path');
+  get_language_server(default_executable, (executable, out_chan, msg) => {
     if (executable === null) {
-      window.showErrorMessage("Benten (CWL). Error trying to install server. Please look at log.");
+      window.showErrorMessage("Benten (CWL). Error trying to install/use server. Please look at log.");
       out_chan.show();
     } else {
       activate_server(executable, context);
@@ -144,9 +145,22 @@ function show_err_msg(msg: string) {
 }
 
 
-function get_language_server(callback: ActivateCallback) {
+function get_language_server(default_executable, callback: ActivateCallback) {
 
   const out_chan = window.createOutputChannel("Benten (CWL): Download");
+
+  if(default_executable) {
+    if (benten_ls_exists(default_executable)) {
+      out_chan.appendLine(`Found user specified server ${default_executable}.`);
+      callback(default_executable, out_chan, null);
+      return;
+    } else {
+      const msg = `Can not run user specified server ${default_executable}. Fix the path in Benten settings, or remove to install server automatically.`;
+      window.showErrorMessage(msg);
+      out_chan.appendLine(msg);
+      return;
+    }
+  }
 
   const pipx_executable = "benten-ls";
   if (benten_ls_exists(pipx_executable)) {

@@ -80,7 +80,20 @@
           "group": "navigation"
         }
       ]
-    }
+    },
+    "configuration": [
+      {
+        "title": "Benten server",
+        "properties": {
+          "benten.server.path": {
+            "type": "string",
+            "default": "",
+            "description": "Path to benten-ls executable",
+            "scope": "application"
+          }
+        }
+      }
+    ]
   },
   "main": "./out/extension",
   "scripts": {
