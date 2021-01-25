@@ -26,5 +26,5 @@ from `github`.
 For more detailed information please see the [project page](https://github.com/rabix/benten).
 
 <div align="right">
-<sub>(c) 2019 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
+<sub>(c) 2019-2021 Seven Bridges Genomics. Rabix is a registered trademark of Seven Bridges Genomics</sub>
 </div>
