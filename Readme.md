@@ -136,6 +136,9 @@ pipx install -e denbi-benten  # denbi-benten is the name of the directory with t
 
 See [this page](https://github.com/denbi/denbi-benten/blob/main/docs/vim.md) please.
 
+# Using with IntelliJ
+
+See [this page](https://github.com/rabix/benten/blob/master/docs/intellij.md) please.
 
 # Expression evaluations on hover
 
