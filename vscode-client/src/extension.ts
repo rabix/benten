@@ -272,9 +272,8 @@ export function activate_preview(context: ExtensionContext) {
       const on_disk_files: any = {}
       const files = ["vis-network.min.js", "vis-network.min.css"]
       for (let f of files) {
-        on_disk_files[f] = Uri.file(
-          path.join(context.extensionPath, 'include', f))
-          .with({ scheme: 'vscode-resource' })
+        on_disk_files[f] = panel.webview.asWebviewUri(Uri.file(
+          path.join(context.extensionPath, 'include', f)))
       }
 
       // And set its HTML content
