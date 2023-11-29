@@ -1,26 +1,28 @@
-# Benten
+# de.NBI's fork of Benten
 
 This is a [language server] for
-[Common Workflow Language](https://www.commonwl.org/) documents.
+[Common Workflow Language](https://www.commonwl.org/) documents maintained by
+[de.NBI](https://www.denbi.de/) from the original
+[Rabix Repository](https://github.com/rabix/benten).
 
 [language server]: https://langserver.org/
 
-[![Tests](https://github.com/rabix/benten/workflows/Tests/badge.svg)](https://github.com/rabix/benten/actions?query=workflow%3ATests)
-[![codecov](https://codecov.io/gh/rabix/benten/branch/master/graph/badge.svg)](https://codecov.io/gh/rabix/benten)
+[![Tests](https://github.com/denbi/denbi-benten/workflows/Tests/badge.svg)](https://github.com/denbi/denbi-benten/actions?query=workflow%3ATests)
+[![codecov](https://codecov.io/gh/denbi/denbi-benten/branch/main/graph/badge.svg)](https://codecov.io/gh/denbi/denbi-benten)
 [![Codacy
-  Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/kaushik-work/benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rabix/benten&amp;utm_campaign=Badge_Grade)
+  Badge](https://api.codacy.com/project/badge/Grade/20839ce29ebe4004b3578d4d02031a1c)](https://www.codacy.com/app/denbi/denbi-benten?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=denbi/denbi-benten&amp;utm_campaign=Badge_Grade)
 [![PyPI
-  version](https://badge.fury.io/py/benten.svg)](https://badge.fury.io/py/benten)
+  version](https://badge.fury.io/py/denbi-benten.svg)](https://badge.fury.io/py/denbi-benten)
   [![Conda
-  Version](https://img.shields.io/conda/vn/conda-forge/benten.svg)](https://anaconda.org/conda-forge/benten)
+  Version](https://img.shields.io/conda/vn/conda-forge/denbi-benten.svg)](https://anaconda.org/conda-forge/denbi-benten)
 [![Visual Studio Marketplace
-  Version](https://img.shields.io/visual-studio-marketplace/v/sbg-rabix.benten-cwl?label=VS%20Code%20Ext)](https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl)
+  Version](https://img.shields.io/visual-studio-marketplace/v/denbi.denbi-benten-cwl?label=VS%20Code%20Ext)](https://marketplace.visualstudio.com/items?itemName=denbi.denbi-benten-cwl)
 [![Open
-  VSX](https://img.shields.io/open-vsx/v/sbg-rabix/benten-cwl)](https://open-vsx.org/extension/sbg-rabix/benten-cwl)
+  VSX](https://img.shields.io/open-vsx/v/denbi/denbi-benten-cwl)](https://open-vsx.org/extension/denbi/denbi-benten-cwl)
 
 ## Features
 
-[(Click for feature screenshot gallery)](https://github.com/rabix/benten/blob/master/docs/features.md)
+[(Click for feature screenshot gallery)](https://github.com/denbi/denbi-benten/blob/main/docs/features.md)
 
 - Syntax highlighting (CWL and JS)
 - Evaluate expression on hover
@@ -32,7 +34,7 @@ This is a [language server] for
 - Port validations
 - Display language documentation on hover
 
-![Benten + VS Code](https://raw.githubusercontent.com/rabix/benten/master/media/2019.12.03/full-window.png)
+![Benten + VS Code](https://raw.githubusercontent.com/denbi/denbi-benten/main/media/2019.12.03/full-window.png)
 
 
 _Benten_ is written using Python3 and developed against VS Code. The language
@@ -43,8 +45,8 @@ extension. The VS Code extension is written in Typescript.
 # Install VS Code extension
 
 Search for
-"[Benten](https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl)"
-in the marketplace. The name of the client extension is Rabix/benten. Follow the
+"[Benten](https://marketplace.visualstudio.com/items?itemName=denbi.denbi-benten-cwl)"
+in the marketplace. The name of the client extension is deNBI/denbi-benten. Follow the
 usual method to install the extension.
 
 If you have not installed the Benten server separately (see below) then the
@@ -61,7 +63,7 @@ If you will be installing from source you will need
 
 ## Using pipx
 
-A neat way to install `benten` in a virtual env (isolating it from your
+A neat way to install `denbi-benten` in a virtual env (isolating it from your
 system python) and still be able to call it as a regular executable is
 to use `pipx`
 
@@ -72,18 +74,18 @@ pipx ensurepath # ensures CLI application directory is on your $PATH
 
 Now you can install Benten with
 ```
-pipx install benten
+pipx install denbi-benten
 ```
 
 If you already have Benten installed you can upgrade it
 ```
-pipx upgrade benten
+pipx upgrade denbi-benten
 ```
 
 
 If your base python install is earlier than 3.7 you can tell `pipx` to use 3.7 for Benten
 ```
-pipx install benten --python python3.7
+pipx install denbi-benten --python python3.7
 ```
 
 
@@ -114,25 +116,25 @@ have to shutdown the server (e.g. by exiting VS Code) before updating.
 
 ### Installing versions directly from github
 
-To install from the master branch
+To install from the main branch
 ```
-pipx install git+https://github.com/rabix/benten.git
+pipx install git+https://github.com/denbi/denbi-benten.git
 ```
 
 To install from develop branch (or some other branch):
 ```
-pipx install git+https://github.com/rabix/benten.git@develop
+pipx install git+https://github.com/denbi/denbi-benten.git@develop
 ```
 
 Or, if you have cloned the repository and want to play with the server
 code itself:
 ```
-pipx install -e benten  # benten is the name of the directory with the cloned code
+pipx install -e denbi-benten  # denbi-benten is the name of the directory with the cloned code
 ```
 
 # Using with VI/Vim
 
-See [this page](https://github.com/rabix/benten/blob/master/docs/vim.md) please.
+See [this page](https://github.com/denbi/denbi-benten/blob/main/docs/vim.md) please.
 
 
 # Expression evaluations on hover
@@ -192,7 +194,7 @@ See the [development documentation](docs/developer.md)
 auto-downloading feature on the VS Code extension.
 
 [Peter van Heusden](https://github.com/pvanheus/) for the
-Benten Conda [distribution](https://github.com/conda-forge/benten-feedstock).
+Benten Conda [distribution](https://github.com/conda-forge/denbi-benten-feedstock).
 
 The low level client-server communication [code][jsonrpc-code] is taken from [Sourcegraph's
 (now defunct) Python Language Server][sourcegraph-python] as is the VS Code client code (which

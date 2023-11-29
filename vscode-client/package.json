@@ -1,7 +1,7 @@
 {
   "name": "benten-cwl",
-  "publisher": "sbg-rabix",
-  "displayName": "CWL (Rabix/Benten)",
+  "publisher": "denbi",
+  "displayName": "CWL (de.NBI/Benten)",
   "description": "Autocomplete, code validation and more for CWL documents",
   "version": "2021.1.25",
   "preview": false,
@@ -17,11 +17,10 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rabix/benten.git"
+    "url": "https://github.com/denbi/denbi-benten.git"
   },
   "bugs": {
-    "url": "https://github.com/rabix/benten/issues",
-    "email": "rabix@sbgenomics.com"
+    "url": "https://github.com/denbi/denbi-benten/issues"
   },
   "categories": [
     "Programming Languages"
@@ -83,7 +82,7 @@
     },
     "configuration": [
       {
-        "title": "Benten server",
+        "title": "de.NBI Benten server",
         "properties": {
           "benten.server.path": {
             "type": "string",

@@ -11,13 +11,13 @@ inputs:
 
 steps:
   step1:
-    run: https://raw.githubusercontent.com/rabix/benten/4223a4/tests/cwl/misc/clt1.cwl
+    run: https://raw.githubusercontent.com/denbi/denbi-benten/4223a4/tests/cwl/misc/clt1.cwl
     in:
       in1: in1
     out: [out1]
       
   step2:
-    run: https://raw.githubusercontent.com/rabix/benten/5223a4/tests/cwl/misc/clt1.cwl
+    run: https://raw.githubusercontent.com/denbi/denbi-benten/5223a4/tests/cwl/misc/clt1.cwl
     in:
       in1: in1
     out: [out1]

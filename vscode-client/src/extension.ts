@@ -47,7 +47,7 @@ import * as gunzip from 'gunzip-maybe';
 
 const thispackage = require('../package.json');
 
-const github_release_url = `https://github.com/rabix/benten/releases/download/${thispackage.version}/`;
+const github_release_url = `https://github.com/denbi/denbi-benten/releases/download/${thispackage.version}/`;
 
 
 type ActivateCallback = (executable: string, out_chan: OutputChannel, msg: string) => void;
