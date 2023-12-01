@@ -65,7 +65,7 @@ def main():
     logging.basicConfig(level=(logging.DEBUG if args.debug else logging.WARNING))
     logger.addHandler(handler)
 
-    logger.info(f"Benten {__version__}: CWL Language Server from Rabix (Seven Bridges)")
+    logger.info(f"de.NBI Benten {__version__}: CWL Language Server supported by de.NBI, from the Rabix (Seven Bridges) original.")
     logger.info(f"ruamel.yaml: {__ruamel_version__}")
     logger.info(f"cwl-format: {__cwl_fmt_version__}")
 

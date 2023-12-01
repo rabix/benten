@@ -63,7 +63,7 @@ vsce package
 Upload the `.vsix` file to [Marketplace]
 
 [Marketplace]:
-https://marketplace.visualstudio.com/items?itemName=sbg-rabix.benten-cwl
+https://marketplace.visualstudio.com/items?itemName=denbi.denbi-benten-cwl
 
 
 ### Code organization
